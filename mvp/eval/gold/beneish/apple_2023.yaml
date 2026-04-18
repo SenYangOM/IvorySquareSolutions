@@ -1,0 +1,166 @@
+# Gold-standard case — compute_beneish_m_score for Apple Inc. FY2023 (CIK 0000320193).
+#
+# Authored by the evaluation_agent persona per mvp/human_layer/gold_authoring_guide.md.
+# Anchored to Phase 4 live-run value and Apple's steady-large-cap profile: modest
+# year-over-year changes, no growth anomalies, clean iXBRL data.
+
+case_id: apple_2023_beneish
+skill_id: compute_beneish_m_score
+skill_version: "0.1.0"
+
+issuer:
+  name: "Apple Inc."
+  cik: "0000320193"
+  ticker: "AAPL"
+
+filing:
+  accession: "0000320193-23-000106"
+  filing_type: "10-K"
+  fiscal_period_end: "2023-09-30"
+  prior_year_accession: "0000320193-22-000108"
+  prior_year_fiscal_period_end: "2022-09-24"
+
+inputs:
+  cik: "0000320193"
+  fiscal_year_end: "2023-09-30"
+  use_restated_if_available: false
+
+expected:
+  m_score:
+    value: -2.384
+    tolerance: 0.10
+    source_of_truth: live_implementation
+    rationale: |
+      Live Phase 4 run yielded M = -2.383948, well below the -1.78
+      threshold. BUILD_REFS.md §4.4's "typical modern M-scores for
+      steady large-caps are -2.5 to -3.5" puts Apple's value at the
+      upper edge of that band — consistent with a firm that's large,
+      mature, and in a modest revenue-contraction year (FY2023 iPhone
+      cycle dip).
+  flag:
+    value: manipulator_unlikely
+    rationale: >-
+      M = -2.384 is below -1.78 — Apple falls cleanly in the
+      control-sample region. Apple is a clean negative control for
+      the MVP eval.
+  components:
+    DSRI:
+      range: [0.95, 1.20]
+      point_estimate: 1.08
+      rationale: |
+        Trade receivables rose slightly relative to revenue — from
+        0.077 of revenue in FY2022 to 0.083 in FY2023. DSRI ~1.08 is
+        within the 0.9-1.1 "low" band in m_score_components.yaml —
+        routine working-capital variation; well below Beneish's 1.465
+        manipulator-sample mean.
+    GMI:
+      range: [0.95, 1.02]
+      point_estimate: 0.98
+      rationale: |
+        Apple's gross margin EXPANDED year-over-year (43.3% → 44.1%)
+        — Services mix-shift pushing margins up. GMI ~0.98 lands in
+        the "low" band. Margin expansion is the opposite of Beneish's
+        manipulation-incentive channel.
+    AQI:
+      range: [0.85, 1.05]
+      point_estimate: 0.94
+      rationale: |
+        Non-current non-PP&E assets share of the balance sheet fell
+        modestly — long-term marketable securities rebalancing. AQI
+        ~0.94 lands in the "low" band. No signal.
+    SGI:
+      range: [0.92, 1.02]
+      point_estimate: 0.97
+      rationale: |
+        Revenue contracted slightly (394.3B → 383.3B) — the first
+        full-year revenue decline in Apple's recent history, driven
+        by macro hardware softness. SGI ~0.97. Declining sales is
+        one-sided in the Beneish model (SGI < 1 isn't a flag).
+    DEPI:
+      range: [0.95, 1.08]
+      point_estimate: 1.00
+      rationale: |
+        Depreciation rate is essentially unchanged — Apple's PP&E
+        base and D&A both rose proportionally. DEPI ~1.00 is flat.
+    SGAI:
+      range: [0.98, 1.12]
+      point_estimate: 1.02
+      rationale: |
+        SG&A as % of revenue ticked up slightly (Services-mix growth
+        brings different opex). SGAI ~1.02 in the "low" band.
+    LVGI:
+      range: [0.90, 1.05]
+      point_estimate: 0.95
+      rationale: |
+        Apple's (LTD + current liab) / total assets fell slightly —
+        share buybacks reduce equity base but Apple is deleveraging
+        gross debt. LVGI ~0.95 in the "low" band.
+    TATA:
+      range: [-0.02, 0.05]
+      point_estimate: 0.015
+      rationale: |
+        Small positive working-capital build net of D&A. TATA ~0.015
+        is right at the control-sample mean of 0.018. No accruals
+        flag. The TATA approximation warning still fires but has
+        negligible effect at this magnitude.
+  citation_expectations:
+    min_count: 20
+    must_resolve: true
+    must_cite:
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+      - "trade_receivables_net (period=t)"
+      - "trade_receivables_net (period=t-1)"
+      - "cost_of_goods_sold (period=t)"
+      - "cost_of_goods_sold (period=t-1)"
+      - "current_assets (period=t)"
+      - "current_assets (period=t-1)"
+      - "current_liabilities (period=t)"
+      - "current_liabilities (period=t-1)"
+      - "property_plant_equipment_net (period=t)"
+      - "property_plant_equipment_net (period=t-1)"
+      - "total_assets (period=t)"
+      - "total_assets (period=t-1)"
+      - "depreciation_and_amortization (period=t)"
+      - "depreciation_and_amortization (period=t-1)"
+      - "selling_general_admin_expense (period=t)"
+      - "selling_general_admin_expense (period=t-1)"
+      - "long_term_debt (period=t)"
+      - "long_term_debt (period=t-1)"
+  confidence:
+    min: 0.70
+    max: 1.00
+    rationale: |
+      Apple is full-iXBRL with all 16 canonical line items populated
+      directly from companyfacts. Only the TATA-approximation warning
+      fires (-0.15 penalty) — live confidence is 0.85.
+  warnings_must_include:
+    - "tata_approximation"
+
+external_references:
+  - source: "Beneish, M. D. (1999). The Detection of Earnings Manipulation. Financial Analysts Journal, 55(5), 24-36."
+    note: "Apple post-dates the 1982-1992 sample; serves here as a modern-era clean-control replication."
+  - source: "BUILD_REFS.md §4.4"
+    note: "Apple/Microsoft should both be well below either threshold; typical modern M-scores for steady large-caps are -2.5 to -3.5."
+  - source: "data/demo_outputs/enron_2000_analyze_for_red_flags.json — Phase 4 live run context."
+    note: "All-5-case Phase 4 matrix tabled in BUILD_LOG.md Phase 4 section; Apple's M = -2.384 recorded."
+
+caveats: []
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (Phase 4 run 2026-04-17). External
+    cross-reference to BUILD_REFS.md's expected "large-cap M-score
+    band [-2.5, -3.5]" — Apple's value slightly above the low end
+    because FY2023 was a revenue-contraction year.
+  data_quality_caveats:
+    - "Apple's cover-page share count is reported 3 weeks post-FYE; irrelevant for Beneish (no market cap input) but noted for consistency across sibling gold cases."
+    - "Both FY2023 and FY2022 filings are iXBRL-tagged; all 16 canonical line items matched preferred concepts (no fallback mappings)."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, Phase 5 gold authoring"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

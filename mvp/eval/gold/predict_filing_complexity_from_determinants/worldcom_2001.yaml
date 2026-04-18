@@ -1,0 +1,146 @@
+# Gold-standard case — predict_filing_complexity_from_determinants for
+# WorldCom, Inc. FY2001 (CIK 0000723527, accession 0001005477-02-001226).
+#
+# Authored by the evaluation_agent persona during Paper 5 onboarding
+# (post-MVP paper_examples/ workstream). WorldCom FY2001 is chosen as
+# the most-discriminating MVP issuer for this skill because it is the
+# ONLY filing that stacks two confidence penalties (pre-iXBRL + MVE-
+# flagged), and its regressor profile exercises:
+#   - Size decile clamp to 1.0 (ln(103.9B) >> paper P90 10.128),
+#   - Leverage just above paper Median (decile ≈ 0.520),
+#   - BM decile clamp to 1.0 (1.385 > paper P90 1.264 — the late-2001
+#     WorldCom had sizable book equity relative to its much-diminished
+#     year-end market cap),
+#   - ROA decile clamp to 1.0 (EBIT / TA = 0.034 > paper P90 0.033 —
+#     as-originally-filed FY2001 numbers, before the 2004 restatement),
+#   - All five regressor contributions populated and non-trivial,
+#   - Stacked -0.15 + -0.15 = -0.30 confidence penalty → conf = 0.40.
+# This is the most information-dense gold case on the MVP corpus and
+# the one that most completely exercises the confidence model.
+
+case_id: worldcom_2001_predict_filing_complexity_from_determinants
+skill_id: predict_filing_complexity_from_determinants
+skill_version: "0.1.0"
+
+issuer:
+  name: "WorldCom, Inc."
+  cik: "0000723527"
+  ticker: "WCOM"
+
+filing:
+  accession: "0001005477-02-001226"
+  filing_type: "10-K"
+  fiscal_period_end: "2001-12-31"
+
+inputs:
+  cik: "0000723527"
+  fiscal_year_end: "2001-12-31"
+
+expected:
+  predicted_complexity_level:
+    value: 0.1329
+    tolerance: 0.010
+    source_of_truth: live_implementation
+    rationale: |
+      Live run at paper-5-onboarding time produced
+      predicted_complexity_level = 0.132917, delta = +0.014917.
+      Contributions: 10K +0.01018, Size +0.006, Leverage +0.000237
+      (leverage decile 0.5198, just above median 0.5), BM +0.0025
+      (BM clamps to decile 1.0; contribution = 0.005 * 0.5), ROA
+      -0.004 (ROA clamps to decile 1.0; contribution = -0.008 * 0.5).
+      Tolerance ±0.01 covers rule-template edits to the percentile
+      anchors or the 10K-ratio without flipping the flag band.
+  flag:
+    value: predicted_typical_complexity
+    rationale: >-
+      Level 0.1329 is in the typical band (0.100 <= level < 0.150),
+      not the elevated band. WorldCom's five-regressor profile under
+      our port is "big, borderline-levered, high-BM, high-ROA-on-
+      reported-numbers 10-K filer" — which lands just above sample
+      mean but below the +0.84-SD elevated cutoff. An expansion to
+      include the paper's Lifecycle-Mature regressor (coef -0.011)
+      would likely pull the level slightly DOWN (WorldCom was a
+      mature telecom operator). An expansion to include
+      ReturnVolatility (coef +0.007) would likely pull it UP. Net
+      direction ambiguous under the dropped regressors.
+  components:
+    "10K":
+      value: 0.01018
+      rationale: "0.014 * (1 - 15865/58148) = +0.01018; fixed for any 10-K in the paper's sample-type mix."
+    size:
+      value: 0.006
+      rationale: "0.012 * (1.0 - 0.5) = +0.006; Size decile 1.0 (clamp because ln(103.9B) >> paper P90 10.128 on ln($MM) scale)."
+    leverage:
+      value: 0.000237
+      rationale: |
+        0.012 * (0.519756 - 0.5) = +0.000237. WorldCom FY2001 LTD/TA
+        = 30.038B/103.914B = 0.28907, which interpolates between
+        paper Median 0.275 and P75 0.453 at decile 0.5198 — just
+        above median. The LTD-only proxy under-states paper-exact
+        Leverage because WorldCom had substantial current-portion-
+        of-LTD; a full (DLCQ+DLTTQ) mapping would lift this decile.
+    bm:
+      value: 0.0025
+      rationale: "0.005 * (1.0 - 0.5) = +0.0025; BM decile 1.0 (clamp because 1.385 > paper P90 1.264). The book-equity numerator uses as-originally-filed FY2001 TA-TL = 60.024B; market-value denominator is the estimated_from_aggregated_market_cap fixture entry 43.35B."
+    roa:
+      value: -0.004
+      rationale: "-0.008 * (1.0 - 0.5) = -0.004; ROA decile 1.0 (clamp because 0.034 > paper P90 0.033). As-originally-filed WorldCom EBIT was 3.514B; ROA = 3.514B/103.914B = 0.03382. The subsequent 2004 restatement would have reduced EBIT materially."
+  citation_expectations:
+    min_count: 5
+    must_resolve: true
+    must_cite:
+      - "total_assets"
+      - "total_liabilities"
+      - "long_term_debt"
+      - "ebit"
+      - "market_value_of_equity"
+  confidence:
+    min: 0.35
+    max: 0.45
+    rationale: |
+      Base 0.7 - 0.15 (pre-iXBRL SGML manual extraction) - 0.15 (MVE
+      fixture flagged estimated_from_aggregated_market_cap because
+      WorldCom's 2001 tracking-stock structure precluded a direct
+      close × shares product) = 0.40. Band ±0.05 allows for future
+      confidence-model refinements.
+  warnings_must_include:
+    - "headline_ml_measure_not_implemented"
+    - "decile_estimated_from_paper_percentiles"
+    - "roa_ebit_proxy"
+    - "leverage_long_term_only"
+    - "pre_ixbrl_manual_extraction"
+    - "market_value_estimated"
+
+external_references:
+  - source: "Bernard, D., Blankespoor, E., de Kok, T., & Toynbee, S. (December 2025). Using GPT to measure business complexity. Forthcoming The Accounting Review. SSRN 4480309."
+    note: "Section 4.3 / Table 3 Column 2 is the port source; Table 2 p. 46 supplies the percentile anchors; Table 1 Panel B supplies the 10-K ratio."
+  - source: "workshop/paper_to_skill/notes/bernard_2025_gpt_complexity.md §f"
+    note: "Documents the 5-of-11-regressors subset, sign convention, decile-interpolation strategy, baseline anchor choice, flag bands, and confidence model."
+  - source: "data/filings/0000723527/0001005477-02-001226/"
+    note: "WorldCom FY2001 10-K manual-extraction YAML is the source of truth for the pre-iXBRL line items."
+  - source: "data/market_data/equity_values.yaml"
+    note: "WorldCom FY2001 MVE entry 43,350,000,000 with market_cap_source=estimated_from_aggregated_market_cap — drives the -0.15 MVE-flag confidence penalty when BM is consumed."
+
+caveats:
+  - "WorldCom's FY2001 financials were subsequently restated due to the capitalized-line-costs fraud. The predicted_complexity score uses the originally-reported figures — as do all MVP skills that consume canonical statements — and is a structural-prediction signal, not a misstatement detector. Pair with compute_beneish_m_score for the manipulation screen."
+  - "Size decile clamps to 1.0 for every MVP issuer because our raw ln(TA in USD) is on a different scale than the paper's ln(ATQ in $MM) anchors. This is documented in manifest implementation_decisions[2] and limitations[2]; the discriminating power of Size emerges only on a wider issuer panel or after a scale-unit fix."
+  - "BM decile clamps to 1.0 here because WorldCom's late-2001 market cap was depressed relative to its book equity — a legitimate high-BM reading. The clamp is directionally correct but loses magnitude signal."
+  - "Future expansion: adding the six dropped regressors (Investment, FirmAge, Lifecycle, ReturnVolatility, AnalystFollow, Institutional) would refine this prediction. A mature-lifecycle low-institutional-ownership firm like WorldCom would likely shift the level slightly, direction ambiguous under the mixed-sign dropped set."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (Paper 5 onboarding, 2026-04-17). Re-run
+    produced predicted_complexity_level=0.132917,
+    predicted_complexity_delta=+0.014917,
+    flag=predicted_typical_complexity, confidence=0.40.
+  data_quality_caveats:
+    - "Pre-iXBRL SGML filing — line items come from data/manual_extractions/0000723527/0001005477-02-001226.yaml. The manual extraction was authored during MVP Phase 2 and hash-pinned in the canonical statement citations."
+    - "Market-value fixture is estimated_from_aggregated_market_cap per BUILD_REFS §2 note 4 — WorldCom's June-2001 tracking-stock split made direct close × shares impossible, so the companiesmarketcap.com year-end aggregate is the fixture source."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, Paper 5 onboarding"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

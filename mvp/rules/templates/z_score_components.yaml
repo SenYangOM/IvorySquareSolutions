@@ -1,0 +1,591 @@
+# mvp/rules/templates/z_score_components.yaml
+#
+# Per-component interpretation rules for the five Altman (1968) ratios
+# used by the compute_altman_z_score skill. Authored by the
+# accounting_expert persona (Phase 3). Consumed by mvp/engine/rule_executor.py
+# (Phase 4) and by the L2 interpret_z_score_components skill.
+#
+# Numeric thresholds. Altman (1968) reports per-firm Z-scores for the
+# initial matched-pair sample (33 bankrupt + 33 non-bankrupt manufacturing
+# firms, asset range $1M-$25M, bankruptcies 1946-1965) but anonymizes
+# the firms. The paper's §V ("Discussion of Empirical Findings") and
+# Table 6 ("Firms Whose Z Score Falls Within Gray Area") are the
+# primary sources for per-component and overall thresholds. Pdftotext
+# line numbers referenced come from the calctopia mirror; sha256
+# 34ba13a102ee4f1767762786e2720e9c6211e4d3d9252fb45856ca45cb21dd99.
+#
+# Authoring note on component thresholds. Altman presents the Z function
+# as a discriminant — individual variable thresholds are not the primary
+# focus; the overall Z score is. Per-component bands below are anchored
+# to (a) the Altman (1968) §III descriptions of what each variable
+# measures; (b) the practitioner-standard interpretation ranges used in
+# introductory corporate-finance textbooks (Brealey/Myers/Allen and
+# Ross/Westerfield/Jordan both discuss X1-X5 in roughly the same bands);
+# and (c) where Altman (1968) reports specific univariate group means
+# (§IV Table 2 of the original paper, implicit in the paper's discussion
+# of means), those are used. Component bands marked "practitioner" are
+# accountant-authored and noted in contextual_caveats.
+#
+# Canonical line-item names cited in citations_required MUST match
+# mvp/standardize/mappings.py exactly.
+
+template_version: "0.1.0"
+paper: "Altman (1968), Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy, Journal of Finance 23(4)."
+paper_pdf_sha256: "34ba13a102ee4f1767762786e2720e9c6211e4d3d9252fb45856ca45cb21dd99"
+
+# -----------------------------------------------------------------------------
+# X1 — Working Capital / Total Assets
+# -----------------------------------------------------------------------------
+components:
+
+  - component: X1
+    full_name: "Working Capital / Total Assets"
+    description: >-
+      Working capital (current assets minus current liabilities) divided
+      by total assets. A net-liquidity measure capturing both the level
+      of liquid assets and the size of the firm. Altman (1968, §III):
+      "Ordinarily, a firm experiencing consistent operating losses will
+      have shrinking current assets in relation to total assets."
+    formula: "(current_assets_t - current_liabilities_t) / total_assets_t"
+    canonical_inputs:
+      - "current_assets (period=t)"
+      - "current_liabilities (period=t)"
+      - "total_assets (period=t)"
+    coefficient: 0.012
+    practitioner_coefficient: 1.2
+    coefficient_notes: >-
+      Altman (1968) §III equation (I) prints the coefficient as 0.012,
+      to be applied when X1 is expressed as a percentage. The
+      practitioner form (used in all MVP calculations) multiplies by
+      100, giving 1.2 when X1 is expressed as a decimal ratio. Both
+      produce identical Z scores.
+    paper_reference:
+      source: "Altman (1968)"
+      table: "§III (variable descriptions), §IV (discriminant function), §V (discussion)"
+      page: "595-596 (variable description); 597 (function printed); Table 6 (gray-area firm-level values)"
+    interpretation_rules:
+      - condition: "value > 0.30"
+        interpretation: |
+          A comfortably positive net-liquidity position — working
+          capital exceeds 30% of total assets. Firms in this zone
+          rarely contribute distress signal through X1 alone; in
+          Altman's 1968 sample this is well inside the non-bankrupt
+          distribution. Typical for cash-rich growth firms and for
+          mature firms with substantial receivable / inventory balances
+          against modest payables.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_liabilities (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.10 <= value <= 0.30"
+        interpretation: |
+          Moderate net liquidity. Within the range of a healthy
+          operating company with a normal working-capital cycle. The
+          component is contributing a neutral-to-positive amount to
+          the overall Z score; it is not flagging distress.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the working-capital cycle consistent with peers in the same industry (DSO, DIO, DPO)?"
+          - "Has working-capital / total-assets trended stable, improving, or deteriorating over the last three fiscal years?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_liabilities (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.0 <= value < 0.10"
+        interpretation: |
+          Very thin working-capital cushion. Either the firm runs a
+          working-capital-light model (subscription, marketplace, pre-
+          paid) or it is stretched; the two look identical at this
+          level and the footnote detail is what disambiguates. The
+          component is contributing a small negative to the overall Z
+          score.
+        severity: "medium"
+        follow_up_questions:
+          - "Does the firm run a business model that naturally produces minimal working capital (unearned-revenue-funded, float-funded)?"
+          - "Has the current-liability base grown faster than the current-asset base over the last two years?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_liabilities (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "value < 0.0"
+        interpretation: |
+          Negative working capital — current liabilities exceed current
+          assets. Altman's 1968 discussion (p. 595) names this as the
+          signature of a firm "experiencing consistent operating losses"
+          having its current assets erode against its obligations.
+          However, negative X1 is also common and benign in two
+          business models: (a) customer prepaid revenue (deferred
+          revenue is a current liability, cash has been received and
+          already deployed into long-term assets — Microsoft, Adobe),
+          and (b) float-funded retail (trade payables funding
+          inventory — Amazon's early model, Dell). The distress
+          interpretation requires ruling out these benign cases via
+          the deferred-revenue and supplier-finance footnotes.
+        severity: "high"
+        follow_up_questions:
+          - "What share of current liabilities is deferred revenue, and is the firm's revenue stream demonstrably front-loaded?"
+          - "What share of current liabilities is ordinary trade payables, and is the payable turnover comparable to peers?"
+          - "Has working capital been negative for multiple consecutive periods, or is this a single-year anomaly?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_liabilities (period=t)"
+          - "total_assets (period=t)"
+
+    contextual_caveats:
+      - "Subscription, software, and media firms with large deferred-revenue balances routinely run negative X1 without any distress signal; the Z framework applies most naturally to manufacturers (Altman's 1968 sample) and requires a careful read for services/subscription models."
+      - "Banks and insurance companies use an entirely different balance-sheet structure and the Altman Z framework does not apply to them — the MVP does not cover SIC 6000s filers."
+      - "The 0.30 and 0.10 band boundaries are practitioner-standard and not directly reported in Altman (1968)."
+
+# -----------------------------------------------------------------------------
+# X2 — Retained Earnings / Total Assets
+# -----------------------------------------------------------------------------
+
+  - component: X2
+    full_name: "Retained Earnings / Total Assets"
+    description: >-
+      Retained earnings divided by total assets — a cumulative-
+      profitability-over-time measure that implicitly considers firm
+      age. Altman (1968, §III): "The age of a firm is implicitly
+      considered in this ratio. For example, a relatively young firm
+      will probably show a low RE/TA ratio because it has not had time
+      to build up its cumulative profits."
+    formula: "retained_earnings_t / total_assets_t"
+    canonical_inputs:
+      - "retained_earnings (period=t)"
+      - "total_assets (period=t)"
+    coefficient: 0.014
+    practitioner_coefficient: 1.4
+    coefficient_notes: >-
+      Altman (1968) prints the coefficient as 0.014 with X2 entered as
+      a percentage; the practitioner form uses 1.4 with X2 entered as
+      a decimal ratio. Both produce identical Z scores.
+    paper_reference:
+      source: "Altman (1968)"
+      table: "§III (variable description)"
+      page: "595-596"
+    interpretation_rules:
+      - condition: "value > 0.40"
+        interpretation: |
+          Very high cumulative profitability relative to the current
+          asset base. Typical of mature, cash-generative businesses
+          that have retained substantial earnings over decades. X2
+          contributes a strongly positive amount to Z for firms in this
+          band. Note that a large one-time share repurchase funded
+          from retained earnings can depress X2 for an otherwise
+          healthy firm — read in conjunction with the equity
+          roll-forward.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "retained_earnings (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.10 <= value <= 0.40"
+        interpretation: |
+          Moderate cumulative retained earnings. A typical
+          middle-aged firm with a normal dividend policy and no
+          large retained-earnings-reducing events (big buybacks,
+          spin-offs) sits here. The component contributes a mild
+          positive to the Z score.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "retained_earnings (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.0 <= value < 0.10"
+        interpretation: |
+          Low cumulative profitability — either a young firm that has
+          not yet had time to compound earnings, or an older firm that
+          has returned most of its earnings to shareholders via
+          dividends and buybacks, or an older firm that has recently
+          absorbed a sizable loss. Altman's age-bias observation
+          applies: this band overlaps the high-incidence-of-failure
+          band for young firms.
+        severity: "medium"
+        follow_up_questions:
+          - "How old is the firm relative to typical industry life?"
+          - "What has the treasury-stock + dividend-payout history done to retained earnings over the past 3-5 years?"
+        citations_required:
+          - "retained_earnings (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "value < 0.0"
+        interpretation: |
+          Accumulated deficit — cumulative losses exceed cumulative
+          retained earnings plus any reclassifications. Altman's 1968
+          sample's bankrupt firms frequently show negative X2. In a
+          modern setting this signal is weaker because stock buybacks
+          (Apple, Microsoft) and stock-compensation-heavy firms
+          (Starbucks) can drive retained earnings negative via APIC
+          reclassifications without any operating-loss story. A
+          reviewer must read the equity roll-forward to distinguish.
+        severity: "high"
+        follow_up_questions:
+          - "Is the negative retained earnings the result of cumulative operating losses, or of share buybacks / treasury-stock reclassifications?"
+          - "What is the pattern of annual net income over the past 3-5 years?"
+          - "Is there an accumulated-deficit-warning discussion in the MD&A or the going-concern footnote?"
+        citations_required:
+          - "retained_earnings (period=t)"
+          - "total_assets (period=t)"
+
+    contextual_caveats:
+      - "Altman himself notes (1968 footnote 24) that retained earnings 'is subject to manipulation via corporate quasi-reorganizations and stock dividend declarations.' Modern analogues include stock-based compensation charged against APIC, or retained-earnings resets from spinoffs. Read the equity roll-forward."
+      - "For the MVP's five sample issuers, Apple and Microsoft both have positive RE well above 0.40 (despite their large buyback programs) and Enron / WorldCom / Carvana present the lower-band readings. Carvana FY2022 is likely to post X2 near or below zero given cumulative losses in the public-company period."
+      - "The 0.40, 0.10, and 0.0 band boundaries are practitioner-standard; they are not reported in Altman (1968) as per-component thresholds."
+
+# -----------------------------------------------------------------------------
+# X3 — EBIT / Total Assets
+# -----------------------------------------------------------------------------
+
+  - component: X3
+    full_name: "EBIT / Total Assets"
+    description: >-
+      Earnings before interest and taxes divided by total assets. A
+      pre-financing, pre-tax measure of the productivity of the firm's
+      assets. Altman (1968, §III): "a measure of the true productivity
+      of the firm's assets, abstracting from any tax or leverage
+      factors... insolvency in a bankruptcy sense occurs when the total
+      liabilities exceed a fair valuation of the firm's assets with
+      value determined by the earning power of the assets."
+    formula: "ebit_t / total_assets_t"
+    canonical_inputs:
+      - "ebit (period=t)"
+      - "total_assets (period=t)"
+    coefficient: 0.033
+    practitioner_coefficient: 3.3
+    coefficient_notes: >-
+      Altman (1968) prints 0.033 with X3 entered as a percentage;
+      practitioner form uses 3.3 with X3 entered as a decimal ratio.
+      X3 carries the largest practitioner-form coefficient of the five
+      variables — bankruptcy prediction is dominated by operating
+      productivity.
+    paper_reference:
+      source: "Altman (1968)"
+      table: "§III (variable description)"
+      page: "595-596"
+    interpretation_rules:
+      - condition: "value > 0.20"
+        interpretation: |
+          Strong asset productivity — operating earnings exceed 20% of
+          total assets, a level typical of high-margin or capital-
+          light businesses. X3 is the heaviest-weighted Altman
+          component at the practitioner coefficient of 3.3, so a
+          high reading adds substantially to the Z score. Apple and
+          Microsoft sit in this band comfortably.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.05 <= value <= 0.20"
+        interpretation: |
+          Healthy asset productivity — operating earnings in single-
+          to-low-double-digit percent of the asset base. A typical
+          profitable manufacturer or well-run services business is
+          here. Contributes a positive amount to the overall Z score.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.0 <= value < 0.05"
+        interpretation: |
+          Thin operating productivity — the firm is earning a return
+          on assets well below a typical cost of capital, even at the
+          operating line. A real reviewer investigates whether the
+          thinness is cyclical (a bad year in an otherwise capable
+          business), structural (low-margin industry), or pre-distress.
+        severity: "medium"
+        follow_up_questions:
+          - "Has EBIT declined meaningfully over the past 3 years, or is this a one-off bad year?"
+          - "Does the MD&A call out identifiable one-time items (impairments, restructuring, legal settlements) inside EBIT?"
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "value < 0.0"
+        interpretation: |
+          The firm is operating at a loss at the EBIT line — losses
+          even before interest and taxes. Altman's framing — that
+          "insolvency in a bankruptcy sense occurs when the total
+          liabilities exceed a fair valuation of the firm's assets
+          with value determined by the earning power of the assets" —
+          is at its strongest here: negative earning power directly
+          undermines the asset value that backs the liabilities.
+          Given X3's 3.3 practitioner coefficient, a material negative
+          reading can push Z into distress territory by itself.
+        severity: "high"
+        follow_up_questions:
+          - "How long has EBIT been negative, and what is management's stated path to positive EBIT?"
+          - "Are there non-cash charges (goodwill impairments, stock-based compensation) that would distinguish this from a cash operating loss?"
+          - "What is the interest-coverage picture, and how long can existing liquidity fund the operating burn?"
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+
+    contextual_caveats:
+      - "Where the standardization layer could not map a single EBIT / OperatingIncomeLoss concept (Carvana FY2022 is the MVP example — no OperatingIncomeLoss tag in the filing), the skill returns null on X3 and the composite Z flag is indeterminate. The Phase 4 skill manifest's implementation_decisions names this explicitly."
+      - "Heavy non-cash charges (goodwill impairments, large stock-based compensation) can push EBIT negative without any cash-flow distress. A reviewer should consult operating cash flow before treating a negative X3 as a going-concern signal."
+      - "The 0.20, 0.05, and 0.0 band boundaries are practitioner-standard; Altman (1968) does not report per-component thresholds."
+
+# -----------------------------------------------------------------------------
+# X4 — Market Value of Equity / Book Value of Total Liabilities
+# -----------------------------------------------------------------------------
+
+  - component: X4
+    full_name: "Market Value of Equity / Book Value of Total Liabilities"
+    description: >-
+      Combined market value of all equity (preferred + common) divided
+      by the book value of total debt, including both current and
+      long-term. Altman (1968, §III): "The measure shows how much the
+      firm's assets can decline in value (measured by market value of
+      equity plus debt) before the liabilities exceed the assets and
+      the firm becomes insolvent."
+    formula: "market_value_of_equity_t / total_liabilities_t"
+    canonical_inputs:
+      - "market_value_of_equity_t  # from data/market_data/equity_values.yaml, not a canonical line item"
+      - "total_liabilities (period=t)"
+    coefficient: 0.006
+    practitioner_coefficient: 0.6
+    coefficient_notes: >-
+      Altman (1968) prints 0.006; practitioner form uses 0.6. X4
+      carries the second-smallest practitioner coefficient (0.6) —
+      the market-confidence variable is a modest contributor to the
+      overall Z by design.
+    paper_reference:
+      source: "Altman (1968)"
+      table: "§III (variable description)"
+      page: "596"
+    interpretation_rules:
+      - condition: "value > 2.0"
+        interpretation: |
+          Market value of equity is more than 2x book liabilities — the
+          market is pricing the firm with substantial equity cushion
+          over creditor claims. A comfortable reading; typical of
+          growth firms and profitable mature firms.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "total_liabilities (period=t)"
+
+      - condition: "0.5 <= value <= 2.0"
+        interpretation: |
+          Market equity in the same order of magnitude as book
+          liabilities. The market sees enough asset-value cushion to
+          cover the creditors in a going-concern scenario but not
+          dramatically more. A typical reading for a leveraged
+          operating company.
+        severity: "medium"
+        follow_up_questions:
+          - "How has the equity market cap moved over the last 12-24 months relative to book liabilities?"
+          - "Does the firm have any material off-balance-sheet obligations (operating-lease commitments pre-ASC-842, guarantees, purchase obligations) that would compress this ratio if capitalized?"
+        citations_required:
+          - "total_liabilities (period=t)"
+
+      - condition: "0.2 <= value < 0.5"
+        interpretation: |
+          Market equity at 20-50% of book liabilities — the market is
+          pricing a meaningful probability of distress or heavy equity
+          dilution. A real reviewer cross-checks with bond spreads
+          and CDS levels if available; the market is signaling
+          something the accounting statements alone may not.
+        severity: "high"
+        follow_up_questions:
+          - "What is the firm's bond or CDS spread, and does the credit market agree with the equity market's assessment?"
+          - "What recent events (earnings surprises, downgrades, management turnover, sector shocks) precipitated the equity repricing?"
+        citations_required:
+          - "total_liabilities (period=t)"
+
+      - condition: "value < 0.2"
+        interpretation: |
+          Market value of equity below 20% of book liabilities — the
+          equity is approaching option-like pricing on the asset value,
+          and the market is signaling substantial default probability.
+          Carvana's FYE 2022 reading sits near this level per the
+          MVP's equity-values fixture (~$0.5B MVE against ~$9B in
+          liabilities, X4 ≈ 0.06). Altman's cushion argument fails
+          here: a small drop in asset value puts the creditors
+          underwater.
+        severity: "critical"
+        follow_up_questions:
+          - "What is the firm's refinancing schedule over the next 12-24 months, and at what implied rates can it access new capital?"
+          - "Has the firm disclosed going-concern language or covenant-waiver discussions?"
+          - "Is there an identifiable path — asset sale, capital raise, workout — through the current market-implied stress?"
+        citations_required:
+          - "total_liabilities (period=t)"
+
+    contextual_caveats:
+      - "Market value of equity is an exogenous input for the MVP — it comes from data/market_data/equity_values.yaml, hand-curated for the five sample issuers. It is NOT a canonical line item from mvp/standardize/mappings.py, and the citation for X4's numerator must resolve to the market-data fixture rather than a filing line."
+      - "For dual-class share structures (Carvana, Alphabet), the MVE convention matters. The MVP's fixture uses Class-A-traded MVE only for Carvana, treating the founder-held Class B as zero in the market-cap calculation — a conservative choice documented in the fixture's notes field."
+      - "For firms with material non-common-equity claims (preferred stock, convertible debt classified as mezzanine), the numerator ideally includes preferred-stock market value. The MVP's fixture uses common-only MVE; this is documented and is a known limitation."
+      - "The 2.0, 0.5, and 0.2 band boundaries are practitioner-standard; Altman (1968) illustrates the intuition with the $1000 / $500 example (p. 596) but does not publish per-component threshold bands."
+
+# -----------------------------------------------------------------------------
+# X5 — Sales / Total Assets
+# -----------------------------------------------------------------------------
+
+  - component: X5
+    full_name: "Sales / Total Assets"
+    description: >-
+      Sales divided by total assets — the classic asset-turnover ratio.
+      Altman (1968, §III): "a standard financial ratio illustrating
+      the sales generating ability of the firm's assets. It is one
+      measure of management's capability in dealing with competitive
+      conditions. This final ratio is quite important because... it is
+      the least significant [on a univariate basis] but ranks second in
+      its contribution to the overall discriminating ability of the
+      model."
+    formula: "revenue_t / total_assets_t"
+    canonical_inputs:
+      - "revenue (period=t)"
+      - "total_assets (period=t)"
+    coefficient: 0.999
+    practitioner_coefficient: 0.999
+    coefficient_notes: >-
+      Altman (1968) §III equation (I) prints the coefficient on X5 as
+      0.999 — PAPER-EXACT. The practitioner form keeps this value at
+      0.999 rather than rounding to 1.0 because X5 is already entered
+      as a decimal ratio in the original equation (unlike X1-X4,
+      which are entered as percentages and therefore have their
+      coefficients multiplied by 100 to move to the practitioner form).
+      Many textbooks round to 1.0; the MVP uses 0.999 to preserve
+      paper fidelity. The rounding produces a Z drift of 0.001 * X5,
+      typically <0.003 for any realistic filing — negligible at the
+      skill's ±0.10 tolerance but documented for honesty.
+    paper_reference:
+      source: "Altman (1968)"
+      table: "§III (variable description); Equation I"
+      page: "596 (variable description); 597 (Equation I)"
+    interpretation_rules:
+      - condition: "value > 1.5"
+        interpretation: |
+          High asset turnover — the firm is generating more than $1.50
+          of sales per dollar of assets. Typical of retailers (high-
+          velocity inventory), distribution businesses, and service
+          firms with light asset bases. Carvana's business model
+          generates a naturally high X5 because it books the gross
+          selling price of vehicles against a relatively small owned
+          fleet — a sector-mechanical effect, not a quality signal.
+        severity: "low"
+        follow_up_questions:
+          - "Is the high turnover consistent with the industry norm, or unusually elevated relative to peers?"
+        citations_required:
+          - "revenue (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.7 <= value <= 1.5"
+        interpretation: |
+          Healthy asset turnover for a typical operating company.
+          Manufacturers, diversified services firms, and most
+          mid-cap industrials sit here. The component contributes a
+          normal-sized positive amount to the overall Z score.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "revenue (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.3 <= value < 0.7"
+        interpretation: |
+          Moderate-to-low asset turnover. Typical of asset-heavy
+          industries (utilities, heavy manufacturing, real estate-
+          adjacent businesses) and of firms in growth-capex periods
+          where the asset base has outpaced current-period revenue.
+          The component is contributing less than its full potential
+          to Z.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the current asset base inflated by a recent capex cycle or acquisition that has not yet produced its full revenue run-rate?"
+          - "How does the firm's asset turnover compare to the industry peer-median at the same asset-size bracket?"
+        citations_required:
+          - "revenue (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "value < 0.3"
+        interpretation: |
+          Very low asset turnover — either the firm is in a heavily
+          asset-intensive business (utility, pipeline, insurance
+          subsidiary) for which the Altman framework is a poor fit,
+          or the asset base is very large relative to current
+          revenue (possibly following an acquisition that has not
+          yet ramped, or following a revenue collapse). Low X5
+          materially depresses Z; a reviewer should cross-check X3
+          (EBIT/assets) and decide which of the two is the root
+          cause before concluding distress.
+        severity: "high"
+        follow_up_questions:
+          - "What is the stated industry SIC, and is the Altman Z framework appropriate for it at all?"
+          - "Has revenue collapsed recently, or has the asset base expanded via M&A/capex that has not yet produced revenue?"
+          - "Does the company's internally-reported asset-utilization metric agree with this reading?"
+        citations_required:
+          - "revenue (period=t)"
+          - "total_assets (period=t)"
+
+    contextual_caveats:
+      - "Altman's 1968 sample is manufacturers only; the original Z score's coefficients were estimated against manufacturing-sector covariances and are known to extend imperfectly to service and financial businesses. Altman published a Z'-prime 1983 revision for non-manufacturers that omits X5 entirely. The MVP uses original 1968 Z for all 5 issuers — this is a known scope limitation documented in the skill manifest's limitations block."
+      - "For firms that distribute on behalf of principals (Carvana vehicles, e-commerce marketplaces), the choice of gross vs. net revenue under ASC 606 materially affects X5. The standardization layer uses the filer's reported top-line revenue; any gross-vs-net reclassification will show in X5."
+      - "The 1.5, 0.7, and 0.3 band boundaries are practitioner-standard; Altman (1968) does not report per-component thresholds."
+
+# -----------------------------------------------------------------------------
+# Composite Z-score thresholds and flag logic
+# -----------------------------------------------------------------------------
+
+z_score_thresholds:
+  distress_threshold: 1.81
+  grey_zone_upper_bound: 2.99
+  safe_threshold: 2.99
+  optimal_midpoint_cutoff: 2.675
+  source: >-
+    Altman (1968), §V "Discussion of Empirical Findings," direct quote:
+    "all firms having a Z score of greater than 2.99 clearly fall into
+    the 'non-bankrupt' sector, while those firms having a Z below 1.81
+    are all bankrupt. The area between 1.81 and 2.99 will be defined
+    as the 'zone of ignorance' or 'gray area'." The 2.675 optimal
+    midpoint is derived in the paper (Table 7) as the Z score that
+    minimizes the total number of gray-area misclassifications (a
+    binary-cutoff alternative to the three-zone reading).
+  zones:
+    - zone: "distress"
+      condition: "Z < 1.81"
+      interpretation: >-
+        Altman's 1968 discriminant sample has all firms with Z below
+        1.81 as bankrupt within two years of the filing window.
+        Treating this reading on a current issuer as a near-term-
+        distress signal is consistent with the paper — though as
+        Altman himself notes, coefficients estimated on a 1946-1965
+        manufacturing sample may not generalize cleanly to a 2020s
+        business environment. Pair with the market-implied distress
+        signals (CDS, bond spreads, market cap) before acting.
+      severity: "high"
+    - zone: "grey_zone"
+      condition: "1.81 <= Z <= 2.99"
+      interpretation: >-
+        Altman's "zone of ignorance." The 1968 sample has both
+        bankrupt and non-bankrupt firms in this range; classification
+        cannot be made with confidence on the Z score alone. A
+        reviewer needs the underlying component reading and
+        external corroboration (market view, credit ratings, covenant
+        status) to form a view.
+      severity: "medium"
+    - zone: "safe"
+      condition: "Z > 2.99"
+      interpretation: >-
+        Altman's 1968 sample has zero bankrupt firms with Z > 2.99.
+        The reading is consistent with the going-concern assumption;
+        treat absence of Z-signal as absence of evidence (not
+        evidence of absence) — other frameworks (O-score, LGD-based
+        models) may flag issues Z does not.
+      severity: "low"
+  flag_logic:
+    - "if Z > 2.99: flag = safe"
+    - "if 1.81 <= Z <= 2.99: flag = grey_zone"
+    - "if Z < 1.81: flag = distress"
+    - "if any component input is null (e.g., ebit not available, market_value_of_equity missing, total_liabilities zero): flag = indeterminate, Z = null"

@@ -1,0 +1,284 @@
+# Manifest for analyze_for_red_flags — L4 composite skill.
+# Orchestrates compute_beneish_m_score + compute_altman_z_score +
+# interpret_m_score_components + interpret_z_score_components into a
+# single agent-facing call that returns both scores, both component
+# breakdowns, both per-component interpretations, and merged citations.
+
+skill_id: analyze_for_red_flags
+version: 0.1.0
+layer: composite
+status: alpha
+maintainer_persona: accounting_expert
+description_for_llm: >-
+  Run a combined earnings-manipulation + bankruptcy-risk screen on a
+  US public company's 10-K filing. Returns two result blocks —
+  m_score_result (Beneish 1999 M-score, 8 components, per-component
+  interpretations, citations, flag) and z_score_result (Altman 1968
+  Z-score, 5 components, per-component interpretations, citations,
+  flag) — plus a provenance block that names the composite version,
+  the rule-set version, and the sub-skill versions that produced each
+  result. Use this as the one-call entry point when an agent wants
+  both red-flag screens for a given issuer; do NOT call this to
+  retrieve either score in isolation (call the paper-derived skills
+  directly for those). Both scores are deterministic functions of
+  the canonical statements and the market-data fixture — identical
+  inputs produce identical outputs modulo the provenance timestamps.
+
+provenance:
+  source_papers: []
+
+implementation_decisions:
+  - decision: >-
+      Sub-skill invocation goes through the registry
+      (mvp.skills.registry.default_registry) rather than via direct
+      imports of ComputeBeneishMScore, etc.
+    rationale: >-
+      P3 "single seam" — CLI, API, MCP, and this composite all hit
+      the same registry. Direct imports would create a second
+      dispatch path that could drift from the registry's version
+      pinning and audit stamping.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      A sub-skill error envelope (returned as {"error": {...}} rather
+      than a valid output) is bubbled up as the composite's own error
+      envelope with error_code prefixed "sub_skill_error." — the
+      composite does not emit a partial result.
+    rationale: >-
+      P2 "no silent fallback." If either paper-derived score fails
+      the composite is uninterpretable; a partial output would invite
+      the caller to treat an absent Z as the absence of distress
+      signal (evidence of absence vs. absence of evidence). Failing
+      the whole call is the safer default.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      The m_score_result and z_score_result blocks each carry their
+      sub-skill's citations PLUS the corresponding interpretation
+      skill's citations, merged and deduplicated on (doc_id,
+      locator). Provenance for the composite run (composite_version,
+      sub_skill_versions, run_at, run_id) lives in a separate
+      top-level provenance block.
+    rationale: >-
+      Agent-facing convenience — one call yields every citation for
+      both scores without the caller having to walk nested
+      interpretation arrays. Dedupe keeps the payload compact for
+      well-covered filings.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer.
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+
+outputs:
+  type: object
+  required: [m_score_result, z_score_result, provenance]
+  additionalProperties: true
+  properties:
+    m_score_result:
+      type: object
+      description: >-
+        The Beneish M-score sub-result block. Carries the scalar
+        score, flag, 8-component dict, per-component interpretations,
+        merged citations, overall interpretation text, confidence,
+        and warnings.
+      additionalProperties: true
+      properties:
+        score:
+          type: ["number", "null"]
+          description: Scalar M-score (null when flag is indeterminate).
+        flag:
+          type: string
+          description: manipulator_likely / manipulator_unlikely / indeterminate.
+        components:
+          type: object
+          description: The 8 Beneish components (DSRI..TATA).
+          additionalProperties: true
+        interpretations:
+          type: array
+          description: Per-component interpretations (ComponentInterpretation objects).
+          items:
+            type: object
+            description: One ComponentInterpretation record.
+        overall_interpretation:
+          type: string
+          description: 2-4 sentence deterministic narrative summary.
+        citations:
+          type: array
+          description: Merged, deduplicated citations for every underlying line item.
+          items:
+            type: object
+            description: One Citation record.
+        confidence:
+          type: number
+          description: Numeric confidence score in [0, 1].
+        warnings:
+          type: array
+          description: Warnings from both the computation and the interpretation.
+          items:
+            type: string
+            description: One warning string.
+    z_score_result:
+      type: object
+      description: >-
+        The Altman Z-score sub-result block. Same shape as
+        m_score_result but for the 5 Altman components and the zone
+        flag (safe / grey_zone / distress / indeterminate).
+      additionalProperties: true
+      properties:
+        score:
+          type: ["number", "null"]
+          description: Scalar Z-score (null when flag is indeterminate).
+        flag:
+          type: string
+          description: safe / grey_zone / distress / indeterminate.
+        components:
+          type: object
+          description: The 5 Altman components (X1..X5).
+          additionalProperties: true
+        interpretations:
+          type: array
+          description: Per-component interpretations.
+          items:
+            type: object
+            description: One ComponentInterpretation record.
+        overall_interpretation:
+          type: string
+          description: 2-4 sentence deterministic narrative summary.
+        citations:
+          type: array
+          description: Merged, deduplicated citations.
+          items:
+            type: object
+            description: One Citation record.
+        confidence:
+          type: number
+          description: Numeric confidence score in [0, 1].
+        warnings:
+          type: array
+          description: Warnings from both the computation and the interpretation.
+          items:
+            type: string
+            description: One warning string.
+    provenance:
+      type: object
+      description: >-
+        Composite-level provenance. Names the composite version, the
+        rule-set version, the build id, the per-sub-skill versions
+        that produced each result, and the run timestamp / run id
+        (stamped by the Skill base class at run() boundary).
+      additionalProperties: true
+      properties:
+        composite_skill_id:
+          type: string
+          description: Always "analyze_for_red_flags".
+        composite_version:
+          type: string
+          description: SemVer version of this composite skill.
+        rule_set_version:
+          type: string
+          description: SemVer version of the rule templates that produced interpretations.
+        build_id:
+          type: string
+          description: Build id derived from BUILD_STATE.json.
+        sub_skill_versions:
+          type: object
+          description: Per-sub-skill version dict.
+          additionalProperties: true
+        inputs_echo:
+          type: object
+          description: Echo of the inputs for downstream audit.
+          additionalProperties: true
+
+citation_contract:
+  required_per_field:
+    m_score_result: >-
+      The m_score_result block's own citations array is non-empty
+      whenever m_score_result.score is non-null; it covers every
+      canonical line item feeding the 8 Beneish components.
+    z_score_result: >-
+      The z_score_result block's own citations array is non-empty
+      whenever z_score_result.score is non-null; it covers every
+      canonical line item feeding the 5 Altman components plus the
+      market-data fixture row for X4's numerator.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<statement_role>::<canonical_line_item_name> OR market_data/equity_values::market_data::market_value_of_equity_<cik>_<fye>"
+
+confidence:
+  computed_from:
+    - m_score_confidence (from interpret_m_score_components)
+    - z_score_confidence (from interpret_z_score_components)
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: compute_beneish_m_score
+      min_version: 0.1.0
+    - skill_id: compute_altman_z_score
+      min_version: 0.1.0
+    - skill_id: interpret_m_score_components
+      min_version: 0.1.0
+    - skill_id: interpret_z_score_components
+      min_version: 0.1.0
+  lib:
+    - mvp.skills.registry
+  rules:
+    - rules/templates/m_score_components.yaml
+    - rules/templates/z_score_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/composite/
+  eval_metrics:
+    - name: both_results_present
+      target: "= 1.00 when inputs valid"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The composite is an orchestrator — its correctness is bounded by
+    the correctness of the four sub-skills. Paper-replication and
+    eval failures surface through the sub-skills' tests, not through
+    this skill.
+  - >-
+    Returning both scores does not imply the two flags are
+    independent: earnings manipulation (Beneish) and distress
+    (Altman) are correlated phenomena in practice. A reviewer must
+    not treat co-flagging as double the signal.
+  - >-
+    Supports only the 5 MVP issuers × 2 fiscal years each. Other
+    inputs surface as an unknown_filing error from the paper-derived
+    sub-skills.
+
+examples:
+  - name: "Enron FY2000 — the canonical composite run"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    notes: >-
+      Produces both blocks with Enron FY2000 flagged by Beneish
+      (manipulator_likely) and Altman grey-zone. Used as the Phase 4
+      acceptance demo; the JSON output is saved under
+      data/demo_outputs/enron_2000_analyze_for_red_flags.json.
+  - name: "Apple FY2023 — clean negative control"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Beneish: manipulator_unlikely. Altman: safe. The composite
+      demonstrates that the red-flag screen clears a known-clean
+      issuer.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 450

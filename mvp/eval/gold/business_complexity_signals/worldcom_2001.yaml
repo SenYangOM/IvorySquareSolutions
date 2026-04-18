@@ -1,0 +1,153 @@
+# Gold-standard case — compute_business_complexity_signals for
+# WorldCom, Inc. FY2001 (CIK 0000723527, accession 0001005477-02-001226).
+#
+# Authored by the evaluation_agent persona during paper-3 onboarding
+# (post-MVP paper_examples/ workstream). WorldCom FY2001 is chosen as
+# the load-bearing case for the skill's "classical multi-signal
+# complex-monitoring" profile — a large-cap telecoms conglomerate
+# with heavy SG&A intensity (31%, driven by the substantial corporate
+# overhead typical of an acquisition-rolled-up multi-state carrier).
+# The case exercises:
+#   - size_fired = 1 (revenue $35B >> $1B threshold),
+#   - complexity_fired = 1 (SG&A / Rev = 0.31 > 0.15 threshold),
+#   - stability_fired = 0 (|dRev/Rev_{t-1}| = 0.10005 — JUST above the
+#     0.10 threshold — the sign-reversed stability indicator does NOT
+#     fire, which is the correct paper-faithful result),
+# plus pre_ixbrl_manual_extraction confidence penalty (SGML-era
+# filing).
+#
+# The borderline-stability case is deliberate: the paper's Table 3
+# stability coefficient is continuous, so a threshold-adjacent firm
+# tests whether our binary discretisation behaves as documented.
+
+case_id: worldcom_2001_business_complexity_signals
+skill_id: compute_business_complexity_signals
+skill_version: "0.1.0"
+
+issuer:
+  name: "WorldCom, Inc."
+  cik: "0000723527"
+  ticker: "WCOM"
+
+filing:
+  accession: "0001005477-02-001226"
+  filing_type: "10-K"
+  fiscal_period_end: "2001-12-31"
+
+inputs:
+  cik: "0000723527"
+  fiscal_year_end: "2001-12-31"
+
+expected:
+  business_complexity_score:
+    value: 0.7053
+    tolerance: 0.05
+    source_of_truth: live_implementation
+    rationale: |
+      Live run at paper-3-onboarding time produced score 0.7053
+      (which equals WEIGHTS["size"] + WEIGHTS["complexity"] exactly:
+      0.3158 + 0.3895 = 0.7053). Size fires (revenue $35.18B >> $1B);
+      complexity fires (SG&A / Rev = 0.31 >> 0.15); stability does
+      NOT fire (|dRev/Rev_{t-1}| = 0.10005 is JUST above the 0.10
+      threshold, even though it's within rounding distance of the
+      cutoff). Tolerance +/- 0.05 allows for small weight drift if
+      an accounting expert edits the rule template's t-statistic
+      weights (currently 3.0 / 2.8 / 3.7 from Table 3 Panel a col 1).
+  flag:
+    value: complex_monitoring_intensive
+    rationale: >-
+      Score 0.7053 is well above the 0.60 complex-monitoring
+      threshold; two of three signals fired. This is the canonical
+      "large-cap multi-entity corporate-overhead-heavy conglomerate"
+      profile the skill is designed to flag. WorldCom's FY2001
+      financials were, of course, notoriously misstated — but the
+      business-complexity score is a structural profile signal, not
+      a fraud detector. It correctly identifies that the firm's
+      operational profile (size + overhead) demands intense
+      monitoring, which is independently true.
+  signals:
+    revenue_usd:
+      value: 35179000000.0
+      rationale: >-
+        WorldCom FY2001 revenue of $35.18B is well above the $1B
+        size threshold.
+    yoy_revenue_change:
+      value: 0.100051
+      rationale: >-
+        |Revenue_2001 − Revenue_2000| / Revenue_2000 =
+        |35,179 − 31,979| / 31,979 = 0.10005 (all in millions USD).
+        This is JUST above the 0.10 stability threshold — the
+        sign-reversed stability indicator does NOT fire. A
+        reviewer examining this case should note that a threshold
+        at 0.101 or a calibration change in the rule template
+        would flip this signal.
+    sga_to_revenue_ratio:
+      value: 0.313994
+      rationale: >-
+        SG&A (selling, general and administrative expenses) of
+        $11.05B divided by revenue $35.18B = 0.314 >> 0.15 complexity
+        threshold. Consistent with WorldCom's multi-state
+        telecommunications operations built via aggressive M&A
+        (MCI, MFS, UUNET, SkyTel, Brooks Fiber, etc.) — the corporate
+        overhead typical of a conglomerate.
+  components:
+    size_fired:
+      value: 1
+      rationale: "Revenue $35.18B >= $1B threshold."
+    stability_fired:
+      value: 0
+      rationale: >-
+        |dRev/Rev_{t-1}| = 0.10005 > 0.10 threshold — stability does
+        not fire (sign-reversed; stable firms fire, volatile firms
+        don't). Borderline case.
+    complexity_fired:
+      value: 1
+      rationale: "SG&A / Revenue = 0.314 >= 0.15 threshold."
+  citation_expectations:
+    min_count: 3
+    must_resolve: true
+    must_cite:
+      - "revenue"
+      - "selling_general_admin_expense"
+  confidence:
+    min: 0.50
+    max: 0.60
+    rationale: |
+      Base confidence 0.7 (stability and complexity proxies
+      always active) minus 0.15 pre-iXBRL penalty (WorldCom's
+      FY2001 10-K is a pre-iXBRL SGML filing with manual
+      extraction) → 0.55. Band ±0.05 allows for future
+      confidence-model refinements.
+  warnings_must_include:
+    - "stability_two_period_proxy"
+    - "complexity_sga_proxy"
+    - "pre_ixbrl_manual_extraction"
+
+external_references:
+  - source: "Bernard, D., Cade, N. L., Connors, E. H., & de Kok, T. (2025). Descriptive evidence on small business managers' information choices. Review of Accounting Studies, 30, 3254-3294."
+    note: "Section 4 / Table 3 Panel a column 1 provides the three kept signals' coefficients and t-statistics."
+  - source: "workshop/paper_to_skill/notes/bernard_2025_information_acquisition.md §f"
+    note: "Documents the three-signal port, the sign-reversal, and the SG&A-for-Single-store proxy substitution."
+  - source: "data/filings/0000723527/0001005477-02-001226/"
+    note: "WorldCom FY2001 10-K manual-extraction YAML is the source of truth for the pre-iXBRL line items."
+
+caveats:
+  - "The stability-threshold-adjacent nature of this case (0.10005 vs 0.10) is deliberate: the binary discretisation is a documented simplification of the paper's continuous-linear specification. A reviewer who disagrees with the binary cutoff should edit the rule template's threshold rather than loosen this gold case."
+  - "WorldCom's FY2001 financials were subsequently restated due to the capitalized-line-costs fraud. The business_complexity score uses the originally-reported figures — as do all MVP skills that consume canonical statements — and is a structural profile signal, not a misstatement detector. Pair with compute_beneish_m_score for the manipulation screen."
+  - "A future expansion that adds a segments-count canonical line item would let us replace the SG&A-intensity proxy for the Single-store concept with a more-direct multi-segment indicator."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (paper-3 onboarding, 2026-04-17). Re-run
+    produced score=0.7053, flag=complex_monitoring_intensive,
+    size_fired=1, stability_fired=0, complexity_fired=1.
+  data_quality_caveats:
+    - "Pre-iXBRL SGML filing — line items come from data/manual_extractions/0000723527/0001005477-02-001226.yaml. The manual extraction was authored during MVP Phase 2 and hash-pinned in the canonical statement citations."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, paper-3 onboarding"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

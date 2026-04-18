@@ -1,0 +1,318 @@
+# Manifest for compute_altman_z_score — Altman (1968) five-variable
+# bankruptcy-prediction discriminant applied to a US public 10-K filing.
+#
+# Authored by the quant_finance_methodologist persona. The five-
+# coefficient equation and the 1.81 / 2.99 zone cut-offs are paper-exact
+# (Altman 1968 Equation I and §V). See rules/templates/z_score_components.yaml
+# and this skill's README for the derivation.
+
+skill_id: compute_altman_z_score
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute the Altman (1968) Z-score — a five-variable bankruptcy-
+  prediction discriminant — for a US public company's 10-K filing.
+  Returns the scalar Z-score, the five component values (X1 working-
+  capital-to-total-assets, X2 retained-earnings-to-total-assets, X3
+  EBIT-to-total-assets, X4 market-value-of-equity-to-total-liabilities,
+  X5 sales-to-total-assets), a categorical zone flag (safe when Z >
+  2.99, grey_zone when 1.81 <= Z <= 2.99, distress when Z < 1.81,
+  indeterminate when any component cannot be computed), and citations
+  back to the canonical line items and the market-data fixture. X4's
+  numerator (market value of equity) comes from the engineering-
+  owned fixture at data/market_data/equity_values.yaml and is NOT
+  parsed from the filing. Use this to screen a filing for bankruptcy-
+  probability signal; do not treat the output as a verdict — Altman's
+  1968 sample was manufacturers 1946-1965 and coefficients may not
+  generalize cleanly to modern issuers or to service-sector firms.
+
+provenance:
+  source_papers:
+    - citation: "Altman, E. I. (1968). Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy. Journal of Finance, 23(4), 589-609."
+      doi_or_url: "https://doi.org/10.1111/j.1540-6261.1968.tb00843.x"
+      local_pdf: "data/papers/altman_1968.pdf"
+      pdf_sha256: "34ba13a102ee4f1767762786e2720e9c6211e4d3d9252fb45856ca45cb21dd99"
+  study_scope:
+    asset_class: "US manufacturing firms (SIC 2000-3999), asset base $1M-$25M"
+    time_period_in_paper: "1946-1965"
+    sample_size_in_paper: "66 firms — 33 bankrupt + 33 paired non-bankrupt (matched by SIC and asset size)"
+  problem:
+    one_line: "Predict corporate bankruptcy using five ratios from the firm's publicly reported financials."
+    long_form: >-
+      Build a multivariate discriminant function over five
+      financial ratios (liquidity, cumulative profitability, operating
+      productivity, market confidence, and asset turnover) that
+      separates firms that will enter bankruptcy within two years from
+      firms that will remain going concerns. Altman's contribution
+      was demonstrating that a linear combination of ratios outperforms
+      any single ratio used in isolation.
+  methodology:
+    summary: >-
+      Linear discriminant analysis on 22 candidate ratios, reduced to
+      five via stepwise selection. The resulting function (Equation I
+      of the paper) is a paper-exact weighted sum of the five
+      retained ratios. Altman's §V reports that all non-bankrupt
+      firms in the estimation sample had Z > 2.99 and all bankrupt
+      firms had Z < 1.81; the 1.81-2.99 band is the "zone of
+      ignorance" where the discriminant function cannot classify
+      with confidence.
+    formulas_extracted_from_paper:
+      Z_score: "Z = 0.012*X1 + 0.014*X2 + 0.033*X3 + 0.006*X4 + 0.999*X5 (with X1-X4 entered as percentages, X5 as a ratio)"
+      X1: "(current_assets_t - current_liabilities_t) / total_assets_t"
+      X2: "retained_earnings_t / total_assets_t"
+      X3: "ebit_t / total_assets_t"
+      X4: "market_value_of_equity_t / total_liabilities_t"
+      X5: "revenue_t / total_assets_t"
+    threshold: "Z > 2.99 safe, 1.81 <= Z <= 2.99 grey_zone, Z < 1.81 distress. Indeterminate when any component is null."
+  expected_results:
+    metric_kind: "scalar Z-score + categorical zone flag + 5 component values"
+    interpretation_guide: >-
+      Altman's 1968 sample has zero non-bankrupt firms with Z < 1.81
+      and zero bankrupt firms with Z > 2.99. Between 1.81 and 2.99 the
+      discriminant does not classify; pair with market-implied signals
+      (CDS / bond spreads) or accept a coin-flip on the bin assignment.
+  takeaways:
+    - "Z is a screening score; it misclassifies rapidly-growing capital-intensive firms and services-heavy firms routinely."
+    - "X5 carries the 0.999 coefficient (not rounded 1.0); see implementation_decisions."
+    - "X4 depends on market cap; the 1968 formulation fails for firms lacking a traded market (post-MVP concern)."
+    - "For non-manufacturers, Altman's 1983 Z'-prime revision is the better fit; MVP uses 1968 original per BUILD_REFS.md §5.1."
+  use_cases:
+    - "Credit-quality screen during equity or debt diligence."
+    - "Distressed-investing universe filter."
+    - "Covenant-cushion cross-check against reported ratios."
+
+implementation_decisions:
+  - decision: >-
+      X5 coefficient is 0.999 (paper-exact), not the rounded 1.0 seen
+      in some textbook references. The Z drift from using 1.0 would
+      be 0.001 * X5 — typically < 0.003 — negligible against the ±0.10
+      paper-replication tolerance but carried through faithfully.
+    rationale: >-
+      Altman (1968) Equation I on p. 597 prints the coefficient
+      explicitly as 0.999. Preserving it is the P2 "no laziness"
+      enforcement — the paper says 0.999, we use 0.999.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      X4's numerator (market value of equity) is sourced from the
+      engineering-owned fixture at data/market_data/equity_values.yaml,
+      NOT from any filing line item. The skill raises
+      missing_market_data when the fixture has no row for
+      (cik, fiscal_year_end).
+    rationale: >-
+      Market value of equity is not an XBRL concept and not on the
+      face of a 10-K. Hand-curating 5 entries for the MVP's 5 issuers
+      is faster and more auditable than scraping Yahoo Finance at
+      runtime. The fixture itself ships with a 1%-tolerance sanity
+      check (shares * price ≈ mve) per ingestion.market_data_loader.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Z score is the 1968 original (Equation I, 5 coefficients), not
+      the 1983 Z'-prime that drops X5 and re-estimates the
+      coefficients for non-manufacturers.
+    rationale: >-
+      The MVP's scope decision (BUILD_REFS.md §5.1) picked the
+      1968 original for all 5 issuers. It is known to mis-fit
+      services-heavy issuers (Apple, Microsoft); the skill's
+      limitations block surfaces this.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      WorldCom FYE-2001 market cap is an estimated aggregate from
+      companiesmarketcap.com (not a closing-price × share-count
+      product) because the two tracking stocks (WCOM, MCIT) dropped
+      from Yahoo Finance after delisting. At call time the skill
+      emits warning=market_value_estimated and confidence is reduced
+      by 0.15.
+    rationale: >-
+      Documented in data/market_data/equity_values.yaml notes for the
+      WorldCom row (market_cap_source: estimated_from_aggregated_market_cap).
+      The fixture flag propagates mechanically to the skill's warnings
+      so callers cannot miss it.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Pre-iXBRL filings (Enron FY2000, WorldCom FY2001) are computed
+      on the hand-authored manual-extraction YAML values. Confidence
+      is reduced by 0.1 per line item sourced from those fixtures.
+    rationale: >-
+      iXBRL did not exist in 2000-2001; SGML extraction is the only
+      faithful path. Confidence degradation is the recommended
+      mechanism per §13 decision 3.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer.
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+    use_restated_if_available:
+      type: boolean
+      description: >-
+        When true, prefer restated financials over as-originally-filed.
+        No restated versions are ingested at MVP, so this flag is a
+        no-op; included for forward compatibility.
+
+outputs:
+  type: object
+  required: [z_score, flag, components, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    z_score:
+      type: ["number", "null"]
+      description: >-
+        Scalar Z-score. Null when flag is indeterminate (any required
+        component null).
+    flag:
+      type: string
+      enum: [safe, grey_zone, distress, indeterminate]
+      description: >-
+        Categorical zone flag. 'safe' when Z > 2.99; 'distress' when
+        Z < 1.81; 'grey_zone' in between; 'indeterminate' when Z
+        cannot be computed.
+    components:
+      type: object
+      description: >-
+        The five Altman ratio components. Any can be null if inputs
+        are missing.
+      additionalProperties: true
+      properties:
+        X1:
+          type: ["number", "null"]
+          description: Working Capital / Total Assets (ratio).
+        X2:
+          type: ["number", "null"]
+          description: Retained Earnings / Total Assets (ratio).
+        X3:
+          type: ["number", "null"]
+          description: EBIT / Total Assets (ratio).
+        X4:
+          type: ["number", "null"]
+          description: Market Value of Equity / Total Liabilities (ratio).
+        X5:
+          type: ["number", "null"]
+          description: Sales / Total Assets (ratio).
+    citations:
+      type: array
+      description: >-
+        Citations for every canonical line item fed into the
+        components, plus the market-data fixture citation for X4's
+        numerator.
+      items:
+        type: object
+        description: One Citation record.
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 1.0; reduced by
+        −0.1 per pre-iXBRL manual-extraction line item, −0.15 when
+        the market-data entry is flagged (estimated or non-FYE shares).
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Expected at MVP:
+        'market_value_estimated' for WorldCom FY2001;
+        'shares_source_flag' for Carvana FY2022; missing-component
+        explanations when flag=indeterminate.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    components: >-
+      every non-null component must have Citation records for its
+      underlying canonical line items: X1 cites current_assets,
+      current_liabilities, total_assets; X2 cites retained_earnings,
+      total_assets; X3 cites ebit, total_assets; X4 cites
+      total_liabilities and the market-data fixture row; X5 cites
+      revenue, total_assets. Citations are in the top-level 'citations'
+      array.
+    z_score: >-
+      when z_score is non-null, at minimum total_assets, revenue, and
+      the market-data fixture row must be cited.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<statement_role>::<canonical_line_item_name> OR market_data/equity_values::market_data::market_value_of_equity_<cik>_<fye>"
+
+confidence:
+  computed_from:
+    - "pre_ixbrl_manual_extraction_line_items (−0.1 each, clamped at 0)"
+    - "market_value_flagged (−0.15 when estimated_from_aggregated_market_cap or cover_page_post_fye)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: extract_canonical_statements
+      min_version: 0.1.0
+  lib:
+    - mvp.standardize.statements
+    - mvp.lib.citation
+    - mvp.ingestion.filings_ingest
+    - mvp.ingestion.market_data_loader
+    - mvp.engine.rule_executor
+  rules:
+    - rules/templates/z_score_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/altman/
+  eval_metrics:
+    - name: z_score_within_0_10
+      target: ">= 4/5 cases"
+    - name: flag_match_rate
+      target: ">= 4/5 cases"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    Altman's 1968 sample is US manufacturers 1946-1965; coefficients
+    are known to mis-fit services / technology firms (Apple, Microsoft
+    produce inflated Z via X4 dominance) and asset-light distributors
+    (Carvana's FY2022 X5 dominates). Use as screen, not verdict.
+  - >-
+    The 1968 Z assumes a traded market for common equity (for X4's
+    numerator). Private firms and firms with suspended trading
+    cannot be scored directly with this skill.
+  - >-
+    EBIT — Altman's X3 numerator — can be null in the canonical
+    statements (Carvana FY2022 is the MVP example; no
+    OperatingIncomeLoss tag in the filing). When that happens the
+    skill returns flag=indeterminate rather than substituting a
+    synthetic EBIT.
+  - >-
+    MVE is an exogenous fixture input; if the fixture has no row for
+    (cik, fiscal_year_end) the skill raises missing_market_data
+    rather than synthesizing a value.
+
+examples:
+  - name: "Apple FY2023 — safe zone"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    expected_flag: "safe"
+    expected_z_score_range: [5.0, 10.0]
+    notes: >-
+      Apple's X4 alone (market cap ≈ $2.66T against ~$290B liabilities)
+      dominates the composite. Expected Z well above 2.99.
+  - name: "Carvana FY2022 — indeterminate (EBIT null)"
+    input:
+      cik: "0001690820"
+      fiscal_year_end: "2022-12-31"
+    expected_flag: "indeterminate"
+    notes: >-
+      Carvana's FY2022 canonical statements have no OperatingIncomeLoss
+      tag; X3 is null and the composite is indeterminate. Warning
+      enumerates the missing line items.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 120

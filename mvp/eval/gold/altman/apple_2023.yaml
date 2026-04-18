@@ -1,0 +1,132 @@
+# Gold-standard case — compute_altman_z_score for Apple Inc. FY2023 (CIK 0000320193).
+#
+# Authored by the evaluation_agent persona. Apple is a clean-safe-zone control:
+# mega-cap with huge market-cap / liabilities ratio, solid operating profitability.
+
+case_id: apple_2023_altman
+skill_id: compute_altman_z_score
+skill_version: "0.1.0"
+
+issuer:
+  name: "Apple Inc."
+  cik: "0000320193"
+  ticker: "AAPL"
+
+filing:
+  accession: "0000320193-23-000106"
+  filing_type: "10-K"
+  fiscal_period_end: "2023-09-30"
+
+inputs:
+  cik: "0000320193"
+  fiscal_year_end: "2023-09-30"
+
+expected:
+  z_score:
+    value: 7.650
+    tolerance: 0.10
+    source_of_truth: live_implementation
+    rationale: |
+      Phase 4 live run: Z = 7.64998, flag = safe. BUILD_REFS.md §5.4
+      expected range "5-8 range (safe, strong Z5 and Z3 from services
+      revenue and margin)." Live value 7.65 is at the upper end of
+      that band — Apple's services-mix shift has expanded X3
+      materially, and its market cap ($2.66T) dwarfs liabilities
+      ($290B) so X4 dominates.
+  flag:
+    value: safe
+    rationale: >-
+      Z = 7.65 >> 2.99 — deep in the safe zone. Apple is the
+      textbook clean-positive control.
+  components:
+    X1:
+      range: [-0.03, 0.02]
+      point_estimate: -0.005
+      rationale: |
+        Working capital slightly negative: (143.6B CA − 145.3B CL) /
+        352.6B TA = -0.005. Apple deliberately runs negative working
+        capital — supplier-financing-heavy model, large deferred-
+        revenue balances, and aggressive treasury cash-deployment.
+        This is a "working-capital-light model" case per the rule
+        template's X1 contextual caveats — a feature, not a flag.
+    X2:
+      range: [-0.01, 0.01]
+      point_estimate: -0.001
+      rationale: |
+        Retained earnings / total assets near zero. Apple's massive
+        multi-decade buyback program has pushed accumulated retained
+        earnings NEGATIVE on the balance sheet ($214M retained
+        earnings only; accumulated deficit in other reporting
+        structures). Altman's own 1968 footnote 24 noted RE is
+        "subject to manipulation via quasi-reorganization" and
+        modern-era equivalent is exactly this buyback effect. A
+        classic false-distress signal from X2 on buyback-heavy
+        mega-caps.
+    X3:
+      range: [0.29, 0.36]
+      point_estimate: 0.324
+      rationale: |
+        EBIT / total assets = 114.301B / 352.583B = 0.324. EXTREMELY
+        high operating productivity — Services gross margin is ~70%,
+        pushing consolidated margin up. Zone-defining component.
+    X4:
+      range: [8.50, 9.80]
+      point_estimate: 9.168
+      rationale: |
+        Market value of equity / total liabilities = $2,662.8B /
+        $290.4B = 9.17. Apple's market cap is 9x book liabilities —
+        overwhelmingly the dominant Z contributor. X4 × 0.006 × 100
+        = 5.50 of the 7.65 Z.
+    X5:
+      range: [1.05, 1.15]
+      point_estimate: 1.087
+      rationale: |
+        Revenue / total assets = 383.3B / 352.6B = 1.087. Healthy
+        asset turnover for a hardware-heavy business.
+  citation_expectations:
+    min_count: 8
+    must_resolve: true
+    must_cite:
+      - "revenue (period=t)"
+      - "total_assets (period=t)"
+      - "current_assets (period=t)"
+      - "current_liabilities (period=t)"
+      - "retained_earnings (period=t)"
+      - "ebit (period=t)"
+      - "total_liabilities (period=t)"
+      - "market_value_of_equity (fixture)"
+  confidence:
+    min: 0.90
+    max: 1.00
+    rationale: |
+      Full iXBRL, all 7 Altman inputs populated from preferred
+      concepts, market-cap from clean Yahoo Finance close × cover-
+      page share count. Live value 1.0.
+  warnings_must_include: []
+
+external_references:
+  - source: "Altman, E. I. (1968). Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy. Journal of Finance, 23(4), 589-609."
+  - source: "BUILD_REFS.md §5.4"
+    note: "Apple 2023: Z expected in the 5-8 range (safe, strong Z5 and Z3). Live 7.65 at upper edge."
+  - source: "Yahoo Finance chart API — AAPL close 2023-09-29 = $171.21."
+  - source: "Apple FY2023 10-K cover page — 15,552,752,000 shares outstanding as of 2023-10-20."
+
+caveats:
+  - "Apple's X2 (retained earnings / total assets) is near zero despite decades of profitability — driven by aggressive share buybacks. This is a known-false-distress-signal from X2 on buyback-heavy mega-caps; X4's dominance compensates."
+  - "Altman's 1968 sample was manufacturers with assets $1M-$25M; Apple's asset base is 4-5 orders of magnitude larger. Known extrapolation."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (Phase 4 run). BUILD_REFS.md §5.4 band
+    matches.
+  data_quality_caveats:
+    - "Apple's cover-page share count is as of 2023-10-20, 20 days post-FYE; sub-0.1% drift."
+    - "Cash-settled preferred / convertibles: Apple has none. X4 numerator is common equity only."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, Phase 5 gold authoring"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

@@ -1,0 +1,62 @@
+# Goal-Driven(1 master agent + 1 subagent) System
+
+Here we define a goal-driven multi-agent system for solving any problem.
+
+Goal: mvp_build_goal.md
+  → defines the MVP scope, the vertical slice (Beneish M-Score + Altman Z-Score on 5 US large-cap filings), the layered repo structure (lib / ingestion / store / standardize / rules / engine / skills / agents / eval / api / cli), the 7-skill MVP catalogue, the skill manifest schema, the rule-set design, the 4 subagent personas, and the 7-phase build sequence. Decisions resolved in §13 are authoritative.
+
+Criteria for success: success_criteria.md
+  → defines the 6 top-line gates (Enron demo works · 4-of-5 eval pass for both M-Score and Z-Score · 100% citation resolution · persona-replacement contract holds · 30-min clean-clone · operating principles P1/P2/P3 hold), the per-layer Definition of Done, the negative gates (what failure looks like), the 30-minute "demo morning" walkthrough, the §11 build-quality gates and §12 agent-accessibility gates that enforce the principles, and the §13 workshop/ skeleton requirement.
+
+Parallel scope note: the goal-driven build targets `mvp/` (the product — user-
+  facing skills, API, CLI). A sibling `workshop/` folder at the repo root holds
+  team-internal tooling (paper-to-skill playbook, research helpers, eval ops,
+  maintenance scripts) and is OUTSIDE this loop's done-bar. Phase 7 of
+  `mvp_build_goal.md` bootstraps a minimal workshop skeleton (READMEs + the
+  retrospective paper-onboarding playbook); full tooling is grown post-MVP when
+  the second paper is onboarded. Separation contract: workshop imports mvp,
+  never the reverse. See `mvp_build_goal.md` §15 and `success_criteria.md` §13.
+
+OPERATING PRINCIPLES (load-bearing — read mvp_build_goal.md §0 before any other section):
+  P1 — Human-layer and engineering-layer are disjoint. Domain experts contribute via
+       declarative YAML/markdown only; never via Python. Persona prompts live in
+       mvp/human_layer/personas/*.yaml, not in code.
+  P2 — No over-engineering, no laziness. No TODOs, no pass-stubs, no half-built
+       modules, no abstraction without two callers. *不要怕麻烦* — every shipped
+       piece done to our best level the first time. Enforced by success_criteria §11.
+  P3 — The user is an AI agent. Every skill manifest yields an MCP tool spec and an
+       OpenAI tool-use spec. CLI and API share one registry. Errors are typed
+       objects, never exceptions. The "natural-agent test" (§12) is the gate.
+  When in doubt: would a personal AI agent find this surface natural? If not, redesign.
+
+Here is the System: The system contains a master agent and a subagent. You are the master agent, and you need to create 1 subagent to help you complete the task.
+
+## Subagent's description:
+
+The subagent's goal is to complete the task assigned by the master agent. The goal defined above is the final and the only goal for the subagent. The subagent should have the ability to break down the task into smaller sub-tasks, and assign the sub-tasks to itself or other subagents if necessary. The subagent should also have the ability to monitor the progress of each sub-task and update the master agent accordingly. The subagent should continue to work on the task until the criteria for success are met.
+
+## Master agent's description:
+
+The master agent is responsible for overseeing the entire process and ensuring that the subagent is working towards the goal. The only 3 tasks that the main agent need to do are:
+
+1. Create subagents to complete the task.
+2. If the subagent finishes the task successfully or fails to complete the task, the master agent should evaluate the result by checking the criteria for success. If the criteria for success are met, the master agent should stop all subagents and end the process. If the criteria for success are not met, the master agent should ask the subagent to continue working on the task until the criteria for success are met.
+3. The master agent should check the activities of each subagent for every 5 minutes, and if the subagent is inactive, please check if the current goal is reached and verify the status. If the goal is not reached, restart a new subagent with the same name to replace the inactive subagent. The new subagent should continue to work on the task and update the master agent accordingly.
+4. This process should continue until the criteria for success are met. DO NOT STOP THE AGENTS UNTIL THE USER STOPS THEM MANUALLY FROM OUTSIDE.
+
+## Basic design of the goal-driven double agent system in pseudocode:
+
+create a subagent to complete the goal
+
+while (criteria are not met) {
+  check the activty of the subagent every 5 minutes
+  if (the subagent is inactive or declares that it has reached the goal) {
+    check if the current goal is reached and verify the status
+    if (criteria are not met) {
+      restart a new subagent with the same name to replace the inactive subagent
+    }
+    else {
+      stop all subagents and end the process
+    }
+  }
+}

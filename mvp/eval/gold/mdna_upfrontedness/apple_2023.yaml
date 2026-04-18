@@ -1,0 +1,120 @@
+# Gold-standard case — compute_mdna_upfrontedness for Apple Inc. FY2023
+# (CIK 0000320193, accession 0000320193-23-000106).
+#
+# Authored by the evaluation_agent persona (post-MVP, paper-onboarding
+# iteration 1 for paper_examples/fundamentals_text.pdf). Apple's FY2023
+# MD&A is a clean iXBRL section of ~16 KB after HTML strip, splitting
+# into ~97 valid paragraphs after the <20-char filter.
+
+case_id: apple_2023_mdna_upfrontedness
+skill_id: compute_mdna_upfrontedness
+skill_version: "0.1.0"
+
+issuer:
+  name: "Apple Inc."
+  cik: "0000320193"
+  ticker: "AAPL"
+
+filing:
+  accession: "0000320193-23-000106"
+  filing_type: "10-K"
+  fiscal_period_end: "2023-09-30"
+
+inputs:
+  cik: "0000320193"
+  fiscal_year_end: "2023-09-30"
+
+expected:
+  upfrontedness_score:
+    value: 0.4348
+    tolerance: 0.05
+    source_of_truth: live_implementation
+    rationale: |
+      Live run of compute_mdna_upfrontedness at paper-onboarding time:
+      score=0.434778, paragraph_count=97, longest paragraph sits at
+      position 94/97 (near the tail). Apple's FY2023 MD&A has short
+      overview and discussion paragraphs up front and substantial
+      tabular segment/liquidity detail toward the end — our length-
+      share proxy up-weights the late content, producing a score
+      BELOW the paper's P25 (0.5012). This is a known documented
+      feature of the proxy (see manifest implementation_decisions[0]
+      and workshop/paper_to_skill/notes/fundamentals_text.md §e).
+      Tolerance ±0.05 allows for minor paragraph-splitter drift
+      without expanding into "any value passes."
+  flag:
+    value: obfuscating_likely
+    rationale: >-
+      Score 0.4348 is below P25 = 0.5012, so the flag lands in
+      obfuscating_likely. This is NOT an obfuscation verdict on
+      Apple — the proxy's known bias on modern dense-tabular MD&As
+      pulls the score below P25. The rule template's
+      obfuscating_likely contextual_caveats call this exact case
+      out ("Apple FY2023 in the MVP sample lands at ≈0.435"). The
+      eval gold encodes the observed flag rather than hiding the
+      proxy limitation.
+  components:
+    mean_paragraph_position:
+      range: [0.48, 0.51]
+      point_estimate: 0.4948
+      rationale: |
+        Simple average of Equation 8 across N=97 paragraphs — should
+        approach (N-1)/(2N) = 0.4948 exactly (since position-only
+        averages do not depend on importance weighting).
+    total_characters:
+      range: [10000, 20000]
+      point_estimate: 14149
+      rationale: |
+        Sum of stripped paragraph lengths. The 16 KB raw section
+        strips to ~14 KB of pure paragraph content after dropping
+        <20-char fragments.
+    longest_paragraph_position_score:
+      range: [0.0, 0.1]
+      point_estimate: 0.0309
+      rationale: |
+        The longest paragraph (typically Apple's "Liquidity and
+        Capital Resources" summary paragraph) sits near the end of
+        MD&A — position score close to 0.
+    longest_paragraph_index:
+      range: [85, 97]
+      point_estimate: 94
+      rationale: |
+        1-indexed position in the paragraph list. Late-MD&A location
+        is the structural fact driving the below-P25 score.
+  citation_expectations:
+    min_count: 1
+    must_resolve: true
+    must_cite:
+      - "item_7"
+  confidence:
+    min: 0.65
+    max: 0.75
+    rationale: |
+      Modern iXBRL filing, length-share proxy active — 0.7 expected.
+      Band ±0.05 allows for future confidence-model refinements.
+  warnings_must_include:
+    - "paragraph_importance_proxy_used"
+
+external_references:
+  - source: "Kim, A. G., Muhn, M., Nikolaev, V. V., & Zhang, Y. (November 2024). Learning Fundamentals from Text. University of Chicago Booth Working Paper."
+    note: "Appendix D Panel A Upfrontedness distribution (N=66,757, mean=0.5161, std=0.0243, P25=0.5012, P75=0.5283) used for flag-band thresholds."
+  - source: "workshop/paper_to_skill/notes/fundamentals_text.md §e"
+    note: "Explains the proxy's bias on modern dense-tabular MD&As and the expected score band for Apple."
+
+caveats:
+  - "The length-share proxy for paragraph importance is NOT the paper's attention-model output. Scores are systematically lower than the paper's mean on modern iXBRL filings. A future attention-model-backed variant would tighten the band."
+  - "The paragraph split rule is sensitive to extract_mdna's HTML-strip behaviour. Material changes to that skill may shift paragraph_count (and thus upfrontedness) by a small amount; tolerance ±0.05 is generous for that drift."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (paper-onboarding iteration 1, 2026-04-17).
+    Re-run produced score=0.434778.
+  data_quality_caveats:
+    - "extract_mdna's Item-7 finder relies on Item 7. / Item 7A. / Item 8. heading markers; Apple's FY2023 iXBRL is clean on that score."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, paper-onboarding iteration 1"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

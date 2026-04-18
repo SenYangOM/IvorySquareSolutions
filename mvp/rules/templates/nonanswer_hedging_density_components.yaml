@@ -1,0 +1,148 @@
+# mvp/rules/templates/nonanswer_hedging_density_components.yaml
+#
+# Rule template for compute_nonanswer_hedging_density (L3 paper-derived).
+# Authored by the accounting_expert persona (post-MVP, paper-onboarding
+# iteration 4). Consumed by the skill for its flag bands and by any
+# downstream L2 interpretation skill that explains a firm's hedging
+# density in accountant's voice.
+#
+# Paper. de Kok, T. (June 2024), "ChatGPT for Textual Analysis? How to
+# use Generative LLMs in Accounting Research," University of Washington
+# working paper, SSRN 4429658. pdf_sha256
+# 2650e3e5c853a8ca1d7dae8e14622c64617e295e75b9d4407f0e84bccd79ba4a.
+#
+# Authoring note on rule shape. hedging_density is a single scalar
+# (like Upfrontedness), so this template has ONE component block — the
+# overall density — plus the presentation-convention flag bands and
+# contextual caveats an accountant would surface when reading a firm's
+# score. The 78-token keyword list itself is NOT split into per-category
+# rules; the skill's hits_by_category trace is a diagnostic, not a
+# per-component interpretation target.
+
+template_version: "0.1.0"
+paper: "de Kok, T. (June 2024). ChatGPT for Textual Analysis? How to use Generative LLMs in Accounting Research. University of Washington working paper, SSRN 4429658."
+paper_pdf_sha256: "2650e3e5c853a8ca1d7dae8e14622c64617e295e75b9d4407f0e84bccd79ba4a"
+
+# -----------------------------------------------------------------------------
+# Hedging density (fraction of MD&A sentences firing the 78-token filter)
+# -----------------------------------------------------------------------------
+components:
+
+  - component: hedging_density
+    full_name: "Non-answer Hedging Density (MD&A port of de Kok 2024 OA 3 keyword filter)"
+    description: >-
+      Fraction of MD&A sentences (after a 30-character minimum filter)
+      that contain at least one of de Kok (2024) Online Appendix OA 3's
+      78 non-answer keywords (7 trigrams + 23 bigrams + 45 unigrams,
+      reproduced verbatim). A higher density indicates more frequent
+      use of hedging / non-disclosure / forward-looking-caveat language.
+    formula: "(Σ_i hit_i) / M, where M = valid-sentence count and hit_i = 1 iff sentence s_i matches any of the 78 keywords (unigrams whole-word, bigrams/trigrams whitespace-sequence after apostrophe strip)."
+    canonical_inputs:
+      - "mdna (Item 7 text) from extract_mdna skill"
+    paper_coefficient: null
+    coefficient_notes: >-
+      No coefficient; the score is a proportion of sentences that fire
+      the keyword filter. The bands below are presentation conventions,
+      NOT paper thresholds — the paper has no MD&A-specific cutoffs.
+    paper_reference:
+      source: "de Kok (2024)"
+      table: "§4 Case study + Online Appendix OA 3 Step 1 (keyword list)"
+      page: "17-19 (case study) and ix (OA 3 Step 1 keyword list)"
+    interpretation_rules:
+
+      - condition: "value >= 0.35"
+        interpretation: |
+          Hedging density is at or above 35% — more than one in three
+          MD&A sentences contains non-answer-flagged language. This is
+          unusually high for a modern 10-K. Drivers can be (1)
+          legitimate disclosure of material uncertainty (litigation,
+          going-concern doubt, restructuring), (2) extensive safe-
+          harbor / forward-looking boilerplate, or (3) a firm adopting
+          a less specific disclosure posture year-over-year. Cross-
+          check with Upfrontedness (if the firm is also burying content
+          positionally, the two signals together deserve a closer
+          read) and with the firm's distress indicators (Altman Z).
+        severity: "high"
+        follow_up_questions:
+          - "Which sentences are firing the trigram filter specifically (the trigram hits are harder to dismiss as boilerplate)? Read the top 10 firing sentences directly."
+          - "Has the firm's hedging density trended upward year-over-year, or is this a single-year spike?"
+          - "Does the firm have material pending litigation, a going-concern warning, or a restructuring in progress that would legitimately drive the density up?"
+          - "How does this firm's density compare to three closest industry peers' densities?"
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "MD&A safe-harbor boilerplate fires the filter regularly. A density of 0.40 on a firm with no material uncertainty is often a boilerplate artifact rather than a red flag — inspect the trigram hits specifically."
+          - "The paper's earnings-call Q&A base rate is ~14%, MATERIALLY lower than MD&A's. Do not compare this density directly to the paper's reported non-answer rate."
+
+      - condition: "0.15 <= value < 0.35"
+        interpretation: |
+          Hedging density is in the typical band for modern iXBRL MD&As
+          (15%-35%). The firm's disclosure language is broadly in line
+          with peers — neither unusually specific nor unusually hedged.
+          A typical flag is NOT a clean bill of health; it means the
+          LANGUAGE DENSITY does not raise an immediate flag, but the
+          content itself may still warrant a closer read.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the mix of trigram / bigram / unigram hits dominated by boilerplate (mostly unigrams like 'forward', 'disclose') or by explicit non-answer language (trigrams like 'at this time', 'don t know')?"
+          - "How does this firm's density compare year-over-year? A material change is a stronger signal than the absolute level."
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "A typical-hedging flag with concentrated trigram hits is worth a closer look than the same density firing all on unigram boilerplate."
+
+      - condition: "value < 0.15"
+        interpretation: |
+          Hedging density is below 15% — unusually specific for a
+          modern 10-K. Two interpretations are plausible: (1) the
+          firm's MD&A is genuinely direct and information-dense, or
+          (2) extract_mdna may have truncated the section (check
+          sentence_count — an MD&A with only 15-20 sentences may not
+          have captured the full section). Cross-check sentence_count
+          against expected MD&A size for this industry.
+        severity: "low"
+        follow_up_questions:
+          - "Is sentence_count in the expected range (typical 10-K MD&A is 100-400 sentences)?"
+          - "Does the firm's MD&A open with a specific numerical summary (revenue, EPS, segment growth rates) rather than boilerplate?"
+          - "Does the firm have a reputation for high-quality disclosure (e.g. consistent top-quartile ranking in disclosure-quality surveys)?"
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "A low-hedging flag on a short MD&A (< 40 sentences) may reflect upstream extraction truncation rather than genuine disclosure specificity. Inspect the section_text before drawing conclusions."
+
+      - condition: "value is null"
+        interpretation: |
+          The skill could not compute hedging density for this filing.
+          Either the MD&A section could not be identified by
+          extract_mdna (warning mdna_section_not_located), or the
+          extracted section contained fewer than 10 valid sentences
+          after the 30-character filter (warning mdna_too_short).
+          Microsoft FY2023 in the MVP sample typically hits the
+          latter because extract_mdna's iXBRL finder truncates the
+          section.
+        severity: "none"
+        follow_up_questions:
+          - "Has extract_mdna been updated to handle this filing's MD&A layout?"
+          - "If the MD&A was located, why are there fewer than 10 valid sentences — is the section unusually short, or is there a tokeniser issue?"
+        citations_required: []
+        contextual_caveats:
+          - "Indeterminate is NOT a density of zero. Callers that treat it as zero will drag ensemble metrics incorrectly. Branch on flag=indeterminate separately."
+
+# -----------------------------------------------------------------------------
+# Composite threshold block — documents the presentation-convention cutoffs.
+# -----------------------------------------------------------------------------
+hedging_density_bands:
+  paper_source: "de Kok (2024) Online Appendix OA 3 Step 1 (keyword list only); band cutoffs are NOT paper thresholds."
+  low_hedging_ceiling: 0.15
+  high_hedging_floor: 0.35
+  notes: >-
+    The paper has no MD&A-specific density cutoffs — it reports a
+    13.9% non-answer rate at the Q&A-pair level for earnings calls
+    (Table 2), which is not directly portable to MD&A (different
+    substrate, different base rate). The 0.15 / 0.35 cutoffs are
+    practitioner-derived defaults for MD&A: a 10-K with under 15% of
+    sentences firing the filter is unusually specific, while a 10-K
+    with over 35% of sentences firing is unusually hedged. An
+    accounting expert can revise these cutoffs without Python per P1;
+    a future population-calibrated variant on a larger issuer panel
+    would anchor them more firmly.

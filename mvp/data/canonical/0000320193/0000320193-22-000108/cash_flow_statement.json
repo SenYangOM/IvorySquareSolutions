@@ -1,0 +1,27 @@
+{
+  "filing_id": "0000320193/0000320193-22-000108",
+  "cik": "0000320193",
+  "accession": "0000320193-22-000108",
+  "statement_role": "cash_flow_statement",
+  "fiscal_period_end": "2022-09-24",
+  "data_quality_flag": "ixbrl_companyfacts",
+  "line_items": [
+    {
+      "name": "cash_flow_from_operating_activities",
+      "value_usd": "122151000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "cash_flow_statement",
+        "locator": "0000320193/0000320193-22-000108::cash_flow_statement::cash_flow_from_operating_activities",
+        "excerpt_hash": "14d09f8229c5f10b9ba6f2c8f0d41184d03aeeec08e3c1a542fa03091b647aa0",
+        "value": 122151000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020283Z"
+      },
+      "source_concept": "NetCashProvidedByUsedInOperatingActivities",
+      "notes": null
+    }
+  ]
+}

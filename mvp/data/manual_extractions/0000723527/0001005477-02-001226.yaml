@@ -1,0 +1,121 @@
+filing_id: 0000723527/0001005477-02-001226
+cik: '0000723527'
+accession: 0001005477-02-001226
+fiscal_period_end: '2001-12-31'
+data_quality_flag: pre_ixbrl_sgml_manual_extraction
+notes: Values manually extracted from WorldCom, Inc.'s FY2001 10-K405 (filed 2002-03-13, accession 0001005477-02-001226),
+  all stated in millions of US dollars. This is the as-originally-filed filing reflecting pre-restatement numbers; the 2004
+  10-K/A contains the restated 1999-2001 figures (not ingested at MVP).
+line_items:
+- name: revenue
+  statement_role: income_statement
+  value_usd: 35179000000
+  unit: USD
+  source_excerpt: Revenues $ 35,908 $ 39,090 $ 35,179
+  excerpt_hash: 29a7ab428a3795c5cf16ad6a9017fae13cf9b7e123653b359b0b00db17099fbc
+  notes: The three columns are 1999, 2000, 2001 left-to-right; 35,179 is the FY2001 figure.
+- name: cost_of_goods_sold
+  statement_role: income_statement
+  value_usd: 14739000000
+  unit: USD
+  source_excerpt: Line costs 14,739 15,462 14,739
+  excerpt_hash: d322ead44ef2605e5fd22e4e9e8d5dab360570ffa4cf98577ed6a8157e1329f6
+  notes: WorldCom reports 'Line costs' as the direct-cost-of-revenue-equivalent line; no separate COGS. FY2001 figure is 14,739
+    (third column, 2001).
+- name: gross_profit
+  statement_role: income_statement
+  value_usd: 20440000000
+  unit: USD
+  source_excerpt: Revenues $ 35,179 ... Line costs 14,739
+  excerpt_hash: fe291c67ce744e32707731b0dc1b4722ad965e16d26ec26b5dd6445ca29ac9a6
+  notes: Derived as Revenues - Line costs; not reported as a subtotal.
+- name: selling_general_admin_expense
+  statement_role: income_statement
+  value_usd: 11046000000
+  unit: USD
+  source_excerpt: Selling, general and administrative 8,935 10,597 11,046
+  excerpt_hash: ba127d45db54658dda6b7e71ec131d9b9e459f25fa1252bdb2c01d47485b026d
+  notes: FY2001 figure is 11,046 (third column).
+- name: depreciation_and_amortization
+  statement_role: income_statement
+  value_usd: 5880000000
+  unit: USD
+  source_excerpt: Depreciation and amortization 4,354 4,878 5,880
+  excerpt_hash: 729d2a921b8e2ff896231e84aeea06d7944a875d148960f88ac61121ee93746c
+  notes: FY2001 figure is 5,880 (third column).
+- name: ebit
+  statement_role: income_statement
+  value_usd: 3514000000
+  unit: USD
+  source_excerpt: Operating income 7,888 8,153 3,514
+  excerpt_hash: 6b2eabc913a4c2ec63ce88ae8c8f54c3b2e5a72bd5f2046e1534856acc03f75f
+  notes: WorldCom reports Operating income; no separately disclosed pre-interest/pre-tax subtotal above it. FY2001 figure
+    is 3,514.
+- name: trade_receivables_net
+  statement_role: balance_sheet
+  value_usd: 5308000000
+  unit: USD
+  source_excerpt: Accounts receivable, net of allowance for bad debts of $1,532 in 2000 and $1,086 in 2001 6,815 5,308
+  excerpt_hash: 51be304c4725db454df04590d8549ab9729894a1f2a85787707f81e184532917
+  notes: Columns are 2000, 2001. 5,308 is 2001.
+- name: inventory
+  statement_role: balance_sheet
+  value_usd: null
+  unit: USD
+  source_excerpt: (no separate inventory line; WorldCom is a services business)
+  excerpt_hash: 8ab9f6dd447da58f3e6b91d1c0cedd1a76f596159f85113e9aee7e38e301e3ea
+  notes: not reported in this filing
+- name: property_plant_equipment_net
+  statement_role: balance_sheet
+  value_usd: 38809000000
+  unit: USD
+  source_excerpt: Property and equipment ... 44,627 48,661 ... Accumulated depreciation (7,204) (9,852) ... 37,423 38,809
+  excerpt_hash: dccc81321859d2c90f41e7d2d39370217e635b1751fd4f12b533bf3cbeaec655
+  notes: Net PP&E (after accumulated depreciation). 2001 column is 38,809.
+- name: total_assets
+  statement_role: balance_sheet
+  value_usd: 103914000000
+  unit: USD
+  source_excerpt: $ 98,903 $ 103,914
+  excerpt_hash: 751eca3e9ec37267ad5a6b29325a3a52ef6662c3bf4cb8f47ce237469ff5fd65
+  notes: Totals column rows sum to the balance-sheet total; 2001 total is 103,914.
+- name: current_assets
+  statement_role: balance_sheet
+  value_usd: 9205000000
+  unit: USD
+  source_excerpt: Total current assets 9,755 9,205
+  excerpt_hash: 05c33e85f1469c0ac965148a43e152deff5a661729d552bf5e5ebaa203a21b1a
+  notes: Columns are 2000, 2001.
+- name: current_liabilities
+  statement_role: balance_sheet
+  value_usd: 9210000000
+  unit: USD
+  source_excerpt: Total current liabilities 17,673 9,210
+  excerpt_hash: 58bb3c29668350b56fb76941a856e359d130e2ef964eb575b8669cd7608b6258
+- name: long_term_debt
+  statement_role: balance_sheet
+  value_usd: 30038000000
+  unit: USD
+  source_excerpt: Long-term debt 17,696 30,038
+  excerpt_hash: 62b9dbce77685be5331fcef2a230e5652ca5336397aa6931b69ec770f7f96950
+- name: total_liabilities
+  statement_role: balance_sheet
+  value_usd: 43890000000
+  unit: USD
+  source_excerpt: Total current liabilities 9,210 ... Total long-term liabilities 22,431 34,680
+  excerpt_hash: f80c7f9cf368acea5fe58e5d3034bc53540c8aadb44a94b03a4f474170f32e34
+  notes: 'Derived: total current liabilities (9,210) + total long-term liabilities (34,680) for 2001. WorldCom does not report
+    a single ''Total liabilities'' line; minority interests (101) and redeemable preferred (1,993) are mezzanine and excluded.'
+- name: retained_earnings
+  statement_role: balance_sheet
+  value_usd: 4400000000
+  unit: USD
+  source_excerpt: Retained earnings 3,160 4,400
+  excerpt_hash: 98a5bcecd2083579cf3c4a938e3b3c42b98f3ae5949fdd56254de7754a6fc5c0
+- name: cash_flow_from_operating_activities
+  statement_role: cash_flow_statement
+  value_usd: 7994000000
+  unit: USD
+  source_excerpt: Net cash provided by operating activities 11,005 7,666 7,994
+  excerpt_hash: a5d331f6c581627e089f30fae26b07e99f6fd8796e460b1aa5f6f5d85b180a59
+  notes: Columns are 1999, 2000, 2001. FY2001 figure is 7,994.

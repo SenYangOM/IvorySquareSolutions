@@ -1,0 +1,102 @@
+# Fiscal-year-end market values of equity for the 5 Phase 1 sample issuers.
+# Canonical values sourced from BUILD_REFS.md §2 (gathered 2026-04-17). This
+# file is an engineering-owned data fixture, NOT a human_layer artifact — an
+# accounting expert reviewing M-Score / Altman Z outputs would not edit these
+# share counts or prices (see CLAUDE.md §P1, mvp_build_goal.md §9).
+#
+# The Altman Z skill (compute_altman_z_score) reads this fixture for X4's
+# numerator (market value of equity). Validated at load time by
+# mvp.ingestion.market_data_loader.load_equity_values — in particular, the
+# consistency check
+#     shares_outstanding * share_price_usd ≈ market_value_of_equity_usd
+# (within 1% tolerance) catches typos before they propagate to Phase 4.
+
+entries:
+  - cik: "0001024401"
+    issuer: "Enron Corp"
+    fiscal_year_end: "2000-12-31"
+    shares_outstanding: 751628046
+    share_price_usd: 83.13
+    market_value_of_equity_usd: 62482858862
+    price_source: "https://en.wikipedia.org/wiki/Enron_scandal"
+    shares_source: "Enron FY2000 10-K balance sheet (752,205,112 issued − 577,066 treasury = 751,628,046 outstanding)"
+    notes: >
+      $83.13 is the close on 2000-12-29 (last NYSE trading day of FY2000;
+      Dec 30-31 were a weekend). Widely-cited figure, predates the November
+      2001 collapse by 11 months. 751.6M × $83.13 ≈ $62.5B, consistent with
+      contemporary press coverage 'market cap exceeded $60B at year-end
+      2000'. Uses as-originally-filed FY2000 10-K numbers per §13 decision 3.
+
+  - cik: "0000723527"
+    issuer: "WorldCom Inc"
+    fiscal_year_end: "2001-12-31"
+    shares_outstanding: 3086032391
+    share_price_usd: 14.04
+    market_value_of_equity_usd: 43350000000
+    price_source: "https://companiesmarketcap.com/worldcom/marketcap/"
+    shares_source: "WorldCom FY2001 10-K balance sheet (WCOM: 2,967,436,680 + MCIT: 118,595,711 = 3,086,032,391 combined tracking-stock shares)"
+    market_cap_source: "estimated_from_aggregated_market_cap"
+    notes: >
+      WorldCom's June 2001 recapitalization created two tracking stocks
+      (WCOM and MCIT); Yahoo Finance chart API drops delisted tickers so
+      direct close-price data is unavailable. Using the companiesmarketcap
+      year-end-2001 aggregate ($43.33B) as the MVE proxy; implied blended
+      price ≈ $14.04/share is consistent with the 10-K's Item 5 quarterly
+      range (WCOM Q4 2001 $11.79–$16.06; MCIT Q4 2001 $10.90–$15.40). This
+      record is flagged `market_cap_source: estimated_from_aggregated_market_cap`
+      in addition to the standard sources — downstream confidence scoring
+      should degrade accordingly. As-originally-filed FY2001 10-K numbers
+      (pre the 2004 restatement) per §13 decision 3.
+
+  - cik: "0000320193"
+    issuer: "Apple Inc"
+    fiscal_year_end: "2023-09-30"
+    shares_outstanding: 15552752000
+    share_price_usd: 171.21
+    market_value_of_equity_usd: 2662807717920
+    price_source: "https://query1.finance.yahoo.com/v8/finance/chart/AAPL?period1=1695600000&period2=1696204800&interval=1d"
+    shares_source: "Apple FY2023 10-K cover page (as of October 20, 2023)"
+    notes: >
+      $171.21 is the close on 2023-09-29, last NYSE trading day of Apple's
+      FY2023 (Sept 30 was a Saturday). Cover-page share count is reported
+      as of 2023-10-20, 20 days post-FYE; Apple does not disclose a
+      separate 9/30/2023 count. Q4 FY2023 basic weighted-average shares
+      were 15,599,434 thousand — the 10-20-2023 figure is preferred as
+      Apple's own self-reported number.
+
+  - cik: "0000789019"
+    issuer: "Microsoft Corporation"
+    fiscal_year_end: "2023-06-30"
+    shares_outstanding: 7429763722
+    share_price_usd: 340.54
+    market_value_of_equity_usd: 2530349001306
+    price_source: "https://query1.finance.yahoo.com/v8/finance/chart/MSFT?period1=1688083200&period2=1688428800&interval=1d"
+    shares_source: "Microsoft FY2023 10-K cover page (as of July 24, 2023)"
+    notes: >
+      $340.54 is the close on 2023-06-30, last NYSE trading day of
+      Microsoft's FY2023. Cover-page share count is reported as of
+      2023-07-24 (24 days post-FYE) — close proxy for FYE shares given
+      Microsoft's steady buyback cadence (<0.1% monthly drift). 10-K Note
+      16 balance-sheet figure at 2023-06-30 is 7,432 million (rounded),
+      consistent.
+
+  - cik: "0001690820"
+    issuer: "Carvana Co"
+    fiscal_year_end: "2022-12-31"
+    shares_outstanding: 106074230
+    share_price_usd: 4.74
+    market_value_of_equity_usd: 502791850
+    price_source: "https://query1.finance.yahoo.com/v8/finance/chart/CVNA?period1=1672185600&period2=1672790400&interval=1d"
+    shares_source: "Carvana FY2022 10-K cover page, Class A common stock (as of February 17, 2023)"
+    shares_source_flag: "cover_page_post_fye"
+    notes: >
+      $4.74 is the close on 2022-12-30, last NYSE trading day of FY2022
+      (Dec 31 was a Saturday). Carvana has a dual-class structure; Class B
+      (82,900,276 shares) is held by Ernest Garcia II/III and does not
+      trade publicly. Altman X4's 'market value of equity' uses traded-
+      shares MVE in practitioner interpretations, so only Class A is
+      included here — the conservative MVE. Implied Altman X4 against
+      Carvana's ~$8B of book debt is very low, consistent with the gray-
+      zone profile in mvp_build_goal.md §4. Cover-page share count is
+      reported as of 2023-02-17 (47 days post-FYE) — flagged
+      `shares_source_flag: cover_page_post_fye`.

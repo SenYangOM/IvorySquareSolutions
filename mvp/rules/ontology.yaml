@@ -1,0 +1,368 @@
+# mvp/rules/ontology.yaml
+#
+# Domain vocabulary used by the interpretation layer (L3). This file is
+# authored by the accounting_expert persona and is the single source of
+# truth for (a) the domains the interpretation layer speaks about,
+# (b) the sub-concepts and related paper-derived constructs inside each
+# domain, (c) the canonical financial-statement roles and the 16
+# canonical line items that every rule template and every citation
+# references, and (d) the severity vocabulary used by rules.
+#
+# This file is reviewable by a human accounting expert without reading
+# any Python. When amending it, bump the version field and add a one-line
+# change_log entry.
+#
+# Cross-references:
+#   - Canonical line-item names: mvp/standardize/mappings.py
+#   - Rule templates that consume this ontology:
+#       mvp/rules/templates/m_score_components.yaml
+#       mvp/rules/templates/z_score_components.yaml
+#   - Rule-authoring guide: mvp/human_layer/rule_authoring_guide.md
+
+ontology_version: "0.1.0"
+
+change_log:
+  - version: "0.1.0"
+    date: 2026-04-17
+    authored_by: accounting_expert (Phase 3)
+    note: "Initial MVP ontology covering earnings_quality and distress_risk for the Beneish + Altman vertical slice."
+
+# -----------------------------------------------------------------------------
+# Domains
+# -----------------------------------------------------------------------------
+# The MVP speaks about two domains — the minimum set the Beneish + Altman
+# vertical slice requires. Post-MVP adds capital-structure risk, revenue
+# quality (fine-grained), corporate-governance risk, peer-relative
+# quality, etc.
+
+domains:
+
+  earnings_quality:
+    description: >-
+      Assessment of how faithfully reported earnings represent sustainable
+      economic earnings — i.e., whether the reported number is the result
+      of the underlying operating reality or has been meaningfully
+      influenced by accrual choices, revenue recognition timing, one-time
+      items, or outright manipulation. The Beneish M-Score is the
+      paper-derived construct in this domain at MVP.
+    sub_concepts:
+      - accruals_quality
+      - revenue_quality
+      - expense_recognition_quality
+      - asset_realization_risk
+      - non_recurring_items
+
+  distress_risk:
+    description: >-
+      Assessment of the probability that the firm will be unable to meet
+      its obligations as they come due — bankruptcy, debt restructuring,
+      or a covenant breach. The Altman Z-Score is the paper-derived
+      construct in this domain at MVP.
+    sub_concepts:
+      - liquidity_position
+      - cumulative_profitability
+      - asset_productivity
+      - market_confidence
+      - capital_turnover
+
+# -----------------------------------------------------------------------------
+# Sub-concepts
+# -----------------------------------------------------------------------------
+# Each sub-concept has a precise, practitioner-voice definition and lists
+# the related_constructs — the published academic constructs that target
+# it, including but not limited to the MVP's two paper-derived skills.
+
+sub_concepts:
+
+  accruals_quality:
+    description: >-
+      Degree to which total accruals reflect legitimate timing differences
+      (purchases on credit, revenue earned but uncollected, depreciation
+      of fixed assets) as opposed to discretionary choices that
+      disproportionately advantage the current period's reported earnings.
+      Low-quality accruals tend to reverse, making current earnings a
+      poor guide to future cash flows.
+    related_constructs:
+      - beneish_m_score_tata_component
+      - sloan_accruals_anomaly
+      - modified_jones_discretionary_accruals
+      - dechow_dichev_accruals_quality
+
+  revenue_quality:
+    description: >-
+      Degree to which reported revenue represents arms-length, collected
+      or shortly-collectible sales of the firm's ordinary products or
+      services. Common concerns: channel stuffing, bill-and-hold
+      arrangements, related-party sales, revenue recognition pulled
+      forward via aggressive estimates of variable consideration under
+      ASC 606, and round-trip transactions that inflate both revenue and
+      receivables symmetrically.
+    related_constructs:
+      - beneish_m_score_dsri_component
+      - beneish_m_score_sgi_component
+      - lev_thiagarajan_signals
+      - dechow_sloan_sweeney_aaer_framework
+
+  expense_recognition_quality:
+    description: >-
+      Whether the firm's expense recognition pattern matches the economic
+      consumption of the underlying resource. Most common concerns:
+      capitalization of costs that should be expensed (WorldCom-style
+      line-cost capitalization), extended useful-life assumptions that
+      slow depreciation (Beneish DEPI), and under-accrual of warranty /
+      returns / doubtful-account allowances.
+    related_constructs:
+      - beneish_m_score_depi_component
+      - beneish_m_score_sgai_component
+
+  asset_realization_risk:
+    description: >-
+      Probability that recorded asset balances — especially non-current
+      intangibles, capitalized software, deferred charges, and non-PPE
+      long-lived assets — will ultimately be realized through future cash
+      flows or sale, net of any future impairments. An increase in
+      asset-realization risk signals a higher proportion of the balance
+      sheet held in items whose economic value depends on events that
+      have not yet happened.
+    related_constructs:
+      - beneish_m_score_aqi_component
+
+  non_recurring_items:
+    description: >-
+      Income and expense items that are unlikely to repeat — restructuring
+      charges, gains on sale of businesses, impairments, litigation
+      settlements, and the "other" lines that aggregate such items. Their
+      treatment (recurring vs. non-recurring) materially affects quality
+      assessments and the sustainability of reported margins.
+    related_constructs: []
+
+  liquidity_position:
+    description: >-
+      Firm's ability to meet near-term obligations from current assets.
+      Measured here via working-capital-to-total-assets (Altman X1), the
+      paper's chosen liquidity ratio because it embeds both the level and
+      the composition of short-term claims.
+    related_constructs:
+      - altman_z_score_x1_component
+
+  cumulative_profitability:
+    description: >-
+      Total retained earnings as a fraction of total assets — a
+      cumulative, age-aware measure of whether the firm has earned its
+      way to its current capital base or has funded it largely through
+      external financing. Young firms and firms that have paid out large
+      dividends both score low here.
+    related_constructs:
+      - altman_z_score_x2_component
+
+  asset_productivity:
+    description: >-
+      EBIT (or its closest available proxy) as a fraction of total assets.
+      A pre-tax, pre-financing measure of how much operating earnings the
+      firm extracts from every dollar of assets — the "true productivity
+      of the firm's assets, abstracting from any tax or leverage factors"
+      in Altman's phrasing (1968, §III).
+    related_constructs:
+      - altman_z_score_x3_component
+
+  market_confidence:
+    description: >-
+      Market value of equity divided by book value of total liabilities —
+      the cushion the market's valuation implies before liabilities
+      exceed the firm's going-concern value. Brings a forward-looking,
+      market-based signal into an otherwise accounting-based
+      discriminant.
+    related_constructs:
+      - altman_z_score_x4_component
+
+  capital_turnover:
+    description: >-
+      Sales divided by total assets — the classic asset-turnover ratio.
+      Captures management's capability at generating revenue from the
+      asset base; the least statistically significant of Altman's five
+      variables in univariate terms, but the one that carries the most
+      weight in the combined discriminant.
+    related_constructs:
+      - altman_z_score_x5_component
+
+# -----------------------------------------------------------------------------
+# Financial-statement roles and the 16 canonical line items
+# -----------------------------------------------------------------------------
+# Every rule-template rule cites one or more of these 16 names. The names
+# must match mvp/standardize/mappings.py exactly — the standardization
+# layer populates Canonical*Statement objects using these names, and the
+# rule executor's citations_required field binds against them.
+#
+# When adding a new canonical line item, add it to mappings.py first
+# (with its ordered list of candidate US-GAAP concepts), then mirror it
+# here.
+
+financial_statement_roles:
+
+  income_statement:
+    description: >-
+      Reports revenue, expenses, and profit measures for a duration
+      (typically the fiscal year). All items here are duration facts
+      aligned to the filing's fiscal period end; prior-year comparatives
+      come from the year-t-1 filing's canonical income statement.
+    line_items:
+      - name: revenue
+        description: >-
+          Total net sales of the firm's ordinary products and services
+          for the period. US-GAAP concepts mapped: preferred
+          RevenueFromContractWithCustomerExcludingAssessedTax (ASC 606
+          compliant); fallbacks Revenues, SalesRevenueNet,
+          SalesRevenueGoodsNet. Used in Beneish DSRI, GMI, SGI, SGAI and
+          Altman X5.
+      - name: cost_of_goods_sold
+        description: >-
+          Direct costs attributable to producing the goods or delivering
+          the services sold during the period. Mapped to
+          CostOfGoodsAndServicesSold preferred; services businesses map
+          to CostOfServices or CostOfRevenue. Used in Beneish GMI.
+      - name: gross_profit
+        description: >-
+          Revenue minus cost of goods sold. Mapped to the explicit
+          GrossProfit tag when the filer provides it; otherwise the
+          standardizer leaves it null and the engine computes it as
+          revenue − cost_of_goods_sold. Used in Beneish GMI.
+      - name: selling_general_admin_expense
+        description: >-
+          Operating expenses other than cost of goods sold — selling,
+          marketing, G&A. Mapped to SellingGeneralAndAdministrativeExpense
+          preferred; fallbacks include the decomposed
+          GeneralAndAdministrativeExpense + SellingAndMarketingExpense
+          where a single aggregate tag is absent. Used in Beneish SGAI.
+      - name: depreciation_and_amortization
+        description: >-
+          Depreciation of tangible fixed assets plus amortization of
+          intangible assets, total for the period. Mapped to
+          DepreciationDepletionAndAmortization preferred; fallbacks
+          DepreciationAndAmortization, Depreciation. Used in Beneish
+          DEPI and TATA.
+      - name: ebit
+        description: >-
+          Earnings before interest and taxes. For Altman X3, the paper
+          defines this as the operating-productivity measure; mapped to
+          OperatingIncomeLoss preferred. When the filer does not tag a
+          single EBIT / operating-income concept (e.g., Carvana 2022),
+          the value is null and the downstream skill surfaces an
+          indeterminate flag. Used in Altman X3.
+
+  balance_sheet:
+    description: >-
+      Reports the firm's assets, liabilities, and equity at an instant
+      — the fiscal period end. All items here are instant facts.
+    line_items:
+      - name: trade_receivables_net
+        description: >-
+          Amounts owed by customers for ordinary-course sales, net of
+          the allowance for doubtful accounts. Mapped to
+          AccountsReceivableNetCurrent preferred. Used in Beneish DSRI.
+      - name: inventory
+        description: >-
+          Goods available for sale plus work-in-process and raw
+          materials, net of reserves. Mapped to InventoryNet preferred.
+          Legitimately null for services businesses (e.g., WorldCom).
+      - name: property_plant_equipment_net
+        description: >-
+          Buildings, machinery, equipment, and land, net of accumulated
+          depreciation. For lessees that capitalize finance-lease ROU
+          alongside owned PP&E, the combined concept is used. Mapped to
+          PropertyPlantAndEquipmentNet preferred. Used in Beneish DEPI
+          and AQI.
+      - name: total_assets
+        description: >-
+          Sum of all current and non-current assets. Mapped to the
+          Assets concept. Used in Beneish AQI, SGI-denominator, DEPI,
+          TATA, and Altman X1, X2, X3, X5.
+      - name: current_assets
+        description: >-
+          Cash plus assets expected to be converted to cash or consumed
+          within the operating cycle (typically 12 months). Mapped to
+          AssetsCurrent. Used in Beneish AQI (via the non-current-other
+          residual) and TATA (working-capital delta); Altman X1.
+      - name: current_liabilities
+        description: >-
+          Obligations due within the operating cycle. Mapped to
+          LiabilitiesCurrent. Used in Beneish LVGI, TATA; Altman X1.
+      - name: long_term_debt
+        description: >-
+          Debt with maturities greater than one year. Mapped to
+          LongTermDebtNoncurrent preferred; fallbacks include combined
+          LongTermDebtAndCapitalLeaseObligations. Used in Beneish LVGI.
+      - name: total_liabilities
+        description: >-
+          Sum of current and non-current liabilities. Mapped to
+          Liabilities. Used in Altman X4-denominator.
+      - name: retained_earnings
+        description: >-
+          Cumulative net income reinvested less dividends paid. Mapped
+          to RetainedEarningsAccumulatedDeficit. Used in Altman X2.
+
+  cash_flow_statement:
+    description: >-
+      Reports cash inflows and outflows for the period, partitioned into
+      operating, investing, and financing activities. All items here are
+      duration facts.
+    line_items:
+      - name: cash_flow_from_operating_activities
+        description: >-
+          Net cash generated by (or used in) operating activities during
+          the period. Mapped to NetCashProvidedByUsedInOperatingActivities
+          preferred. Note: Beneish's TATA formula uses the balance-sheet
+          accrual construction, not CFO directly — CFO is available here
+          for sanity-checking and for the Phase 4 confidence model's
+          data-completeness penalty when the accrual construction's
+          input balance-sheet deltas are sparse.
+
+# -----------------------------------------------------------------------------
+# Value-interpretation severities
+# -----------------------------------------------------------------------------
+# The severity vocabulary used by every rule template. Severity is
+# *orthogonal* to sign of the value — a component can be "low" because
+# it's benignly close to one, or "low" because the paper does not treat
+# the tail as informative. Every rule template's per-condition severity
+# must come from this set.
+
+value_interpretation_severities:
+
+  low:
+    definition: >-
+      The component is in a neutral or benign band. Either the value is
+      close to its neutral point (typically 1.0 for Beneish ratio
+      indices, the center of the safe zone for Altman Z) or the tail is
+      not one the source paper treats as a manipulation / distress
+      signal.
+    implied_action: "No action needed beyond logging the value."
+    confidence_contribution: "Confirms the null hypothesis implicit in the rule set; minor positive contribution to overall confidence."
+
+  medium:
+    definition: >-
+      The component is off-neutral in the direction the paper treats as
+      informative, but within ranges that are common among non-
+      manipulator / non-distressed firms. A real reviewer would note it
+      and keep reading but not change their overall assessment yet.
+    implied_action: "Flag in the working paper; note the driver; check whether the next component agrees."
+    confidence_contribution: "Neutral — not yet discriminating."
+
+  high:
+    definition: >-
+      The component is at a level that the paper's estimation sample
+      associates with manipulators / distressed firms. A real reviewer
+      would write a follow-up question and expect a specific answer
+      before relying on the reported figure.
+    implied_action: "Raise as a red flag; require a documented management response."
+    confidence_contribution: "Negative contribution to overall quality confidence; positive contribution to the flag's strength."
+
+  critical:
+    definition: >-
+      The component is in a tail beyond the worst part of the paper's
+      reported manipulator / distressed distribution, or a component
+      input has degenerate behavior (e.g., negative denominator, change-
+      of-sign within the window) that would make the standard
+      interpretation misleading. Either way the reviewer cannot proceed
+      on the headline score without a specific disclosure-based
+      explanation.
+    implied_action: "Stop and require a written management representation before using the score."
+    confidence_contribution: "Heavily negative contribution; may flip the output's flag to indeterminate."

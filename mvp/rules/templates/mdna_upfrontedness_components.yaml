@@ -1,0 +1,157 @@
+# mvp/rules/templates/mdna_upfrontedness_components.yaml
+#
+# Rule template for the compute_mdna_upfrontedness skill (L3 paper-
+# derived). Authored by the accounting_expert persona (post-MVP,
+# paper-onboarding iteration 1). Consumed by the skill for its flag
+# bands and by any downstream L2 interpretation skill that explains
+# a firm's Upfrontedness score in accountant's voice.
+#
+# Paper. Kim, Muhn, Nikolaev & Zhang (2024), "Learning Fundamentals
+# from Text," University of Chicago Booth working paper. PDF sha256
+# 0444ce3fa30dedf450d642fb81f6665a38f312c94584037886cec69e37d64de5.
+#
+# Authoring note on rule shape. Upfrontedness is a single scalar
+# (unlike Beneish's 8 components or Altman's 5), so this rule template
+# has ONE component block — the overall score — plus the paper-
+# quartile-derived flag bands and contextual caveats an accountant
+# would surface when reading a firm's score. A caller who wants
+# per-paragraph position interpretations can iterate over the skill's
+# `components` output block; per-paragraph rules are out of scope for
+# this template (they would require paragraph content, which this
+# skill does not emit).
+
+template_version: "0.1.0"
+paper: "Kim, A. G., Muhn, M., Nikolaev, V. V., & Zhang, Y. (2024). Learning Fundamentals from Text. University of Chicago Booth Working Paper."
+paper_pdf_sha256: "0444ce3fa30dedf450d642fb81f6665a38f312c94584037886cec69e37d64de5"
+
+# -----------------------------------------------------------------------------
+# Upfrontedness score (firm-level Information Positioning, Equation 9)
+# -----------------------------------------------------------------------------
+components:
+
+  - component: upfrontedness_score
+    full_name: "Firm-Level Information Positioning (Upfrontedness)"
+    description: >-
+      Firm-level score measuring whether informationally-weighted
+      MD&A paragraphs sit up front (high score) or toward the end
+      (low score). Defined by Kim et al. (2024) Equation 9:
+      Upfrontedness = Σ_k (1 − position_k/N) × importance_k, where
+      importance is the paper's attention-model output. Our
+      implementation uses a length-share proxy for importance — see
+      the manifest's implementation_decisions[0] and
+      workshop/paper_to_skill/notes/fundamentals_text.md.
+    formula: "Σ_k [ (1 − rank_k/N) × (length_k / total_length) ]  # length-share proxy"
+    canonical_inputs:
+      - "mdna (Item 7 text) from extract_mdna skill"
+    paper_coefficient: null
+    coefficient_notes: >-
+      No coefficient; the score is a weighted average of position
+      indicators. The bands below come from the paper's Appendix D
+      Panel A reported distribution (N=66,757 firm-years,
+      mean=0.5161, std=0.0243, P25=0.5012, P50=0.5143, P75=0.5283).
+    paper_reference:
+      source: "Kim, Muhn, Nikolaev & Zhang (2024)"
+      table: "§VI Equations 8 and 9; Appendix D Panel A (distribution)"
+      page: "25-27 (equations); 35 (Appendix D)"
+    interpretation_rules:
+
+      - condition: "value >= 0.5283"
+        interpretation: |
+          Upfrontedness is at or above the paper's reported P75
+          (0.5283). The firm has placed its informationally-heavier
+          (longer, by proxy) MD&A paragraphs toward the front of the
+          section — consistent with a forthcoming communication
+          pattern. In the paper's cross-section this is associated
+          with larger, more mature, more profitable firms with more
+          readable MD&As (Appendix D Panel B). Read this as a
+          positive textual-structure signal, not a clean bill of
+          health.
+        severity: "low"
+        follow_up_questions:
+          - "Does the MD&A open with the most material segment's results, or with a boilerplate overview?"
+          - "How does this firm's Upfrontedness compare to its three closest industry peers' scores?"
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "The length-share proxy can over-reward any firm whose MD&A opens with unusually long prose (e.g., extensive executive-summary sections). Cross-check with a manual glance at paragraph 1-3."
+          - "The paper's P75 threshold is a population anchor, not a model cutoff — a score at 0.528 is economically indistinguishable from 0.527."
+
+      - condition: "0.5012 <= value < 0.5283"
+        interpretation: |
+          Upfrontedness is in the paper's typical band (P25..P75).
+          The firm's MD&A positional structure is within the central
+          50% of the paper's 66,757-firm distribution — neither
+          obviously front-loaded nor obviously back-loaded. A
+          'typical' flag does not mean the MD&A contains no negative
+          information; it means the POSITIONAL STRUCTURE does not
+          raise an obfuscation flag.
+        severity: "medium"
+        follow_up_questions:
+          - "Are the obfuscation covariates (loss, low ROA, high earnings volatility, negative sentiment) present in the firm-year, per Appendix D Panel B?"
+          - "Does the firm have a history of comment letters on its MD&A? SEC comment-letter activity raises the item-level importance of the affected section (Kim et al. 2024 §V.B)."
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "A typical flag on a firm with strong obfuscation covariates deserves a second look — the length-share proxy may be masking a pattern the paper's attention model would catch."
+
+      - condition: "value < 0.5012"
+        interpretation: |
+          Upfrontedness is below the paper's P25 (0.5012). The firm
+          has placed its informationally-heavier paragraphs toward
+          the END of MD&A rather than the beginning. In the paper's
+          cross-section this pattern correlates with operating
+          losses, lower profitability, higher earnings volatility,
+          negative MD&A sentiment, and lower readability (Appendix D
+          Panel B). Read as a textual-structure red flag warranting
+          a closer qualitative read — specifically, look at what
+          sits at the TAIL of MD&A.
+        severity: "high"
+        follow_up_questions:
+          - "What is the content of the last 5-10 MD&A paragraphs? Are they substantive discussion, regulatory boilerplate, or forward-looking hedges?"
+          - "Has this firm's Upfrontedness trended downward year-over-year? A declining score on the same firm is a stronger signal than an absolute low score."
+          - "Does the firm report an operating loss, a material declining ROA, or a late-in-the-section goodwill-impairment discussion?"
+        citations_required:
+          - "mdna (cik/accession::mdna::item_7)"
+        contextual_caveats:
+          - "The length-share proxy is known to produce scores below P25 on modern iXBRL filings with dense late-MD&A tabular content (e.g., Apple FY2023 in the MVP sample lands at ≈0.435). A low score alone is NOT sufficient evidence of obfuscation — cross-check with the Appendix-D covariates."
+          - "Pre-iXBRL filings (Enron FY2000, WorldCom FY2001) have noisier paragraph structure; their scores carry warning=pre_ixbrl_paragraph_structure and should be read with wider uncertainty."
+
+      - condition: "value is null"
+        interpretation: |
+          The skill could not compute Upfrontedness for this filing.
+          Either the MD&A section could not be identified by
+          extract_mdna (warning mdna_section_not_located), or the
+          extracted section contained fewer than 10 valid paragraphs
+          after the <20-character filter (warning mdna_too_short).
+          Microsoft FY2023 in the MVP sample hits the latter because
+          extract_mdna's current iXBRL finder truncates the section;
+          that is a known upstream limitation, not an Upfrontedness
+          bug.
+        severity: "none"
+        follow_up_questions:
+          - "Has extract_mdna been updated to handle this filing's MD&A layout?"
+          - "If the MD&A was located, why are there fewer than 10 valid paragraphs — is the section unusually short, or is there a paragraph-splitter issue?"
+        citations_required: []
+        contextual_caveats:
+          - "Indeterminate is NOT a score of zero. Callers that treat it as zero will drag ensemble metrics incorrectly. The composite analyze_for_red_flags (or any successor) must branch on flag=indeterminate separately."
+
+# -----------------------------------------------------------------------------
+# Composite threshold block — documents the paper's quartile reference points
+# rooted in one place (same pattern as m_score_threshold / z_score_zones).
+# -----------------------------------------------------------------------------
+upfrontedness_bands:
+  paper_source: "Kim, Muhn, Nikolaev & Zhang (2024) Appendix D Panel A (N=66,757)"
+  mean: 0.5161
+  standard_deviation: 0.0243
+  p25: 0.5012
+  p50: 0.5143
+  p75: 0.5283
+  forthcoming_floor: 0.5283
+  obfuscating_likely_ceiling: 0.5012
+  notes: >-
+    Thresholds are the paper's reported quartiles, not model-derived
+    cutoffs. Any re-estimation of the Upfrontedness distribution on
+    a MVP-scale sample (5 filings) would have far too little power to
+    estimate quartiles, so we anchor to the paper's population values.
+    A future paper-specific calibration (post-MVP) on a larger sample
+    would let us update these bands.

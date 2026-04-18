@@ -1,0 +1,117 @@
+filing_id: 0000723527/0000912057-01-505916
+cik: '0000723527'
+accession: 0000912057-01-505916
+fiscal_period_end: '2000-12-31'
+data_quality_flag: pre_ixbrl_sgml_manual_extraction
+notes: Values manually extracted from WorldCom, Inc.'s FY2000 10-K405 (filed 2001-03-30, accession 0000912057-01-505916),
+  all stated in millions of US dollars. As-originally-filed; predates the 2002 disclosure of the line-cost-capitalization
+  fraud.
+line_items:
+- name: revenue
+  statement_role: income_statement
+  value_usd: 39090000000
+  unit: USD
+  source_excerpt: Revenues $17,617 $35,908 $39,090
+  excerpt_hash: 51efe448ee90186cd226542df168289c336a95c063182e4c5485f11046c5be5e
+  notes: Columns are 1998, 1999, 2000. FY2000 figure is 39,090.
+- name: cost_of_goods_sold
+  statement_role: income_statement
+  value_usd: 15462000000
+  unit: USD
+  source_excerpt: Line costs 7,982 14,739 15,462
+  excerpt_hash: 80f63a226bf6365205ed4837e73e85bf63d5208ef4f4010ec5f4b51ecbf5c77a
+  notes: WorldCom's 'Line costs' maps to direct-cost-of-revenue. FY2000 figure is 15,462.
+- name: gross_profit
+  statement_role: income_statement
+  value_usd: 23628000000
+  unit: USD
+  source_excerpt: Revenues $39,090 ... Line costs 15,462
+  excerpt_hash: e9bbdbbe0968feb4c9c5e9abe7779bbb6066481b15e1099ac7f52c747d082079
+  notes: Derived as Revenues - Line costs.
+- name: selling_general_admin_expense
+  statement_role: income_statement
+  value_usd: 10597000000
+  unit: USD
+  source_excerpt: Selling, general and administrative 4,563 8,935 10,597
+  excerpt_hash: dafe3454e0473da10ac2929668936871a8e4eed24db63c4421ef9fe61267c8e8
+  notes: FY2000 figure is 10,597.
+- name: depreciation_and_amortization
+  statement_role: income_statement
+  value_usd: 4878000000
+  unit: USD
+  source_excerpt: Depreciation and amortization 2,289 4,354 4,878
+  excerpt_hash: 2b704f9eb1775cb7fd5f20a680c042173ddf28013cda0ae1c8eebb363362e5c7
+- name: ebit
+  statement_role: income_statement
+  value_usd: 8153000000
+  unit: USD
+  source_excerpt: Operating income (loss) (942) 7,888 8,153
+  excerpt_hash: 4529139a15a94af6f2465184c1e8cae34c82797653e27f6dfeef4872cffc2edc
+  notes: Reported as 'Operating income (loss)'; FY2000 is 8,153.
+- name: trade_receivables_net
+  statement_role: balance_sheet
+  value_usd: 6815000000
+  unit: USD
+  source_excerpt: Accounts receivable, net of allowance for bad debts of $1,122 in 1999 and $1,532 in 2000 5,746 6,815
+  excerpt_hash: aa6cf792828dc2c88fd34ca61326ddc7d0cb666990a7fcedde54fea032f82e29
+  notes: Columns are 1999, 2000. 6,815 is 2000.
+- name: inventory
+  statement_role: balance_sheet
+  value_usd: null
+  unit: USD
+  source_excerpt: (no separate inventory line; WorldCom is a services business)
+  excerpt_hash: 8ab9f6dd447da58f3e6b91d1c0cedd1a76f596159f85113e9aee7e38e301e3ea
+  notes: not reported in this filing
+- name: property_plant_equipment_net
+  statement_role: balance_sheet
+  value_usd: 37423000000
+  unit: USD
+  source_excerpt: Property and equipment ... 33,728 44,627 ... Accumulated depreciation (5,110) (7,204) ... 28,618 37,423
+  excerpt_hash: 169a73a29f563c02a9eb8b84b95f1ff7033a169e0d41f690ed17a7d9de051a6f
+  notes: Net PP&E after accumulated depreciation; 2000 column is 37,423.
+- name: total_assets
+  statement_role: balance_sheet
+  value_usd: 98903000000
+  unit: USD
+  source_excerpt: $91,072 $98,903
+  excerpt_hash: 5128705cd5fc82d2b7df692777c7f9d7591b39a600f365d0a9ea27647540888d
+- name: current_assets
+  statement_role: balance_sheet
+  value_usd: 9755000000
+  unit: USD
+  source_excerpt: Total current assets 10,324 9,755
+  excerpt_hash: 0cbfef4df414a34e4c4df20e7277a9772b46bf1c8373b9c7239555c1530c4334
+- name: current_liabilities
+  statement_role: balance_sheet
+  value_usd: 17673000000
+  unit: USD
+  source_excerpt: Total current liabilities 17,209 17,673
+  excerpt_hash: 7f13a72f659fedc8658a249a1048d3974ad623543b609c9b9382274b1503f6cd
+- name: long_term_debt
+  statement_role: balance_sheet
+  value_usd: 17696000000
+  unit: USD
+  source_excerpt: Long-term debt 13,128 17,696
+  excerpt_hash: 412967f6c999be42c91fc761d63d70eb05e4fa52d84d9a12704e95a363aac4ac
+- name: total_liabilities
+  statement_role: balance_sheet
+  value_usd: 40104000000
+  unit: USD
+  source_excerpt: Total current liabilities 17,673 ... Total long-term liabilities 19,228 22,431
+  excerpt_hash: 3040828848e506e8975e464e91f55eb6f9e1bfacb11f67306ee4676b2aacb343
+  notes: 'Derived: current liabilities (17,673) + long-term liabilities (22,431) for 2000. Minority interests (2,592) and
+    mandatorily redeemable preferred (798) are mezzanine and excluded.'
+- name: retained_earnings
+  statement_role: balance_sheet
+  value_usd: 3160000000
+  unit: USD
+  source_excerpt: Retained earnings (deficit) (928) 3,160
+  excerpt_hash: 8c2009d712411673e11cf821dc322da3f20c8b292a3c409d19ccb30e015aff85
+  notes: Columns are 1999 (deficit of 928) and 2000 (positive 3,160).
+- name: cash_flow_from_operating_activities
+  statement_role: cash_flow_statement
+  value_usd: 7666000000
+  unit: USD
+  source_excerpt: Net cash provided by operating activities 4,182 11,005 7,666
+  excerpt_hash: 77526944fbec2f1afa62a0d0bfdc9f17db87d323e0791b973bea98f6360cdd79
+  notes: Columns are 1998, 1999, 2000. FY2000 figure is 7,666.

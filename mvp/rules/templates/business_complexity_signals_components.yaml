@@ -1,0 +1,238 @@
+# mvp/rules/templates/business_complexity_signals_components.yaml
+#
+# Rule template for the compute_business_complexity_signals skill (L3
+# paper-derived). Authored by the accounting_expert persona during
+# paper-3 onboarding (post-MVP paper_examples/ workstream). Consumed
+# by the skill for its per-signal thresholds, the composite flag
+# bands, and by any downstream L2 interpretation skill that explains
+# a firm's business-complexity flag in accountant's voice.
+#
+# Paper. Bernard, D., Cade, N. L., Connors, E. H., & de Kok, T.
+# (2025). Descriptive evidence on small business managers'
+# information choices. Review of Accounting Studies, 30, 3254-3294.
+# DOI: 10.1007/s11142-025-09885-5. PDF sha256:
+# 1760a4c614f6051052beff0fad61587bdd344bea700f5205e24e5142399d8290.
+#
+# Authoring note on rule shape. Like the context-importance template,
+# this skill emits a single composite scalar
+# (business_complexity_score), not a vector of components. The rule
+# template therefore has ONE component block — the composite score —
+# plus the per-signal threshold table and the composite flag bands.
+# A future L2 interpret-business-complexity skill could iterate over
+# the per-signal trace (size_fired, stability_fired, complexity_fired)
+# to generate signal-level commentary, but that is out of scope for
+# this template at MVP.
+
+template_version: "0.1.0"
+paper: "Bernard, D., Cade, N. L., Connors, E. H., & de Kok, T. (2025). Descriptive evidence on small business managers' information choices. Review of Accounting Studies, 30, 3254-3294."
+paper_pdf_sha256: "1760a4c614f6051052beff0fad61587bdd344bea700f5205e24e5142399d8290"
+
+# -----------------------------------------------------------------------------
+# Composite business-complexity score
+# -----------------------------------------------------------------------------
+components:
+
+  - component: business_complexity_score
+    full_name: "Composite Business-Complexity Score (Bernard et al. 2025 Section 4 / Table 3 Panel a)"
+    description: >-
+      Firm-year score in [0, 1] measuring the strength of the paper's
+      Section 4 / Table 3 Panel a determinants of managerial
+      monitoring-service demand. A weighted sum of three binary
+      indicators (size via revenue threshold, revenue-stability
+      year-over-year, corporate-overhead intensity via SG&A /
+      Revenue) using paper-derived weights from Table 3 Panel a
+      column 1 absolute t-statistics. Higher score means the paper's
+      regression predicts stronger monitoring demand.
+    formula: "business_complexity = 0.3158 * I[revenue_t >= $1B] + 0.2947 * I[|dRev/Rev_{t-1}| <= 0.10] + 0.3895 * I[SG&A/Rev >= 0.15]"
+    canonical_inputs:
+      - "revenue (period=t, period=t-1)"
+      - "selling_general_admin_expense (period=t)"
+    paper_coefficient: null
+    coefficient_notes: >-
+      The three signal weights (size=0.3158, stability=0.2947,
+      complexity=0.3895) are normalized from the paper's Table 3
+      Panel a column 1 absolute t-statistics: 3.0, 2.8, 3.7. Sum
+      9.5. Three additional Table-3 regressors are dropped
+      (Sells medical, Late joiner, Parent number of states,
+      Average category HHI) per skill manifest
+      implementation_decisions[1]. Two of the three kept signals
+      are sign-reversed via indicator-definition reversal
+      (Sales volatility -> stability indicator fires on low
+      volatility; Single store -> complexity indicator fires on
+      high SG&A intensity), documented in manifest
+      implementation_decisions[3] and [4].
+    paper_reference:
+      source: "Bernard et al. (2025)"
+      table: "Table 3 Panel a column 1 (extensive-margin email-open determinants regression)"
+      page: "3272-3273"
+    interpretation_rules:
+
+      - condition: "value >= 0.60"
+        interpretation: |
+          Business complexity is in the paper's
+          "complex_monitoring_intensive" band (>= 0.60). At least
+          two of the three Section-4 determinants fired — the firm
+          is a large-cap AND has stable revenue or substantial
+          corporate-overhead intensity. The paper's Table 3 Panel a
+          regression predicts managers at firms with this profile
+          would exhibit the strongest demand for business-
+          intelligence monitoring tools. Pair with
+          compute_mdna_upfrontedness to ask whether the firm's
+          external narrative matches the monitoring-intensive
+          profile (high business_complexity + low Upfrontedness
+          is a reporting-mismatch concern).
+        severity: "high"
+        follow_up_questions:
+          - "Which two or three signals fired? Size + stability is the 'mature large-cap' pattern; size + complexity is the 'overhead-heavy conglomerate' pattern; all three is the 'complex stable-revenue large firm' pattern — each carries different governance expectations."
+          - "Does the firm disclose segment-count, geographic-diversity, or M&A activity in ways that corroborate or undermine the complexity signal? SG&A intensity is a proxy — the segment footnote is the primary evidence."
+          - "Is the firm on a monitoring-intensity upward trend (score rising YoY) or a downward trend? Trend direction matters for governance-review prioritisation."
+        citations_required:
+          - "revenue (period=t)"
+          - "selling_general_admin_expense (period=t)"
+        contextual_caveats:
+          - "The 0.60 cutoff is a presentation convention — a score at 0.598 is economically indistinguishable from 0.601. Look at WHICH signals fired, not just the band."
+          - "Pre-iXBRL SGML filings (Enron 2000, WorldCom 2001) carry pre_ixbrl_manual_extraction confidence -0.15; treat the score with wider uncertainty for those filings."
+
+      - condition: "0.30 <= value < 0.60"
+        interpretation: |
+          Business complexity is in the
+          "moderate_monitoring_intensity" band (0.30..0.60). One of
+          the three Section-4 determinants fired — the firm has one
+          dominant characteristic (size, revenue stability, or
+          corporate-overhead intensity) but not the compound profile
+          the paper associates with intense monitoring demand. The
+          paper's evidence says managers here would use monitoring
+          tools at a moderate intensity — above a small, volatile,
+          low-overhead firm, but below the compound-profile
+          complex-monitoring case.
+        severity: "medium"
+        follow_up_questions:
+          - "Which signal is the singleton? A lone size fire (large firm without stability or overhead) is a different pattern than a lone complexity fire (small overhead-heavy firm)."
+          - "Is the singleton signal a chronic characteristic or a year-specific one? A one-off stability-fire in a normally-volatile firm is less informative than a persistent size-fire."
+        citations_required:
+          - "revenue (period=t)"
+        contextual_caveats:
+          - "A lone size-fire on a profitable, volatile, low-overhead large-cap (e.g. Enron FY2000 in the MVP sample — size=1, stability=0, complexity=0 → score 0.3158) may undersell the firm's operational complexity. Cross-check with segment disclosures when available."
+
+      - condition: "value < 0.30"
+        interpretation: |
+          Business complexity is in the "simple_monitoring_light"
+          band (< 0.30). None of the three Section-4 determinants
+          fired, or the firm is below the size threshold and the
+          other signals also didn't fire. The paper's Table 3 Panel
+          a regression predicts this firm's managers would exhibit
+          the lightest monitoring-tool demand — the firm's profile
+          is that of a small, volatile, overhead-light operation
+          where the paper's coefficients collectively suggest
+          limited monitoring-service adoption. This is a signal
+          about the firm's structural profile, not about governance
+          quality — a small, lean, fast-growing firm legitimately
+          falls here.
+        severity: "low"
+        follow_up_questions:
+          - "Is the firm a small-cap ($1B revenue cutoff is the load-bearing threshold)? If yes, the size-fail likely dominates and the flag is directionally correct."
+          - "Have any of the three signals been close-to-firing (within 10% of the threshold)? A chronically-near-threshold firm deserves a watch."
+        citations_required:
+          - "revenue (period=t)"
+        contextual_caveats:
+          - "Simple does NOT mean the firm is uninformative; it means the paper's model predicts monitoring demand is lower for this firm's profile. A surprising disclosure in the MD&A still matters."
+          - "All 5 MVP sample filings are above $1B revenue → simple_monitoring_light cannot be produced on any MVP issuer. The band's discriminating power emerges only on a wider issuer set with small-caps."
+
+      - condition: "value is null"
+        interpretation: |
+          The skill could not compute the composite for this filing.
+          Revenue_t is missing — without revenue, none of the three
+          signals can be evaluated (revenue is the threshold input
+          for size and the denominator for stability and
+          complexity). The result is honestly 'indeterminate' — a
+          downstream caller must NOT treat it as
+          'simple_monitoring_light' or as 0.0.
+        severity: "none"
+        follow_up_questions:
+          - "Is the underlying data gap recoverable (a missing 10-K filing, a mapping miss on the revenue concept)?"
+          - "If the gap is structural (e.g. the iXBRL filing genuinely doesn't tag revenue), is the broader downstream skill set degraded for this filing? Most paper-derived skills need revenue and will also return indeterminate."
+        citations_required: []
+        contextual_caveats:
+          - "Indeterminate is a first-class output, not an exception (per the playbook 'null is a first-class output' callout)."
+
+# -----------------------------------------------------------------------------
+# Per-signal threshold table — the binary cutoffs each I[·] indicator uses
+# -----------------------------------------------------------------------------
+signal_thresholds:
+  paper_source: "Bernard et al. (2025) Section 4 / Table 3 Panel a determinants regression; specific cutoffs are practitioner defaults approximating the paper's high-vs-low partition story at public-company scale."
+  size:
+    indicator: "I[revenue_t >= $1,000,000,000]"
+    threshold: 1000000000.0
+    threshold_units: "USD"
+    proxy_for: "Bernard et al. (2025) Table 3 'Average sales' positive coefficient (+0.003, t ≈ 3.0)"
+    proxy_documented_in: "manifest implementation_decisions[2]"
+    notes: "Public-firm 'large-cap' practitioner cutoff. Paper uses log(Average sales) continuous; we use a binary for composite simplicity. All 5 MVP sample filings are above this threshold."
+  stability:
+    indicator: "I[|Revenue_t − Revenue_{t-1}| / Revenue_{t-1} <= 0.10]"
+    threshold: 0.10
+    threshold_units: "absolute relative YoY revenue change"
+    proxy_for: "Bernard et al. (2025) Table 3 'Sales volatility' (daily-sales CV) negative coefficient (−0.098, t ≈ -2.8). Sign-reversed via indicator-definition reversal."
+    proxy_documented_in: "manifest implementation_decisions[3] and [5]"
+    notes: "2-period YoY revenue delta as proxy for within-store daily CV. Sign-reversed: 'stable' firm (low delta) fires, not 'volatile' firm."
+  complexity:
+    indicator: "I[SG&A_t / Revenue_t >= 0.15]"
+    threshold: 0.15
+    threshold_units: "absolute SG&A-to-revenue ratio"
+    proxy_for: "Bernard et al. (2025) Table 3 'Single store' negative coefficient (−0.100, t ≈ -3.7). Sign-reversed via proxy construction (high overhead fires, not single-store)."
+    proxy_documented_in: "manifest implementation_decisions[4]"
+    notes: "High SG&A-intensity proxies multi-entity corporate-overhead footprint. Mapping picks up SellingGeneralAndAdministrativeExpense when reported else GeneralAndAdministrativeExpense; firms that disaggregate (Microsoft reports separate R&D + S&M + G&A) produce slightly lower intensity values than firms that report aggregated SG&A."
+
+# -----------------------------------------------------------------------------
+# Composite flag-band block
+# -----------------------------------------------------------------------------
+business_complexity_bands:
+  paper_source: "Weights normalized from Bernard et al. (2025) Table 3 Panel a column 1 absolute t-statistics. Bands at 0.30 and 0.60 are a presentation convention matching compute_context_importance_signals."
+  weights:
+    size: 0.3158
+    stability: 0.2947
+    complexity: 0.3895
+  weight_denominator: 9.5
+  weight_source_abs_t_stats:
+    size: 3.0
+    stability: 2.8
+    complexity: 3.7
+  complex_monitoring_intensive_floor: 0.60
+  simple_monitoring_light_ceiling: 0.30
+  notes: >-
+    Bands are equally-spaced cuts at 0.30 and 0.60. The paper does
+    NOT publish a composite score; it publishes per-regressor
+    coefficients on an extensive-margin email-open binary. The
+    composite + bands are our presentation convention, grounded in
+    the paper's regression t-statistics. A future paper-specific
+    calibration on a wider issuer panel would let us replace these
+    presentation cuts with population-anchored quantiles.
+  dropped_signals:
+    sells_medical:
+      paper_coef: -0.183
+      paper_abs_t_stat: 5.1
+      reason: "Industry-specific control with no US-public-company analog."
+    late_joiner:
+      paper_coef: -0.205
+      paper_abs_t_stat: 5.9
+      reason: "Sample-period-specific control (stores that joined during the sample window); no analog for a 10-K filing event."
+    parent_number_of_states:
+      paper_coef: -0.012
+      paper_abs_t_stat: 1.1
+      reason: "Not statistically significant on email extensive margin (Table 3 Panel a col 1) and would require a segments-count canonical-line-item expansion we don't have at MVP."
+    average_category_hhi:
+      paper_coef: -0.078
+      paper_abs_t_stat: 1.1
+      reason: "Not statistically significant; dropped to preserve signal strength in the composite."
+  sign_reversal_notes: >-
+    Two of the three kept signals are sign-reversed from the paper's
+    coefficient direction to keep the composite uniformly positive
+    ("higher score = more monitoring demand"):
+    - Stability: paper's I[volatility > threshold] with negative
+      weight becomes our I[|dRev/Rev| <= 0.10] with positive weight
+      ("stable" firm fires).
+    - Complexity: paper's I[single_store = 1] with negative weight
+      becomes our I[SG&A / Revenue >= 0.15] with positive weight
+      ("high-overhead" firm fires — the opposite of single-store).
+    Economic direction preserved; algebra equivalent up to a
+    constant. Documented in manifest implementation_decisions[3]
+    and [4].

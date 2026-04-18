@@ -1,0 +1,112 @@
+{
+  "filing_id": "0000320193/0000320193-22-000108",
+  "cik": "0000320193",
+  "accession": "0000320193-22-000108",
+  "statement_role": "income_statement",
+  "fiscal_period_end": "2022-09-24",
+  "data_quality_flag": "ixbrl_companyfacts",
+  "line_items": [
+    {
+      "name": "revenue",
+      "value_usd": "394328000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::revenue",
+        "excerpt_hash": "a68f6884e0dbe48de1151924123dd5a345a9d114a54bde06930e7eed98e1c748",
+        "value": 394328000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.019964Z"
+      },
+      "source_concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+      "notes": null
+    },
+    {
+      "name": "cost_of_goods_sold",
+      "value_usd": "223546000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::cost_of_goods_sold",
+        "excerpt_hash": "e927ff315d480ef33c84dbccf84dd356d2b4618f72ad4b6718cd1b17c48cb66a",
+        "value": 223546000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020042Z"
+      },
+      "source_concept": "CostOfGoodsAndServicesSold",
+      "notes": null
+    },
+    {
+      "name": "gross_profit",
+      "value_usd": "170782000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::gross_profit",
+        "excerpt_hash": "a25df12b6ba8023f6434ffb4da939336546a2e34d01a3c599830a4b6b02964f3",
+        "value": 170782000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020064Z"
+      },
+      "source_concept": "GrossProfit",
+      "notes": null
+    },
+    {
+      "name": "selling_general_admin_expense",
+      "value_usd": "25094000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::selling_general_admin_expense",
+        "excerpt_hash": "8ebbc59822e613d26f25a25bdb9878c7e592515dbdd0e464100230c0e5c6501e",
+        "value": 25094000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020082Z"
+      },
+      "source_concept": "SellingGeneralAndAdministrativeExpense",
+      "notes": null
+    },
+    {
+      "name": "depreciation_and_amortization",
+      "value_usd": "11104000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::depreciation_and_amortization",
+        "excerpt_hash": "a5a312c20f1422512dd2f3b6733d4e932f38bf2ff751087f73be8a23eac6d88a",
+        "value": 11104000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020101Z"
+      },
+      "source_concept": "DepreciationDepletionAndAmortization",
+      "notes": null
+    },
+    {
+      "name": "ebit",
+      "value_usd": "119437000000",
+      "unit": "USD",
+      "period_start": "2021-09-26",
+      "period_end": "2022-09-24",
+      "citation": {
+        "doc_id": "0000320193/0000320193-22-000108",
+        "statement_role": "income_statement",
+        "locator": "0000320193/0000320193-22-000108::income_statement::ebit",
+        "excerpt_hash": "bd00242d788237fdbd6422ebb5bd1684bd563302207b6b062a6dfe73a2b8a8eb",
+        "value": 119437000000.0,
+        "retrieved_at": "2026-04-18T09:12:04.020120Z"
+      },
+      "source_concept": "OperatingIncomeLoss",
+      "notes": null
+    }
+  ]
+}

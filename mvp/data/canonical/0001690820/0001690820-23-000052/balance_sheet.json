@@ -1,0 +1,163 @@
+{
+  "filing_id": "0001690820/0001690820-23-000052",
+  "cik": "0001690820",
+  "accession": "0001690820-23-000052",
+  "statement_role": "balance_sheet",
+  "fiscal_period_end": "2022-12-31",
+  "data_quality_flag": "ixbrl_companyfacts",
+  "line_items": [
+    {
+      "name": "trade_receivables_net",
+      "value_usd": "253000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::trade_receivables_net",
+        "excerpt_hash": "f12236746ca6b1ce711a0bfcb394f1ec8de5088687484345c8100664d42c3c8c",
+        "value": 253000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331490Z"
+      },
+      "source_concept": "AccountsReceivableNetCurrent",
+      "notes": null
+    },
+    {
+      "name": "inventory",
+      "value_usd": "1876000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::inventory",
+        "excerpt_hash": "eac3f817d19fa9871d7c6f8160b83f5d35f75ac4838a5aaf619527f14e52e547",
+        "value": 1876000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331527Z"
+      },
+      "source_concept": "InventoryNet",
+      "notes": null
+    },
+    {
+      "name": "property_plant_equipment_net",
+      "value_usd": "3244000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::property_plant_equipment_net",
+        "excerpt_hash": "bc286fcf1a64cd42f09f5696b0a577a4dae73e7347adfe5b51e1219c33cb8ba9",
+        "value": 3244000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331565Z"
+      },
+      "source_concept": "PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization",
+      "notes": "Matched fallback concept 'PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAssetAfterAccumulatedDepreciationAndAmortization' (preferred 'PropertyPlantAndEquipmentNet' not present for this filing period)."
+    },
+    {
+      "name": "total_assets",
+      "value_usd": "8698000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::total_assets",
+        "excerpt_hash": "2d02298cfb52a1e32749d414d75706accf103abab0e2d0c591bd452d6f48f943",
+        "value": 8698000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331605Z"
+      },
+      "source_concept": "Assets",
+      "notes": null
+    },
+    {
+      "name": "current_assets",
+      "value_usd": "4594000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::current_assets",
+        "excerpt_hash": "dee4e984b5e8cb2dd3e59e109d143fbcc6c73abd91e5b7842e45fff5b2f3a551",
+        "value": 4594000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331640Z"
+      },
+      "source_concept": "AssetsCurrent",
+      "notes": null
+    },
+    {
+      "name": "current_liabilities",
+      "value_usd": "2592000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::current_liabilities",
+        "excerpt_hash": "79e6e955522196c8b10f5d29c8b8864a8d55b8c99e5ca013d903389dab5f1e86",
+        "value": 2592000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331675Z"
+      },
+      "source_concept": "LiabilitiesCurrent",
+      "notes": null
+    },
+    {
+      "name": "long_term_debt",
+      "value_usd": "6574000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::long_term_debt",
+        "excerpt_hash": "c48852d6188c0dfee82451eb1f109c4f2b0f2bb548c5086b592097c018e60e6e",
+        "value": 6574000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331722Z"
+      },
+      "source_concept": "LongTermDebtNoncurrent",
+      "notes": null
+    },
+    {
+      "name": "total_liabilities",
+      "value_usd": "9751000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::total_liabilities",
+        "excerpt_hash": "269b3c0ea82a38b238a94751690a64c197248d5a80b438a8a5781d020efe11ae",
+        "value": 9751000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331754Z"
+      },
+      "source_concept": "Liabilities",
+      "notes": null
+    },
+    {
+      "name": "retained_earnings",
+      "value_usd": "-2076000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2022-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-23-000052",
+        "statement_role": "balance_sheet",
+        "locator": "0001690820/0001690820-23-000052::balance_sheet::retained_earnings",
+        "excerpt_hash": "a204c6115941743d0cd017a770f1991011a11312debb512195d8e13af1d473b7",
+        "value": -2076000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.331786Z"
+      },
+      "source_concept": "RetainedEarningsAccumulatedDeficit",
+      "notes": null
+    }
+  ]
+}

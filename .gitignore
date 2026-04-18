@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Test / lint caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Claude Code per-user state
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Empty scaffold dir
+harvey/
+
+# Copyrighted / bulky research corpora — re-fetch locally, do not commit
+paper_examples/
+
+# MVP data — include only small fixtures; everything else is re-fetchable via `mvp ingest`
+mvp/data/filings/
+mvp/data/papers/
+mvp/data/companyfacts/
+mvp/data/demo/
+mvp/data/demo_outputs/
+mvp/data/standardize_mapping_log.jsonl

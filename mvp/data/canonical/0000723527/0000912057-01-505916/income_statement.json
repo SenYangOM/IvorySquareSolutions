@@ -1,0 +1,112 @@
+{
+  "filing_id": "0000723527/0000912057-01-505916",
+  "cik": "0000723527",
+  "accession": "0000912057-01-505916",
+  "statement_role": "income_statement",
+  "fiscal_period_end": "2000-12-31",
+  "data_quality_flag": "pre_ixbrl_sgml_manual_extraction",
+  "line_items": [
+    {
+      "name": "revenue",
+      "value_usd": "39090000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::revenue",
+        "excerpt_hash": "51efe448ee90186cd226542df168289c336a95c063182e4c5485f11046c5be5e",
+        "value": 39090000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.568904Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "cost_of_goods_sold",
+      "value_usd": "15462000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::cost_of_goods_sold",
+        "excerpt_hash": "80f63a226bf6365205ed4837e73e85bf63d5208ef4f4010ec5f4b51ecbf5c77a",
+        "value": 15462000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.568990Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "gross_profit",
+      "value_usd": "23628000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::gross_profit",
+        "excerpt_hash": "e9bbdbbe0968feb4c9c5e9abe7779bbb6066481b15e1099ac7f52c747d082079",
+        "value": 23628000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.569034Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "selling_general_admin_expense",
+      "value_usd": "10597000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::selling_general_admin_expense",
+        "excerpt_hash": "dafe3454e0473da10ac2929668936871a8e4eed24db63c4421ef9fe61267c8e8",
+        "value": 10597000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.569070Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "depreciation_and_amortization",
+      "value_usd": "4878000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::depreciation_and_amortization",
+        "excerpt_hash": "2b704f9eb1775cb7fd5f20a680c042173ddf28013cda0ae1c8eebb363362e5c7",
+        "value": 4878000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.569107Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "ebit",
+      "value_usd": "8153000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "income_statement",
+        "locator": "0000723527/0000912057-01-505916::income_statement::ebit",
+        "excerpt_hash": "4529139a15a94af6f2465184c1e8cae34c82797653e27f6dfeef4872cffc2edc",
+        "value": 8153000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.569145Z"
+      },
+      "source_concept": null,
+      "notes": null
+    }
+  ]
+}

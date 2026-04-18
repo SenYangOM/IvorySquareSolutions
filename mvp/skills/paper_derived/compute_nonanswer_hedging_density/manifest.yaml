@@ -1,0 +1,474 @@
+# Manifest for compute_nonanswer_hedging_density — de Kok (2024)
+# non-answer keyword filter applied to a US public 10-K MD&A.
+#
+# Authored by the quant_finance_methodologist persona. The keyword list
+# (7 trigrams + 23 bigrams + 48 unigrams = 78 tokens) is reproduced
+# verbatim from Online Appendix OA 3 p. ix of the paper. The MVP ships
+# the filter applied to MD&A text because MVP does not ingest earnings-
+# call transcripts (the paper's headline substrate); the substrate-port
+# approximation is surfaced at every layer. See
+# workshop/paper_to_skill/notes/dekok_2024_gllm_nonanswers.md §(a) and
+# §(f) for the decision trail.
+
+skill_id: compute_nonanswer_hedging_density
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute the hedging-language density in a US public company's 10-K
+  MD&A, applying de Kok (2024) Online Appendix OA 3's 78-token
+  non-answer keyword filter (7 trigrams + 23 bigrams + 45 unigrams,
+  verbatim from the paper). Returns hedging_density in [0, 1] (fraction
+  of MD&A sentences containing at least one keyword hit), a three-band
+  flag (low_hedging | typical_hedging | high_hedging | indeterminate),
+  per-category hit counts (trigram / bigram / unigram), matches per
+  1,000 words, and a citation pointing at the MD&A passage. Use this
+  as a disclosure-language red-flag screen complementary to
+  compute_mdna_upfrontedness (which scores positional structure). Do
+  NOT treat the score as a disclosure-quality verdict; hedging is
+  often legitimate (material uncertainty, safe-harbor language). The
+  paper's dataset is earnings-call Q&A, not MD&A — every call carries
+  warning=substrate_port_mdna_vs_earnings_call.
+
+provenance:
+  source_papers:
+    - citation: "de Kok, T. (June 2024). ChatGPT for Textual Analysis? How to use Generative LLMs in Accounting Research. University of Washington working paper, SSRN 4429658."
+      doi_or_url: "https://ssrn.com/abstract=4429658"
+      local_pdf: "data/papers/dekok_2024_gllm_nonanswers.pdf"
+      pdf_sha256: "2650e3e5c853a8ca1d7dae8e14622c64617e295e75b9d4407f0e84bccd79ba4a"
+  study_scope:
+    asset_class: "US public equities; case-study substrate is earnings-call Q&A transcripts (Finnhub.io); our port operates on 10-K MD&A narrative."
+    time_period_in_paper: "2013-2022 (earnings calls); case-study evaluation sample drawn 2023-2024"
+    sample_size_in_paper: "63,959 earnings calls / 1,152,505 Q&A pairs in the large-sample analysis (Table 2); 500 Q&A pairs in the classification-report evaluation (Table 1); 78-token keyword list (OA 3 p. ix) derived from Gow et al. (2021) with manual extensions"
+  problem:
+    one_line: "Detect managerial hedging / non-disclosure language in narrative accounting disclosures using a deterministic paper-published keyword filter."
+    long_form: >-
+      de Kok (2024) builds a 4-step GPT method for classifying non-answers
+      in earnings-call Q&A (Table 1: 96% accuracy, 87% F1, 70% reduction
+      in error rate versus Gow et al. 2021). Step 1 of the funnel method
+      (OA 3 p. ix) is a deterministic keyword filter designed as a
+      high-recall first pass — any Q&A pair without a keyword match is
+      classified as an answer. The keyword list itself is paper-exact
+      and reproducible. Our skill ports the keyword filter to a
+      different substrate (MD&A narrative text instead of earnings-call
+      Q&A), producing a hedging-density metric — the proportion of
+      MD&A sentences containing at least one keyword from the paper's
+      78-token list. The substrate port is defensible because the
+      linguistic phenomenon (hedging, non-disclosure, forward-looking
+      caveat) generalises; the base rate does not (MD&A safe-harbor
+      boilerplate fires the filter more regularly than typical
+      conference-call responses).
+  methodology:
+    summary: >-
+      Extract the MD&A section via the extract_mdna skill. Sentence-
+      tokenise on [.!?] followed by whitespace, dropping fragments
+      shorter than 30 characters. For each sentence, case-insensitively
+      match against the 78-token keyword list: unigrams as whole words
+      (regex \b<word>\b), bigrams/trigrams as whitespace-normalised
+      word sequences after apostrophe-stripping so "don't"/"can't" match
+      the paper's "don t"/"can t" forms. hedging_density = (sentences
+      with ≥1 hit) / (total sentences). Additionally compute
+      matches_per_1000_words for a length-normalised view and
+      hits_by_category (trigram/bigram/unigram) for a trace. Flag bands
+      are presentation conventions (low_hedging <0.15, typical 0.15-0.35,
+      high ≥0.35). Returns indeterminate when MD&A cannot be extracted
+      or fewer than 10 valid sentences remain.
+    formulas_extracted_from_paper:
+      keyword_list: "OA 3 p. ix Step 1 — 7 trigrams + 23 bigrams + 48 unigrams = 78 tokens, reproduced verbatim in the skill module."
+      funnel_step1: "Any Q&A pair without a keyword match is marked as an answer; the paper reports 42% of Q&A pairs have no keyword match."
+      hedging_density: "density = (Σ_i hit_i) / M where hit_i = 1 iff sentence s_i contains any of the 78 keywords; M = total valid sentences."
+      matches_per_1000_words: "1000 × (Σ_i hit_i) / total_word_count(MD&A_text)"
+    threshold: "Flag bands: low_hedging density < 0.15; typical_hedging 0.15 ≤ density < 0.35; high_hedging density ≥ 0.35. Presentation-convention cutoffs (not paper thresholds — the paper has no MD&A-specific bands)."
+  expected_results:
+    metric_kind: "scalar hedging_density in [0, 1] + three-band flag + per-category hit trace + length-normalised matches_per_1000_words"
+    interpretation_guide: >-
+      The paper reports a 13.9% Q&A-pair level non-answer rate at the
+      earnings-call level (Table 2). MD&A has materially higher
+      base-rate keyword firing because the text contains safe-harbor
+      boilerplate (almost every 10-K fires "forward", "forecast",
+      "disclose"). Expect typical 10-Ks to produce densities in
+      [0.15, 0.35]. A density above 0.35 is unusually hedged; below
+      0.15 is unusually specific. Read the flag as a SCREENING signal
+      — a firm with material uncertainty (litigation, restructuring,
+      going-concern doubt) will legitimately fire the high_hedging flag.
+      Pair with compute_mdna_upfrontedness for the orthogonal structural-
+      positioning lens.
+  takeaways:
+    - "hedging_density is a per-firm-year scalar in [0, 1]; flag is a three-band screen plus indeterminate."
+    - "The 78-token keyword list is paper-exact and reproduced verbatim from de Kok (2024) OA 3 p. ix."
+    - "The substrate port (MD&A instead of earnings-call Q&A) is documented; every call emits substrate_port_mdna_vs_earnings_call."
+    - "Flag bands are presentation conventions; the paper does not publish MD&A-specific cutoffs."
+    - "Pre-iXBRL filings (Enron, WorldCom) carry the pre_ixbrl_paragraph_structure penalty (−0.15 confidence)."
+  use_cases:
+    - "Narrative-language red-flag screen during equity or credit diligence — complement to positional Upfrontedness."
+    - "Cross-sectional peer comparison: a firm whose hedging density is materially higher than its matched peers' is a candidate for a deeper qualitative read."
+    - "Time-series monitoring: a firm whose MD&A hedging density trends up year-over-year signals changing disclosure posture (deterioration or growing uncertainty)."
+
+implementation_decisions:
+  - decision: >-
+      Substrate is MD&A narrative text, not the paper's earnings-call
+      Q&A pairs. The paper's dataset (Finnhub.io earnings-call
+      transcripts) is not part of the MVP corpus; MVP only ingests
+      10-K filings. The keyword filter's linguistic phenomenon
+      (hedging / non-disclosure) generalises to MD&A, so we port the
+      filter to the MD&A substrate. Every non-null call emits
+      warning=substrate_port_mdna_vs_earnings_call.
+    rationale: >-
+      Per the dual-growth directive, "this paper doesn't yield a skill"
+      is a research-design problem, not a skip excuse. Dropping the
+      paper entirely is not an option; re-building the paper's 4-step
+      GPT classifier on earnings-call transcripts requires both an
+      API key and a transcript corpus we do not have. The keyword
+      filter, by contrast, is deterministic, paper-exact, and applies
+      meaningfully to MD&A text — which is where accounting-research
+      readers most often want to detect disclosure hedging. The MD&A
+      port is a documented approximation, not a surrogate for the
+      paper's classifier.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Keywords reproduced verbatim from OA 3 p. ix. No extensions, no
+      removals. 7 trigrams + 23 bigrams + 48 unigrams = 78 tokens.
+      Frozen as tuple constants in the skill module; a regression test
+      asserts the exact counts.
+    rationale: >-
+      The paper is the source of truth. Adding MD&A-specific tokens or
+      removing tokens that fire more often on safe-harbor boilerplate
+      would drift from the paper's list and compound the substrate
+      port. A v0.2 extension could ship MD&A-specific tokens under a
+      clearly-separated ADDITIONAL-TOKENS block — but not by mutating
+      the paper's list.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Sentence tokenisation uses [.!?] followed by whitespace, with a
+      30-character floor. Sentences shorter than 30 chars are dropped
+      (list markers, section headers).
+    rationale: >-
+      The paper doesn't specify sentence tokenisation (it operates at
+      Q&A-pair level). A simple punctuation-based split with a floor
+      matches the MD&A-consumption pattern established by
+      compute_mdna_upfrontedness. A trained tokeniser would be more
+      accurate but adds a runtime dependency without improving the
+      density metric at current MVP sample size.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Unigrams match as whole words (regex \b<word>\b); bigrams and
+      trigrams match as whitespace-normalised word sequences.
+      Case-insensitive. Apostrophes (straight and curly) are stripped
+      to a space before matching so "don't" matches the paper's
+      "don t" bigram.
+    rationale: >-
+      The paper's filter runs on tokenised text; the PDF rendering uses
+      underscores ("don_t_know") because of a typesetter-artifact in
+      the OA. The actual bigrams are 2-word and trigrams are 3-word
+      whitespace-separated sequences. Apostrophe stripping is the
+      standard pre-processing step to let real MD&A contractions match.
+      Whole-word unigram matching prevents "specifications" from firing
+      "specific" and "recalled" from firing "recall".
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Sentence-level firing, not token-level frequency. A sentence
+      that contains 5 keyword hits counts as 1 hedging-sentence, not
+      5.
+    rationale: >-
+      Density is a disclosure-language SCREEN, not a frequency count.
+      A sentence with one hedge phrase conveys the same disclosure-
+      avoidance signal as a sentence with several. Token-level
+      frequency would over-weight sentences full of boilerplate
+      (e.g. "forward-looking statements" firing three unigrams).
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Flag bands (low 0<->0.15, typical 0.15<->0.35, high 0.35+) are
+      presentation conventions, not paper thresholds. The paper
+      publishes no MD&A-specific density cutoffs.
+    rationale: >-
+      MD&A base-rate keyword firing is materially higher than
+      earnings-call Q&A (boilerplate safe-harbor), so the paper's
+      13.9% non-answer rate at Q&A-pair level is not a usable anchor.
+      Practitioner-derived cutoffs (<15% "unusually specific", >35%
+      "unusually hedged") are documented in the rule template and
+      editable by an accounting expert without Python per P1.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Indeterminate when MD&A cannot be extracted OR fewer than 10
+      valid sentences remain after the 30-character filter.
+    rationale: >-
+      Density on <10 sentences is not a stable signal (a single
+      keyword-firing sentence moves density by ≥10 percentage points).
+      Matches the compute_mdna_upfrontedness pattern of a paragraph
+      floor at 10. Microsoft FY2023 is the predictable indeterminate
+      case — extract_mdna truncates the section upstream.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Confidence capped at 0.7 while the substrate-port approximation
+      is active. Pre-iXBRL filings (Enron, WorldCom) add −0.15.
+    rationale: >-
+      The substrate-port is the binding approximation; a future
+      earnings-call-transcript variant could raise the cap. The
+      pre-iXBRL penalty matches the established convention from
+      compute_mdna_upfrontedness (sentence segmentation on SGML-era
+      text is noisier than modern iXBRL).
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Delegates MD&A extraction to the extract_mdna skill via the
+      registry (default_registry().get('extract_mdna')). No direct
+      import of the sub-skill.
+    rationale: >-
+      Matches compute_mdna_upfrontedness. Required by mvp_build_goal.md
+      §5 (no sibling imports across skills layers) and P3 (composites
+      invoke sub-skills via the registry). Any fix to extract_mdna's
+      section-finder flows into this skill automatically.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Emits the hits_by_category trace (trigram / bigram / unigram
+      hit counts) alongside the density. Each category is counted
+      once per sentence.
+    rationale: >-
+      The trace lets a downstream caller see WHICH category dominates.
+      A firm whose hits are all-unigram is firing mostly on boilerplate
+      ("forward", "disclose"); a firm with trigram hits is using
+      multi-word hedging phrases ("don t know", "at this time") that
+      are harder to dismiss as boilerplate. The trace is what makes
+      the flag interpretable.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer (e.g. '0000320193'
+        for Apple Inc.).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd. Must match
+        an ingested filing under data/filings/.
+
+outputs:
+  type: object
+  required: [hedging_density, flag, sentence_count, hedging_sentence_count, components, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    hedging_density:
+      type: ["number", "null"]
+      description: >-
+        Fraction of MD&A sentences (after the 30-char filter) that
+        contain at least one keyword hit from de Kok (2024) OA 3's
+        78-token non-answer filter. Range [0, 1]. Null when flag is
+        indeterminate.
+    flag:
+      type: string
+      enum: [low_hedging, typical_hedging, high_hedging, indeterminate]
+      description: >-
+        Categorical flag derived from hedging_density via presentation-
+        convention cutoffs. 'low_hedging' when density < 0.15;
+        'typical_hedging' when 0.15 ≤ density < 0.35; 'high_hedging'
+        when density ≥ 0.35; 'indeterminate' when MD&A could not be
+        extracted or fewer than 10 valid sentences remained.
+    sentence_count:
+      type: integer
+      description: >-
+        Number of valid MD&A sentences used as the density denominator
+        (after the 30-character filter). 0 when the MD&A could not be
+        extracted.
+    hedging_sentence_count:
+      type: integer
+      description: >-
+        Number of MD&A sentences that fired the keyword filter (the
+        density numerator). 0 when indeterminate.
+    components:
+      type: object
+      description: >-
+        Supporting diagnostics. `matches_per_1000_words` is the firing
+        count normalised by the full-MD&A word count — a length-
+        invariant view useful when comparing across firms of very
+        different MD&A sizes. `hits_by_category` breaks the firing
+        sentences down into trigram / bigram / unigram counts (a
+        sentence firing on both a unigram and a bigram contributes 1
+        to each category). `keyword_counts` echoes the paper's published
+        category sizes (7 + 23 + 48 = 78) for caller introspection.
+      additionalProperties: true
+      properties:
+        matches_per_1000_words:
+          type: ["number", "null"]
+          description: 1000 × (hedging sentences) / (MD&A word count); null on indeterminate.
+        hits_by_category:
+          type: object
+          description: >-
+            Per-category hit counts across ALL sentences. Trigrams
+            category: number of sentences that matched at least one
+            trigram. Same for bigrams and unigrams. A sentence can
+            contribute to multiple categories (it is counted once per
+            category in which it fires). Always non-negative integers.
+          additionalProperties: true
+          properties:
+            trigrams:
+              type: integer
+              description: Sentences matching at least one trigram from the 7-trigram list.
+            bigrams:
+              type: integer
+              description: Sentences matching at least one bigram from the 23-bigram list.
+            unigrams:
+              type: integer
+              description: Sentences matching at least one unigram from the 48-unigram list.
+        keyword_counts:
+          type: object
+          description: >-
+            The paper's published keyword-list sizes; echoed here for
+            caller introspection. These are fixed constants, not
+            per-call data.
+          additionalProperties: true
+          properties:
+            trigrams:
+              type: integer
+              description: Number of trigrams in the paper's list (7).
+            bigrams:
+              type: integer
+              description: Number of bigrams in the paper's list (23).
+            unigrams:
+              type: integer
+              description: Number of unigrams in the paper's list (48).
+            total:
+              type: integer
+              description: Total keywords (78).
+    citations:
+      type: array
+      description: >-
+        One citation pointing at the MD&A section the score was
+        computed from (locator <cik>/<accession>::mdna::item_7). Empty
+        when section could not be located.
+      items:
+        type: object
+        description: One Citation record.
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 0.7 (substrate-
+        port approximation is always active), reduced by −0.15 for
+        pre-iXBRL paragraph-structure filings, set to 0.0 when flag
+        is indeterminate.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Always includes
+        'substrate_port_mdna_vs_earnings_call' when density is non-null;
+        adds 'pre_ixbrl_paragraph_structure' for Enron/WorldCom;
+        'mdna_too_short' when fewer than 10 valid sentences were
+        found; 'mdna_section_not_located' when extract_mdna returned
+        null.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    hedging_density: >-
+      when hedging_density is non-null, the citations array must
+      contain exactly one Citation whose locator is of the form
+      <cik>/<accession>::mdna::item_7 and whose excerpt_hash matches
+      the sha256 of the MD&A section text.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::mdna::item_7"
+
+confidence:
+  computed_from:
+    - "substrate_port_cap (fixed −0.3 from 1.0 to 0.7; active on every non-null call, reflecting the MD&A-vs-earnings-call port)"
+    - "pre_ixbrl_paragraph_structure (−0.15 when cik is in the known SGML-era set {Enron 0001024401, WorldCom 0000723527})"
+    - "indeterminate_zero_out (clamped to 0.0 when flag is indeterminate)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: extract_mdna
+      min_version: 0.1.0
+  lib:
+    - mvp.lib.citation
+    - mvp.lib.hashing
+    - mvp.ingestion.filings_ingest
+  rules:
+    - rules/templates/nonanswer_hedging_density_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/nonanswer_hedging_density/
+  eval_metrics:
+    - name: hedging_density_in_sensible_band_for_populated_mdna
+      target: ">= 4/5 cases (non-null MD&A → density in [0.0, 1.0] with flag != indeterminate)"
+    - name: keyword_list_counts_match_paper
+      target: "= 1.00 (test asserts 7 trigrams + 23 bigrams + 48 unigrams = 78 tokens)"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The paper's headline construct is an earnings-call Q&A classifier
+    (Table 1: 96% accuracy / 87% F1 / 70% error-rate reduction vs Gow
+    et al. 2021). This skill ports the paper's keyword filter (Step 1
+    of the 4-step funnel method) to MD&A text; the classifier proper
+    is NOT implemented. The paper's reported performance statistics do
+    NOT apply to MD&A — they are earnings-call-specific.
+  - >-
+    The 78-keyword list was developed by de Kok starting from Gow
+    et al. (2021)'s regex filter and manually extended to reduce false
+    negatives on earnings-call Q&A. It is not population-optimal for
+    MD&A text; an MD&A-specific list could be materially different.
+  - >-
+    MD&A safe-harbor boilerplate fires the filter regularly (every
+    10-K contains "forward-looking", "no guarantee", "disclose"). The
+    density is upward-biased on modern iXBRL filings relative to what
+    a boilerplate-stripped version would produce. A future skill
+    extension could add a known-boilerplate exclusion pass.
+  - >-
+    Flag bands (0.15 / 0.35) are practitioner-derived defaults for MD&A,
+    not paper thresholds. A population-calibrated variant on a larger
+    issuer panel would anchor them more firmly.
+  - >-
+    Pre-iXBRL filings (Enron FY2000, WorldCom FY2001) have less-
+    consistent sentence segmentation than modern iXBRL; the
+    pre_ixbrl_paragraph_structure confidence penalty applies (−0.15).
+  - >-
+    Not a disclosure-quality verdict. A high_hedging flag means the
+    MD&A uses non-disclosure language; it does NOT say disclosure is
+    LOW-QUALITY. A firm facing material uncertainty legitimately hedges.
+    Pair with compute_mdna_upfrontedness for structural-burying
+    analysis.
+  - >-
+    The paper has a companion code repository
+    (https://github.com/TiesdeKok/chatgpt_paper). We replicate the
+    keyword list from OA 3 directly; if the repo ever diverges from
+    OA 3, OA 3 is authoritative.
+
+examples:
+  - name: "Apple FY2023 — modern iXBRL MD&A"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Apple's FY2023 MD&A is a clean ~14 KB iXBRL section. Expected
+      hedging_density in [0.10, 0.45] — typical or high band. Flag
+      typically 'typical_hedging' or 'high_hedging'.
+  - name: "Enron FY2000 — pre-iXBRL SGML MD&A"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    notes: >-
+      Enron's FY2000 MD&A is SGML-era; sentence segmentation noisier.
+      Expected density in [0.05, 0.50]; warning
+      pre_ixbrl_paragraph_structure fires; confidence 0.55.
+  - name: "Carvana FY2022 — modern iXBRL MD&A"
+    input:
+      cik: "0001690820"
+      fiscal_year_end: "2022-12-31"
+    notes: >-
+      Carvana's FY2022 MD&A includes substantial risk-factor and
+      going-concern language. Expected density likely in the
+      typical_hedging or high_hedging band.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 400

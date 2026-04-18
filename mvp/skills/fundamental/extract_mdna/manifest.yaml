@@ -1,0 +1,163 @@
+# Manifest for the extract_mdna skill.
+# L1 fundamental — deterministic text extraction of the Item 7
+# "Management's Discussion and Analysis" section from a 10-K filing.
+
+skill_id: extract_mdna
+version: 0.1.0
+layer: fundamental
+status: alpha
+maintainer_persona: accounting_expert
+description_for_llm: >-
+  Return the verbatim text of Part II, Item 7 "Management's Discussion
+  and Analysis of Financial Condition and Results of Operations" from
+  a US public company's 10-K filing. The returned text is the section
+  body only (headings + paragraphs); inline HTML markup is stripped.
+  Use this when an agent needs the narrative text an accounting expert
+  would read to interpret the numbers; do NOT use it for structured
+  financial-statement values (use extract_canonical_statements for that).
+  For filings where the MD&A section cannot be identified, the skill
+  returns section_text=null and a warning rather than guessing.
+
+provenance:
+  source_papers: []
+
+implementation_decisions:
+  - decision: >-
+      For iXBRL filings (Apple, Microsoft, Carvana) the finder locates
+      the Item 7 heading via the "Item 7" token in the iXBRL HTML and
+      bounds the section at the next Item 7A / Item 8 heading.
+    rationale: >-
+      iXBRL filings all use a consistent heading convention; the
+      "Item 7" / "Item 7A" markers are load-bearing and stable across
+      issuers.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      For pre-iXBRL SGML filings (Enron, WorldCom) the finder does
+      the same case-insensitive substring search for "Item 7" and
+      bounds at "Item 7A" or "Item 8". No HTML is present, so the
+      extracted text is plain ASCII / ANSI.
+    rationale: >-
+      A single shared finder works across both eras because "Item 7"
+      is the SEC-mandated section heading. The skill warns on any
+      filing where the bounds cannot be located, rather than returning
+      a best-guess window.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Inline HTML is stripped to paragraph-wrapped plain text. Entity
+      references (e.g. &#8217;) are decoded to the corresponding UTF-8
+      characters. This keeps the output agent-readable without dropping
+      meaningful text.
+    rationale: >-
+      An LLM reading MD&A does not benefit from inline style and span
+      attributes; stripping them improves token efficiency without
+      losing content.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK (e.g. '0000320193' for Apple).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K, ISO yyyy-mm-dd.
+
+outputs:
+  type: object
+  required: [section_text, citations, start_offset, end_offset, warnings]
+  additionalProperties: true
+  properties:
+    section_text:
+      type: ["string", "null"]
+      description: >-
+        The MD&A section text as a single UTF-8 string, or null when the
+        section could not be identified in the filing. HTML has been
+        stripped; entity references decoded. Paragraphs are separated
+        by blank lines.
+    citations:
+      type: array
+      description: >-
+        One Citation record pointing at the (doc_id, locator) pair the
+        section was extracted from. Empty when section_text is null.
+      items:
+        type: object
+        description: Citation record for the MD&A section.
+    start_offset:
+      type: integer
+      description: >-
+        Byte offset in the filing's primary document where the MD&A
+        section begins. 0 when section_text is null.
+    end_offset:
+      type: integer
+      description: >-
+        Byte offset where the MD&A section ends. 0 when section_text is null.
+    warnings:
+      type: array
+      description: Zero or more warnings (e.g. "section bounds not located").
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    section_text: >-
+      when section_text is non-null, a Citation record with a locator of
+      the form <cik>/<accession>::mdna::item_7 must be present.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::mdna::item_7"
+
+confidence:
+  computed_from:
+    - section_bounds_detected
+    - filing_data_quality_flag
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills: []
+  lib:
+    - mvp.store.doc_store
+    - mvp.ingestion.filings_ingest
+    - mvp.lib.hashing
+  rules: []
+
+evaluation:
+  gold_standard_path: eval/gold/fundamental/extract_mdna/
+  eval_metrics:
+    - name: section_identified
+      target: ">= 8/10 filings"
+    - name: section_starts_within_2kb_of_gold
+      target: ">= 8/10 filings"
+
+limitations:
+  - >-
+    The skill uses literal "Item 7" / "Item 7A" / "Item 8" markers. A
+    filing with non-standard section formatting or a scanned PDF
+    substrate would require a different heuristic; post-MVP scope.
+  - >-
+    Pre-iXBRL filings (Enron, WorldCom) have minimal structure and the
+    extracted text may include interspersed numeric tables. Agents
+    reading MD&A on those filings should allow for that.
+  - >-
+    Supports only the 10 MVP sample filings. An unknown (cik, fiscal_year_end)
+    triggers an unknown_filing error.
+
+examples:
+  - name: "Apple FY2023 MD&A"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Returns the ~40 KB of Item 7 text — segment performance, gross
+      margin discussion, liquidity section — stripped of inline iXBRL
+      markup. Citation locator is 0000320193/0000320193-23-000106::mdna::item_7.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 300

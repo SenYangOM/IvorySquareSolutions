@@ -1,0 +1,218 @@
+# mvp/rules/templates/context_importance_signals_components.yaml
+#
+# Rule template for the compute_context_importance_signals skill (L3
+# paper-derived). Authored by the accounting_expert persona during
+# paper-2 onboarding (post-MVP paper_examples/ workstream). Consumed
+# by the skill for its per-signal thresholds, the composite flag
+# bands, and by any downstream L2 interpretation skill that explains
+# a firm's context-importance flag in accountant's voice.
+#
+# Paper. Kim, A. G., & Nikolaev, V. V. (2024). Context-Based
+# Interpretation of Financial Information. Journal of Accounting
+# Research, accepted 31 October 2024. DOI: 10.1111/1475-679X.12593.
+# PDF sha256: 013d9bbcd45ec4636dc3427561770c6489a29aa92e1b116281206344b442f533.
+#
+# Authoring note on rule shape. Like the Upfrontedness template, this
+# skill emits a single composite scalar (context_importance_score),
+# not a vector of components. The rule template therefore has ONE
+# component block — the composite score — plus the per-signal
+# threshold table and the composite flag bands. A future L2 interpret-
+# context-importance skill could iterate over the per-signal trace
+# (loss_fired, volatility_fired, accruals_fired, mtb_fired) to
+# generate signal-level commentary, but that is out of scope for this
+# template at MVP.
+
+template_version: "0.1.0"
+paper: "Kim, A. G., & Nikolaev, V. V. (2024). Context-Based Interpretation of Financial Information. Journal of Accounting Research, accepted 31 October 2024."
+paper_pdf_sha256: "013d9bbcd45ec4636dc3427561770c6489a29aa92e1b116281206344b442f533"
+
+# -----------------------------------------------------------------------------
+# Composite context-importance score
+# -----------------------------------------------------------------------------
+components:
+
+  - component: context_importance_score
+    full_name: "Composite Context-Importance Score (Kim & Nikolaev 2024 §5.4)"
+    description: >-
+      Firm-year score in [0, 1] measuring how much the paper's §5.4
+      partition signals predict that narrative MD&A context should be
+      especially valuable for interpreting THIS firm's numeric data.
+      A weighted sum of four binary indicators (operating-loss,
+      EBIT-volatility extremity, Sloan-style accrual extremity,
+      market-to-book extremity) using paper-derived weights from
+      Table 7 Panel A column "Earnings". Higher score means the
+      paper's evidence is stronger that context should help here.
+    formula: "context_importance = 0.3884 * I[loss] + 0.2365 * I[high vol] + 0.1770 * I[extreme accruals] + 0.1982 * I[extreme MTB]"
+    canonical_inputs:
+      - "ebit (period=t, period=t-1)"
+      - "total_assets (period=t, period=t-1)"
+      - "total_liabilities (period=t)"
+      - "cash_flow_from_operating_activities (period=t)"
+      - "market_value_of_equity (period=t, exogenous fixture)"
+    paper_coefficient: null
+    coefficient_notes: >-
+      The four signal weights (loss=0.3884, vol=0.2365, accr=0.1770,
+      mtb=0.1982) are normalized from the paper's Table 7 Panel A
+      column "Earnings", row "Diff" statistics: 2.94, 1.79, 1.34, 1.50.
+      Sum 7.57. The 5th original signal (political risk, Diff=2.08)
+      is dropped — the Hassan-et-al-2019 firm-level political risk
+      index is not in our store. Re-normalizing across the four kept
+      signals shifts each weight slightly upward versus the 5-signal
+      version. Documented in the skill manifest's
+      implementation_decisions[3].
+    paper_reference:
+      source: "Kim & Nikolaev (2024)"
+      table: "Table 7 Panel A (cross-sectional contextuality differences)"
+      page: "32-33"
+    interpretation_rules:
+
+      - condition: "value >= 0.60"
+        interpretation: |
+          Context importance is in the paper's "context_critical"
+          band (≥ 0.60). Multiple of the §5.4 partition signals
+          fired — the firm reports operating losses, volatile
+          earnings, extreme accruals, and/or extreme valuation. The
+          paper's Table 7 Panel A predicts that narrative context
+          should add the most explanatory power for THIS firm's
+          future-earnings, future-cash-flow, and stock-return
+          interpretations. Read the MD&A carefully — and pair this
+          flag with compute_mdna_upfrontedness to ask whether the
+          firm's narrative actually delivers (high context-importance
+          + low Upfrontedness is a sharper red flag than either alone).
+        severity: "high"
+        follow_up_questions:
+          - "Which specific signals fired? Loss + accruals together is a different concern than vol + MTB-extremity."
+          - "Does the firm's MD&A include explicit forward guidance on the drivers behind the signal — losses, accrual reversals, valuation collapse — or does it deflect to boilerplate?"
+          - "How does this firm's context-importance compare to its three closest industry peers? Sector-wide spikes (e.g., COVID 2020 per the paper's §5.4) shift the baseline."
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+          - "cash_flow_from_operating_activities (period=t)"
+        contextual_caveats:
+          - "The 0.60 cutoff is a presentation convention — a score at 0.598 is economically indistinguishable from 0.601. Look at WHICH signals fired, not just the band."
+          - "Pre-iXBRL SGML filings (Enron 2000, WorldCom 2001) carry pre_ixbrl_manual_extraction confidence -0.15; treat the score with wider uncertainty for those filings."
+
+      - condition: "0.30 <= value < 0.60"
+        interpretation: |
+          Context importance is in the "context_helpful" band
+          (0.30..0.60). One or two of the §5.4 partition signals
+          fired — the firm has at least one indicator the paper
+          associates with higher contextuality (operating loss,
+          volatile ROA, extreme accruals, or extreme valuation).
+          The paper's evidence says narrative context should help
+          interpret this firm's numbers more than for a steady-state
+          peer — but the case is not a clean-sweep critical-context
+          scenario. A second look at MD&A is warranted, especially
+          if the fired signal lines up with a known soft spot in
+          the firm's reported numbers.
+        severity: "medium"
+        follow_up_questions:
+          - "Which signal fired? A lone MTB-extremity at the high end (growth firm) carries different MD&A expectations than a lone loss-indicator (distress firm)."
+          - "Has the firing signal trended over the prior 3 years for this firm? A new signal in t deserves more attention than a chronic one."
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+        contextual_caveats:
+          - "A single MTB-fire on a profitable, low-volatility firm (e.g., Apple FY2023, Microsoft FY2023 in the MVP sample) is a routine growth-firm pattern, not a distress signal — context_helpful here just means 'the firm's growth profile makes its numbers somewhat harder to extrapolate forward.'"
+
+      - condition: "value < 0.30"
+        interpretation: |
+          Context importance is in the "context_marginal" band
+          (< 0.30). Either no signals fired, or only one weakly-
+          weighted signal fired. The paper's Table 7 Panel A predicts
+          narrative context should add the LEAST explanatory power
+          for THIS firm relative to a context-critical peer. The
+          firm's reported numbers stand on their own well enough that
+          deep MD&A reading has lower expected payoff. This is a
+          signal about the firm's profile, not about MD&A quality —
+          a steady-state large-cap with a clean balance sheet
+          legitimately falls here.
+        severity: "low"
+        follow_up_questions:
+          - "Is the firm in a steady-state operating environment (no recent M&A, divestitures, or major market shifts)? If yes, the marginal flag is likely correct."
+          - "Have any of the four signals been close-to-firing (within 10% of the threshold)? A chronically-near-threshold firm deserves a watch."
+        citations_required:
+          - "ebit (period=t)"
+          - "total_assets (period=t)"
+        contextual_caveats:
+          - "Marginal does NOT mean the MD&A is uninformative; it means the paper's model predicts context adds less LIFT for this firm. A surprising disclosure in the MD&A still matters."
+          - "A score of exactly 0.0 means none of the four signals fired — sometimes a real signal in disguise (e.g., a firm whose numbers look steady but whose business is in transition). Cross-check with compute_mdna_upfrontedness."
+
+      - condition: "value is null"
+        interpretation: |
+          The skill could not compute the composite for this filing.
+          Either the underlying canonical line items are missing
+          (e.g., EBIT_t is null per Carvana's 10-K not tagging
+          OperatingIncomeLoss), or both the volatility and MTB
+          signals were unevaluable (no prior-year filing AND no
+          market-data fixture entry). The result is honestly
+          'indeterminate' — a downstream caller must NOT treat it
+          as 'context_marginal' or as 0.0.
+        severity: "none"
+        follow_up_questions:
+          - "Is the underlying data gap recoverable (a missing 10-K filing, a missing market_data fixture entry)?"
+          - "If the gap is structural (e.g., the iXBRL filing genuinely doesn't tag EBIT), is the broader downstream skill set degraded for this filing? compute_altman_z_score also returns indeterminate for this case."
+        citations_required: []
+        contextual_caveats:
+          - "Indeterminate is a first-class output, not an exception (per the playbook 'null is a first-class output' callout)."
+
+# -----------------------------------------------------------------------------
+# Per-signal threshold table — the binary cutoffs each I[·] indicator uses
+# -----------------------------------------------------------------------------
+signal_thresholds:
+  paper_source: "Kim & Nikolaev (2024) §5.4 partitions; specific cutoffs are practitioner defaults derived from the literature the paper cites."
+  loss:
+    indicator: "I[EBIT_t < 0]"
+    threshold: 0.0
+    proxy_for: "Hayn (1995) NetIncome < 0"
+    proxy_documented_in: "manifest implementation_decisions[1]"
+  earnings_volatility:
+    indicator: "I[|EBIT_t/TotalAssets_t − EBIT_{t-1}/TotalAssets_{t-1}| ≥ 0.05]"
+    threshold: 0.05
+    threshold_units: "absolute YoY ROA change"
+    proxy_for: "Dichev-Tang (2009) std(ROA) over a multi-year rolling window"
+    proxy_documented_in: "manifest implementation_decisions[2]"
+  accruals:
+    indicator: "I[|EBIT_t − CFO_t| / TotalAssets_t ≥ 0.10]"
+    threshold: 0.10
+    threshold_units: "absolute accruals to assets ratio"
+    proxy_for: "Sloan (1996) extreme accruals (top/bottom decile)"
+    notes: "Uses the reported cash_flow_from_operating_activities canonical line item; not a reconstruction."
+  market_to_book:
+    indicator: "I[MTB ≥ 5.0 OR MTB ≤ 0.8]"
+    threshold_high: 5.0
+    threshold_low: 0.8
+    threshold_units: "MTB ratio (market value of equity / book value of equity)"
+    proxy_for: "Beaver-Ryan (2005) extreme valuation"
+    notes: "Negative book equity is encoded as MTB=0.0 to fire the low band — see manifest mtb_negative_book_equity warning."
+
+# -----------------------------------------------------------------------------
+# Composite flag-band block
+# -----------------------------------------------------------------------------
+context_importance_bands:
+  paper_source: "Weights normalized from Kim & Nikolaev (2024) Table 7 Panel A column 'Earnings', row 'Diff'. Bands at 0.30 and 0.60 are a presentation convention."
+  weights:
+    loss: 0.3884
+    volatility: 0.2365
+    accruals: 0.1770
+    mtb: 0.1982
+  weight_denominator: 7.57
+  weight_source_diffs:
+    loss: 2.94
+    volatility: 1.79
+    accruals: 1.34
+    mtb: 1.50
+  context_critical_floor: 0.60
+  context_marginal_ceiling: 0.30
+  notes: >-
+    Bands are equally-spaced cuts at 0.30 and 0.60. The paper does NOT
+    publish a composite score; it publishes per-signal contextuality
+    differences. The composite + bands are our presentation convention,
+    grounded in the paper's per-signal evidence. A future paper-specific
+    calibration on a wider issuer panel would let us replace these
+    presentation cuts with population-anchored quantiles.
+  dropped_signals:
+    political_risk:
+      paper_diff: 2.08
+      paper_source: "Hassan, Hollander, van Lent & Tahoun (2019) firm-level political risk index"
+      reason: "Underlying data set is not in our store and is not freely reproducible from 10-K text alone. Documented in manifest implementation_decisions[4]."

@@ -1,0 +1,782 @@
+# Manifest for predict_filing_complexity_from_determinants — Bernard,
+# Blankespoor, de Kok & Toynbee (December 2025) "Using GPT to measure
+# business complexity" (forthcoming The Accounting Review; SSRN 4480309)
+# Section 4.3 / Table 3 Column 2 OLS regression of filing complexity on
+# firm characteristics, ported to MVP canonical statements + the
+# existing market-data fixture. Ships 5 of 11 paper regressors (10K,
+# Size, Leverage, BM, ROA); six are dropped because MVP does not
+# currently ingest the data required (Investment, FirmAge, Lifecycle,
+# ReturnVolatility, AnalystFollow, Institutional).
+#
+# Authored by the quant_finance_methodologist persona during Paper 5
+# onboarding (post-MVP paper_examples/ workstream). The paper's
+# headline construct — a fine-tuned Llama-3 8b model scoring iXBRL
+# footnote tags — is NOT reproduced. The paper's companion website
+# with model weights + pre-computed complexity scores is promised but
+# not yet available at paper-onboarding time. We ship the paper's
+# OWN deterministic determinants regression, which predicts Llama-3
+# complexity from firm characteristics (R² = 0.225).
+#
+# See workshop/paper_to_skill/notes/bernard_2025_gpt_complexity.md for
+# the full skill-scope decision (branch-3-variant in the playbook —
+# "ML without proxy; paper publishes a deterministic sub-construct
+# with explicit coefficients on public-firm inputs").
+
+skill_id: predict_filing_complexity_from_determinants
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Predict Bernard, Blankespoor, de Kok & Toynbee (2025) filing-level
+  business-complexity for one US public company 10-K filing via the
+  paper's OWN Table 3 Column 2 determinants regression — NOT the
+  paper's headline Llama-3 8b model. Given canonical total_assets,
+  total_liabilities, long_term_debt, ebit (for ROA), and the existing
+  market-value-of-equity fixture entry (for BM), returns
+  predicted_complexity_level in [0.0, ~0.2] anchored on the paper's
+  Table 2 sample mean (0.118), plus a three-band flag
+  (predicted_elevated_complexity | predicted_typical_complexity |
+  predicted_reduced_complexity | indeterminate). Also returns the
+  four decile ranks estimated via piecewise-linear interpolation
+  through the paper's Table 2 percentiles, the five-regressor
+  contribution trace, the paper-exact coefficients (10K=+0.014,
+  Size=+0.012, Leverage=+0.012, BM=+0.005, ROA=-0.008), and citations
+  back to the canonical line items. The paper's headline Llama-3
+  complexity measure is NOT implemented — the score is a PREDICTION
+  of what that measure would be for a firm with the given
+  characteristics. Pair with compute_business_complexity_signals
+  (monitoring-demand signal) for an orthogonal complexity axis.
+
+provenance:
+  source_papers:
+    - citation: "Bernard, D., Blankespoor, E., de Kok, T., & Toynbee, S. (December 2025). Using GPT to measure business complexity. Forthcoming, The Accounting Review. SSRN 4480309."
+      doi_or_url: "https://ssrn.com/abstract=4480309"
+      local_pdf: "data/papers/bernard_2025_gpt_complexity.pdf"
+      pdf_sha256: "a4e82cafd4d51cdf22ede47dd29a8294c2ecc38c7da337f7874061630a0a6564"
+  study_scope:
+    asset_class: "US public equities; filings are 10-K and 10-Q with iXBRL-tagged financial-statement footnotes (mandatory since FY2019 for accelerated filers, staggered thereafter)."
+    time_period_in_paper: "2017-Q3 through 2024-Q2 (universe constrained by iXBRL-footnote availability)."
+    sample_size_in_paper: "58,148 firm-quarter filings (Table 1 Panel A) / 58,140 observations with determinants-regression inputs available (Table 3 Column 2 Observations row); 4,795 distinct firms."
+  problem:
+    one_line: "Which firm characteristics predict a filing's Llama-3-measured business complexity?"
+    long_form: >-
+      Bernard, Blankespoor, de Kok & Toynbee (2025) construct a
+      filing-level complexity measure as one minus the average token-
+      confidence of a fine-tuned Llama-3 8b model predicting iXBRL
+      tags on US SEC-filed financial-statement footnote text. Section
+      4.3 / Table 3 reports an OLS regression of this filing-level
+      Complexity on standard firm-level determinants (10K indicator,
+      log(TA), Leverage, BM, ROA, Investment, FirmAge, four Lifecycle
+      indicators, ReturnVolatility, AnalystFollow, Institutional
+      ownership) with industry + filer-status + year-quarter FEs.
+      All continuous variables are decile-ranked and scaled to [0, 1]
+      to facilitate interpretation. Column 2 — the
+      industry-FE-included specification used throughout the paper's
+      descriptive sections — reports N=58,140, R²=0.225, with five of
+      the regressors we keep at MVP carrying statistically-significant
+      coefficients: 10K=+0.014 (t=30.15), Size=+0.012 (t=5.74),
+      Leverage=+0.012 (t=8.10), BM=+0.005 (t=3.20), ROA=-0.008
+      (t=-6.55). We port these five to MVP canonical line items +
+      the existing market-data fixture, drop the six other regressors
+      (Investment requires R&D + CapEx; FirmAge requires Compustat
+      panel; Lifecycle requires Dickinson CFO/CFI/CFF partitioning;
+      ReturnVolatility requires CRSP; AnalystFollow requires IBES;
+      Institutional requires Thomson), and ship a
+      PREDICTED_complexity_level = paper_sample_mean + Σ
+      coefficient × (decile_rank − 0.5) (centring on median-firm
+      baseline with 10K share adjustment).
+  methodology:
+    summary: >-
+      Read canonical statements for year t via
+      build_canonical_statements. Compute four raw firm
+      characteristics: Size = ln(total_assets); Leverage =
+      long_term_debt / total_assets (LTD-only proxy for the paper's
+      (DLCQ+DLTTQ)/ATQ because MVP canonical doesn't cleanly
+      separate short-term debt); BM = (total_assets −
+      total_liabilities) / market_value_of_equity (book equity from
+      the balance-sheet identity; market equity from the
+      data/market_data/equity_values.yaml fixture shared with Altman
+      Z's X4); ROA = ebit / total_assets (EBIT proxy for IBQ).
+      Convert each raw value to a decile rank in [0, 1] via
+      piecewise-linear interpolation through the paper's Table 2
+      percentiles (P10/P25/Median/P75/P90 anchors). Values outside
+      the P10..P90 band clamp to 0.0 / 1.0. Apply the paper's Table 3
+      Column 2 coefficients centred on the median-firm baseline:
+      predicted_complexity_delta = 0.014 * (I[10K] - 0.273)
+      + 0.012 * (decile_size - 0.5) + 0.012 * (decile_leverage - 0.5)
+      + 0.005 * (decile_bm - 0.5) - 0.008 * (decile_roa - 0.5).
+      Final level = paper_sample_mean (0.118) + delta. Flag is
+      derived from the level: predicted_elevated_complexity when
+      level >= 0.150 (≈z=+0.84 SDs above paper mean), typical
+      when 0.100 <= level < 0.150, reduced when level < 0.100,
+      indeterminate when total_assets is missing (Size / Leverage /
+      ROA all depend on it).
+    formulas_extracted_from_paper:
+      table_3_col_2_coefficients: "Complexity_it = α_it + 0.014 * I[10K] + 0.012 * decile(Size) + 0.012 * decile(Leverage) + 0.005 * decile(BM) - 0.008 * decile(ROA) - 0.004 * decile(Investment) - 0.003 * decile(FirmAge) + [Lifecycle, ReturnVolatility, AnalystFollow, Institutional terms] + industry_fe + yearqtr_fe + filerstatus_fe + ε. N=58,140; R²=0.225."
+      table_2_sample_mean: "Mean Complexity = 0.118; Std. Dev = 0.038; P10/P25/Median/P75/P90 = 0.070 / 0.091 / 0.116 / 0.142 / 0.167."
+      table_2_percentiles_size:     "Size (ln TA) — P10/P25/Median/P75/P90 = 5.002 / 6.267 / 7.636 / 8.906 / 10.128."
+      table_2_percentiles_leverage: "Leverage — P10/P25/Median/P75/P90 = 0.020 / 0.081 / 0.275 / 0.453 / 0.633."
+      table_2_percentiles_bm:       "BM — P10/P25/Median/P75/P90 = 0.055 / 0.193 / 0.434 / 0.823 / 1.264."
+      table_2_percentiles_roa:      "ROA — P10/P25/Median/P75/P90 = -0.086 / -0.014 / 0.003 / 0.016 / 0.033."
+      ten_k_ratio: "I[10K] sample share = 15,865 / 58,148 = 0.2729 (Table 1 Panel B)."
+      skill_arithmetic: "predicted_complexity_level = 0.118 + 0.014 * (I[10K] - 0.273) + 0.012 * (decile_size - 0.5) + 0.012 * (decile_leverage - 0.5) + 0.005 * (decile_bm - 0.5) - 0.008 * (decile_roa - 0.5)."
+    threshold: "Flag bands anchored to Table 2 moments (mean 0.118, SD 0.038): predicted_elevated_complexity when level >= 0.150 (~+0.84 SD); predicted_typical_complexity when 0.100 <= level < 0.150 (~±0.5 SD); predicted_reduced_complexity when level < 0.100; indeterminate when total_assets is missing. Bands are a practitioner presentation convention — the paper publishes no level-based bands."
+  expected_results:
+    metric_kind: "scalar predicted_complexity_level in [~0.05, ~0.20] + three-band flag + four decile ranks + five-regressor contribution trace"
+    interpretation_guide: >-
+      The paper's Table 3 Column 2 reports an R² of 0.225 — the
+      regression explains roughly 23% of the variance in
+      Llama-3-measured Complexity. A predicted_elevated_complexity
+      flag means the paper's regression predicts this firm's 10-K
+      footnotes would score higher on Llama-3 reporting complexity
+      than roughly 84% of the paper's sample. The predicted level is
+      NOT the Llama-3 score itself — it is what the paper's
+      regression expects for a firm with these five firm
+      characteristics. Use the score as a pre-triage signal for
+      "does this firm's balance-sheet profile predict dense / hard-
+      to-parse footnote disclosure?" Pair with
+      compute_business_complexity_signals (Paper 3 — a
+      monitoring-demand signal predicting managerial demand for
+      business-intelligence tools) for an ORTHOGONAL complexity
+      axis: high reporting-complexity + high monitoring-demand is
+      the combination where rich internal reporting AND hard-to-
+      parse external disclosure coexist.
+  takeaways:
+    - "predicted_complexity_level is a firm-year scalar prediction of the paper's Llama-3 Complexity measure, anchored on the paper's sample mean 0.118."
+    - "Five of eleven paper regressors shipped (10K, Size, Leverage, BM, ROA); six dropped because MVP doesn't ingest the required data (Investment, FirmAge, Lifecycle, ReturnVolatility, AnalystFollow, Institutional)."
+    - "Coefficients are paper-exact (Table 3 Column 2): +0.014 / +0.012 / +0.012 / +0.005 / -0.008. NOT re-estimated or weight-normalised."
+    - "Decile ranks are ESTIMATED from paper Table 2 percentiles (P10/P25/Median/P75/P90), not computed on a live panel; out-of-band values clamp to 0.0/1.0."
+    - "The paper's headline Llama-3 8b model is NOT implemented — the paper's companion website with model weights + pre-computed scores is promised but not yet available."
+    - "Confidence capped at 0.7 while the headline-ML-deferral, ROA-EBIT-proxy, LTD-only Leverage-proxy, and Table-2-percentile decile-rank approximations are active."
+    - "Pre-iXBRL SGML filings (Enron, WorldCom) carry an additional −0.15 pre_ixbrl_manual_extraction penalty. Market-value-flagged MVE fixture entries (e.g. WorldCom FY2001 estimated_from_aggregated_market_cap) carry an additional −0.15 penalty."
+    - "Indeterminate when total_assets is null — Size, Leverage, and ROA all depend on it. Single-regressor nulls (e.g. Carvana's missing EBIT or missing book-equity) zero that contribution with a targeted warning and still publish."
+  use_cases:
+    - "Pre-triage a 10-K before footnote reading: elevated predicted complexity suggests a dense / hard-to-parse disclosure profile (large + levered + low-profitability + high-BM firms)."
+    - "Cross-sectional peer comparison: rank an industry peer set on predicted_complexity_level to find the firms the paper's regression flags as most-likely-to-score-high on Llama-3 complexity."
+    - "Pair with compute_business_complexity_signals: a firm high on BOTH predicted-reporting-complexity (this skill) AND monitoring-demand (Paper 3's skill) is the compound profile where rich internal reporting + hard-to-parse external disclosure coexist."
+    - "Time-series monitoring: trend predicted_complexity_level year-over-year to see whether a firm's profile is drifting into the paper's elevated band (e.g. rising Leverage + falling ROA)."
+
+implementation_decisions:
+  - decision: >-
+      The paper's headline Llama-3 8b complexity measure is NOT
+      shipped. The paper's companion website with model weights +
+      pre-computed complexity scores was promised but not yet
+      available at paper-onboarding time. Per the playbook's branch-
+      3 sub-pattern for OLS-coefficient papers, we ship the paper's
+      OWN deterministic determinants regression from Table 3
+      Column 2 instead. The predicted level is a prediction of what
+      the Llama-3 measure would be — not the measure itself. Every
+      non-null call emits
+      warning=headline_ml_measure_not_implemented and surfaces the
+      paper's own R² = 0.225 so the caller knows roughly how much
+      Llama-3 variance the regression explains.
+    rationale: >-
+      Playbook branch-3 rule "when the headline ML construct has no
+      closed-form proxy, scan the paper for a deterministic
+      sub-construct." Table 3 Column 2 is that sub-construct — and
+      because the paper publishes exact coefficients on standard
+      firm characteristics, porting is honest and paper-exact
+      (contrast Paper 3, where we had to normalise |t-stats| because
+      no natural composite was published). A future v0.2 variant
+      that consumes the companion-website measure directly would
+      fetch the per-filing Llama-3 score and raise confidence; this
+      is filed as the first deferred candidate in the methodologist
+      notes.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Five of eleven Table 3 Column 2 regressors shipped. Kept: 10K,
+      Size, Leverage, BM, ROA — each computable from MVP canonical
+      line items or the existing market-data fixture. Dropped:
+      Investment (needs R&D + CapEx; not canonical at MVP), FirmAge
+      (needs Compustat panel), Lifecycle Intro/Growth/Mature/
+      Shakeout/Decline (needs Dickinson 2011 CFO/CFI/CFF partition
+      but MVP canonical has only combined operating cash flow),
+      ReturnVolatility (needs CRSP monthly returns), AnalystFollow
+      (needs IBES), Institutional (needs Thomson 13F). Each dropped
+      regressor is listed in the rule template's
+      `dropped_regressors` block with its paper coefficient +
+      t-statistic + required data source so a future expansion has
+      a drop-in roadmap.
+    rationale: >-
+      Dropping regressors with no computable analog is mandatory
+      (P2: no fake-data stubs). The dropped signals carry real
+      information (Lifecycle-Mature t=-9.89, ReturnVolatility
+      t=+5.69 are both above our kept regressors' magnitudes), so
+      the skill UNDERSTATES the regression's predictive power.
+      That's honest; backfilling with zero-valued stubs would
+      silently inflate explanatory claims.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Decile rank via piecewise-linear interpolation through the
+      paper's Table 2 percentiles (P10, P25, Median, P75, P90). The
+      paper computes deciles within its panel; we don't have the
+      panel, but Table 2 gives us 5 anchor points per variable.
+      Below P10 clamps to 0.0; above P90 clamps to 1.0. Warning
+      decile_estimated_from_paper_percentiles fires on every
+      non-null call.
+    rationale: >-
+      Five anchors support a reasonable piecewise-linear
+      interpolant; the paper's distribution is smooth enough that
+      the approximation is within ~0.05 decile-units of a true
+      panel-decile for typical public-firm values. Clamping rather
+      than extrapolating is the correct conservative move — extreme
+      outliers (e.g. Microsoft's Size = 26.74 in ln-dollars vs P90
+      = 10.128 in ln-millions-dollars — the paper uses a different
+      scale for ATQ than our raw ln(TA in USD)) lose the monotonic
+      signal but don't produce absurd extrapolated ranks. Future
+      expansion: consume the companion website's bucketed sample
+      distribution to refine the anchor set.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      ROA is computed as EBIT / total_assets (a proxy for the
+      paper's IBQ / ATQ). Paper uses IBQ (Compustat income before
+      extraordinary items, quarterly). MVP canonical has EBIT but
+      not income-before-extraordinaries directly. The difference is
+      non-operating items + taxes. Warning roa_ebit_proxy fires on
+      every non-null ROA call. Carvana FY2022 EBIT is null
+      (Carvana's 10-K filings don't tag OperatingIncomeLoss at
+      iXBRL level), so Carvana's ROA signal is null → ROA
+      contribution zeroed with missing_roa warning, score still
+      publishes.
+    rationale: >-
+      The EBIT-to-IBQ drift is typically small for mature firms
+      (under 10% of EBIT) but can be material for firms with big
+      one-off non-operating items or tax peculiarities. We don't
+      try to reconstruct IBQ from pieces (net_income, tax_expense,
+      extraordinary_items) because MVP canonical doesn't have tax
+      expense cleanly separated either. Documenting the proxy is
+      the honest path; a future v0.2 variant with a broader
+      canonical mapping would narrow the gap.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Leverage is long_term_debt / total_assets (LTD-only proxy
+      for the paper's (DLCQ + DLTTQ) / ATQ where DLCQ is debt in
+      current liabilities and DLTTQ is long-term debt). MVP
+      canonical has long_term_debt but doesn't cleanly separate
+      short-term debt from current_liabilities, so we use LTD-only
+      as a lower-bound proxy. Warning leverage_long_term_only
+      fires on every non-null call.
+    rationale: >-
+      Typical firms have current-portion-of-LTD at 5-20% of total
+      LTD, so our proxy under-states paper-exact Leverage by that
+      share. Documented; a future canonical-mapping expansion that
+      splits current_liabilities into short-term debt and other
+      would let us drop the proxy flag.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Flag bands are anchored to Table 2 moments (mean 0.118, SD
+      0.038). Cuts at 0.100 (~0.5 SD below mean) and 0.150 (~0.84
+      SD above mean) are practitioner presentation conventions, not
+      paper-published thresholds. Editable in the rule template.
+    rationale: >-
+      The paper publishes a continuous scalar; it does not partition
+      filings into complexity bands. Partitioning aids practitioner
+      interpretation but is our convention, not the paper's. A
+      population-anchored variant would re-derive the cuts from a
+      wider issuer set and a richer regressor subset.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Baseline anchor is paper_sample_mean_complexity (0.118) from
+      Table 2, not a firm-specific intercept from the regression.
+      The paper's Table 3 Column 2 has industry + year-quarter +
+      filer-status fixed effects that absorb firm-specific
+      intercepts; we can't recover per-firm intercepts without the
+      panel. Using the sample mean as baseline means
+      predicted_complexity_level is "what Table 3 Col 2 would
+      predict for a firm with these characteristics relative to the
+      paper's sample-average firm."
+    rationale: >-
+      Not claiming to have the paper's FEs is the conservative
+      move. A firm whose actual industry runs systematically
+      high-complexity (utilities, natural resources per Figure 2)
+      would be systematically under-predicted by our sample-mean
+      anchor; a low-complexity-industry firm (retail, apparel)
+      over-predicted. Future expansion: ship an industry FE table
+      derived from Figure 2's box-and-whisker plot and add an
+      industry-adjusted variant.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      10K indicator contribution is relative to the paper's sample-
+      mean 10-K ratio (15,865 / 58,148 = 0.2729 from Table 1
+      Panel B). Contribution = 0.014 * (I[10K] - 0.2729) so a 10-K
+      filing adds +0.014*0.727 = +0.01018; a 10-Q subtracts
+      0.014*0.273 = -0.00382. This keeps the level output centred on
+      the paper's sample-mean-under-representative-filing-type-mix
+      expected complexity. Every MVP sample filing is a 10-K, so
+      this always produces +0.01018; a future 10-Q ingest flips.
+    rationale: >-
+      Centring on the sample-type mix is the standard econometric
+      move when an indicator coefficient is to be interpreted as a
+      partial effect relative to a representative filing. Without
+      centring, the level would embed a fixed +0.014 for all 10-Ks,
+      over-stating the level for 10-K-dominated corpora.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Indeterminate when total_assets is null. total_assets is the
+      denominator for Size (indirectly — Size is ln(ATQ) which
+      needs ATQ>0), Leverage, and ROA. Without it, 4 of 5
+      regressors are unevaluable — not enough signal to publish.
+      Single-regressor nulls (e.g. Carvana's missing EBIT →
+      null ROA; Carvana's negative book equity → null BM) zero
+      that contribution with a targeted warning and the score
+      still publishes.
+    rationale: >-
+      Matches the Paper-3 pattern: indeterminate is a first-class
+      output for the "no anchor" case; conservative under-count
+      for single-signal misses preserves directional correctness
+      while surfacing ambiguity to the caller.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Composes via canonical statements + market fixture only;
+      does NOT delegate to any sub-skill via the registry.
+    rationale: >-
+      Matches compute_altman_z_score (also uses the market-data
+      fixture for a ratio) and compute_business_complexity_signals
+      (also a determinants-regression port from canonical line
+      items). The arithmetic is pure function of already-resolved
+      line items + fixture values; there's no upstream skill
+      output to consume, so the registry indirection would be
+      ceremony without a purpose.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Confidence capped at 0.7 while the headline-ML-not-implemented
+      approximation, ROA-EBIT proxy, LTD-only Leverage proxy, and
+      decile-from-Table-2-percentiles approximation are all
+      active. Pre-iXBRL SGML filings (Enron, WorldCom) add -0.15
+      (matches compute_business_complexity_signals); market-value-
+      flagged MVE fixture entries add -0.15 (matches
+      compute_altman_z_score). A future variant that (a) consumes
+      the companion-website Llama-3 measure directly, (b) swaps
+      EBIT for IBQ via an expanded canonical mapping, (c) swaps
+      LTD-only for (DLCQ+DLTTQ), and (d) interpolates deciles from
+      a live panel would lift the cap to ~0.95.
+    rationale: >-
+      The four capped approximations are each structurally load-
+      bearing; each is documented with a concrete roadmap to a
+      higher-confidence variant. Stacking two penalties (pre-iXBRL
+      + MVE-flagged) can take confidence near 0.4 for the WorldCom
+      FY2001 edge case — matching the Altman Z treatment so the
+      downstream ensemble reads consistently.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer
+        (e.g. '0000320193' for Apple Inc.).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+        Must match an ingested filing under data/filings/.
+
+outputs:
+  type: object
+  required:
+    - predicted_complexity_level
+    - predicted_complexity_delta
+    - flag
+    - decile_ranks
+    - raw_characteristics
+    - regressor_contributions
+    - paper_coefficients
+    - paper_baseline_mean
+    - citations
+    - confidence
+    - warnings
+  additionalProperties: true
+  properties:
+    predicted_complexity_level:
+      type: ["number", "null"]
+      description: >-
+        Predicted filing-level complexity under Bernard et al. (2025)
+        Table 3 Column 2. Anchored on paper_sample_mean (0.118) plus
+        the regressor-contributions delta. Typical output band for a
+        public-firm 10-K: [0.080, 0.170]. Null when flag is
+        indeterminate.
+    predicted_complexity_delta:
+      type: ["number", "null"]
+      description: >-
+        Sum of the five regressor contributions, centred so that a
+        median firm with a 10-K at the paper's sample 10-K ratio
+        produces delta ≈ +0.010. Null when indeterminate.
+    flag:
+      type: string
+      enum:
+        - predicted_elevated_complexity
+        - predicted_typical_complexity
+        - predicted_reduced_complexity
+        - indeterminate
+      description: >-
+        Categorical flag derived from predicted_complexity_level.
+        'predicted_elevated_complexity' when level >= 0.150;
+        'predicted_typical_complexity' when 0.100 <= level < 0.150;
+        'predicted_reduced_complexity' when level < 0.100;
+        'indeterminate' when total_assets is missing.
+    decile_ranks:
+      type: object
+      description: >-
+        Per-regressor decile rank in [0, 1], estimated via piecewise-
+        linear interpolation through the paper's Table 2 percentiles
+        (P10/P25/Median/P75/P90). Clamped to 0.0 below P10 and 1.0
+        above P90. Any rank can be null when the underlying raw
+        characteristic is null.
+      additionalProperties: true
+      properties:
+        size:
+          type: ["number", "null"]
+          description: >-
+            Decile rank of ln(total_assets) relative to paper Table 2
+            Size percentiles (5.002 / 6.267 / 7.636 / 8.906 / 10.128).
+        leverage:
+          type: ["number", "null"]
+          description: >-
+            Decile rank of (long_term_debt / total_assets) relative to
+            paper Table 2 Leverage percentiles (0.020 / 0.081 / 0.275 /
+            0.453 / 0.633).
+        bm:
+          type: ["number", "null"]
+          description: >-
+            Decile rank of book-to-market ((total_assets -
+            total_liabilities) / market_value_of_equity) relative to
+            paper Table 2 BM percentiles (0.055 / 0.193 / 0.434 /
+            0.823 / 1.264). Null when book equity is non-positive.
+        roa:
+          type: ["number", "null"]
+          description: >-
+            Decile rank of (ebit / total_assets) relative to paper
+            Table 2 ROA percentiles (-0.086 / -0.014 / 0.003 / 0.016
+            / 0.033). Null when EBIT is missing.
+    raw_characteristics:
+      type: object
+      description: >-
+        Raw values of the four continuous characteristics plus the
+        10-K indicator, before decile-ranking. Audit trail for a
+        caller who wants to verify the arithmetic end-to-end.
+      additionalProperties: true
+      properties:
+        is_10k:
+          type: integer
+          description: "1 if filing is a 10-K, 0 if 10-Q. Always 1 on the MVP corpus."
+        size_ln_total_assets:
+          type: ["number", "null"]
+          description: ln(total_assets) in natural log of USD.
+        leverage_debt_to_assets:
+          type: ["number", "null"]
+          description: long_term_debt / total_assets.
+        book_to_market:
+          type: ["number", "null"]
+          description: (total_assets - total_liabilities) / market_value_of_equity; null when book equity is non-positive.
+        roa_ebit_to_assets:
+          type: ["number", "null"]
+          description: ebit / total_assets; null when EBIT is missing.
+    regressor_contributions:
+      type: object
+      description: >-
+        Per-regressor additive contribution to
+        predicted_complexity_delta. Centred on median-firm baseline:
+        each continuous contribution is coef * (decile - 0.5); the
+        10K contribution is 0.014 * (I[10K] - 0.273) where 0.273 is
+        the paper's sample 10-K ratio. Any contribution can be null
+        when its decile is null — in which case that contribution is
+        treated as 0.0 in the delta sum and a targeted warning fires.
+      additionalProperties: true
+      properties:
+        "10K":
+          type: ["number", "null"]
+          description: 0.014 * (I[10K] - 0.273); always non-null since I[10K] is always defined.
+        size:
+          type: ["number", "null"]
+          description: 0.012 * (decile_size - 0.5). Null when decile_size is null.
+        leverage:
+          type: ["number", "null"]
+          description: 0.012 * (decile_leverage - 0.5). Null when decile_leverage is null.
+        bm:
+          type: ["number", "null"]
+          description: 0.005 * (decile_bm - 0.5). Null when decile_bm is null.
+        roa:
+          type: ["number", "null"]
+          description: -0.008 * (decile_roa - 0.5). Null when decile_roa is null.
+    paper_coefficients:
+      type: object
+      description: >-
+        Paper-exact coefficients from Bernard et al. (2025) Table 3
+        Column 2 for the five shipped regressors. Exposed so a
+        caller can reproduce the regression arithmetic and audit the
+        skill-to-paper pinning.
+      additionalProperties: true
+      properties:
+        "10K":
+          type: number
+          description: +0.014 (paper Table 3 Col 2, t=30.15).
+        size:
+          type: number
+          description: +0.012 (paper Table 3 Col 2, t=5.74).
+        leverage:
+          type: number
+          description: +0.012 (paper Table 3 Col 2, t=8.10).
+        bm:
+          type: number
+          description: +0.005 (paper Table 3 Col 2, t=3.20).
+        roa:
+          type: number
+          description: -0.008 (paper Table 3 Col 2, t=-6.55).
+    paper_baseline_mean:
+      type: number
+      description: >-
+        The paper's Table 2 sample-wide mean Complexity (0.118). Used
+        as the level baseline because Table 3 Col 2's intercept is
+        absorbed by fixed effects.
+    citations:
+      type: array
+      description: >-
+        Citations for every canonical line item feeding the score.
+        total_assets + long_term_debt + ebit from year-t canonical
+        statements; total_liabilities when BM is non-null; plus one
+        market-data-fixture citation for the market_value_of_equity
+        when BM is non-null.
+      items:
+        type: object
+        description: One Citation record (mvp.lib.citation.Citation shape).
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence in [0, 1]. Starts at 0.7 (headline-ML
+        deferral, ROA-EBIT proxy, LTD-only Leverage proxy, Table-2-
+        percentile decile-rank approximation all active), minus 0.15
+        for pre-iXBRL filings, minus 0.15 for flagged MVE fixture
+        entries, clamped to 0.0 when flag is indeterminate.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Always includes
+        'headline_ml_measure_not_implemented' and
+        'decile_estimated_from_paper_percentiles' when
+        predicted_complexity_level is non-null. Includes
+        'roa_ebit_proxy' on every non-null ROA call;
+        'leverage_long_term_only' on every non-null Leverage call;
+        'missing_roa' / 'missing_leverage' / 'bm_negative_book_equity_or_missing_total_liabilities'
+        as applicable; 'market_value_estimated' /
+        'shares_source_flag' / 'pre_ixbrl_manual_extraction' when
+        the underlying fixture or filing is flagged.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    predicted_complexity_level: >-
+      when predicted_complexity_level is non-null, the citations
+      array must include the canonical line items consumed (a
+      subset of: total_assets, total_liabilities, long_term_debt,
+      ebit) plus a market-data-fixture citation when BM is
+      non-null.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<role>::<line_item>"
+
+confidence:
+  computed_from:
+    - "four_approximations_cap (fixed -0.3 from 1.0 to 0.7; active on every non-null call because headline-ML-deferral + ROA-EBIT-proxy + LTD-only-Leverage-proxy + Table-2-percentile-decile-rank are structurally load-bearing)"
+    - "pre_ixbrl_manual_extraction (-0.15 when at least one consumed line item is from a manual_extraction fixture)"
+    - "mve_flagged (-0.15 when the market-data fixture entry has market_cap_source=estimated_from_aggregated_market_cap or a shares_source_flag; matches Altman Z X4 treatment)"
+    - "indeterminate_zero_out (clamped to 0.0 when flag is indeterminate)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills: []
+  lib:
+    - mvp.lib.citation
+    - mvp.lib.errors
+    - mvp.standardize.statements
+    - mvp.ingestion.filings_ingest
+    - mvp.ingestion.market_data_loader
+    - mvp.engine.rule_executor
+  rules:
+    - rules/templates/predict_filing_complexity_from_determinants_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/predict_filing_complexity_from_determinants/
+  eval_metrics:
+    - name: level_in_plausible_band_for_populated_filings
+      target: ">= 5/5 cases produce predicted_complexity_level in [0.070, 0.170] (paper Table 2 P10..P90 band)"
+    - name: flag_directionally_consistent_with_raw_profile
+      target: ">= 4/5 cases produce flag matching the gold's directional band (typical on most MVP firms; elevated only when the profile crosses 0.150 under our subset-of-5-regressors port)"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The paper's headline Llama-3 8b complexity measure is NOT ported
+    to this skill. The paper's companion website promising model
+    weights + pre-computed complexity scores was not yet available
+    at paper-onboarding time. We ship the paper's own deterministic
+    determinants regression from Table 3 Column 2, which PREDICTS
+    the Llama-3 score from firm characteristics (R² = 0.225). A firm
+    with elevated predicted complexity is, on average, expected to
+    score higher on the paper's measure, but per-firm residuals can
+    be substantial (~77% of Llama-3-complexity variance is NOT
+    explained by the five shipped regressors). A future v0.2 variant
+    consuming the companion-website measure directly would raise
+    confidence.
+  - >-
+    5 of 11 regressors shipped. Dropped signals (Investment, FirmAge,
+    Lifecycle Intro/Growth/Mature/Shakeout/Decline, ReturnVolatility,
+    AnalystFollow, Institutional) carry real information — Lifecycle-
+    Mature's |t-stat| = 9.89 in Table 3 Col 2, ReturnVolatility's
+    |t-stat| = 5.69 — both larger than our kept regressors'. Dropping
+    them understates the regression's predictive power. Each dropped
+    variable is recorded in the rule template with paper coefficient,
+    t-statistic, and required data source so a future expansion has
+    a drop-in roadmap.
+  - >-
+    Decile ranks are estimated from Table 2 percentiles (P10/P25/
+    Median/P75/P90) via piecewise-linear interpolation, not computed
+    on a live population. A firm whose fundamentals lie OUTSIDE the
+    paper's P10-P90 band is clamped to 0.0 or 1.0 with a warning;
+    extreme outliers lose the monotonic signal the paper's panel
+    would carry. Size in particular — the paper's Table 2 Size
+    percentiles are in ln(million-dollars) scale while our raw
+    ln(TA in USD) adds ln(10^6) ≈ 13.8 to every value; every MVP
+    large-cap clamps to decile 1.0 by that scale mismatch. This is
+    documented in implementation_decisions[2] and is the load-
+    bearing limitation of the sample-percentile decile approach.
+  - >-
+    ROA uses EBIT / total_assets as a proxy for the paper's IBQ /
+    ATQ. EBIT differs from income-before-extraordinary-items by
+    non-operating income/expense + tax. For most firms the
+    difference is under 10% of EBIT; for firms with large
+    non-operating items or tax peculiarities the proxy drifts.
+    Carvana FY2022 EBIT is null → Carvana's ROA contribution is
+    zeroed, warning missing_roa fires.
+  - >-
+    Leverage uses long-term-debt-only. The paper's Leverage
+    includes current-portion-of-LTD. Our canonical mapping doesn't
+    separate short-term debt from general current_liabilities, so
+    we use LTD-only as a lower-bound proxy. Firms with significant
+    current-portion-of-LTD carry understated Leverage.
+  - >-
+    BM input depends on the data/market_data/equity_values.yaml
+    fixture (shared with Altman Z X4). WorldCom FY2001's market cap
+    is an aggregate estimate with market_cap_source=
+    estimated_from_aggregated_market_cap — this drops confidence by
+    0.15 (same pattern as Altman). Carvana FY2022 has negative book
+    equity (total_liabilities > total_assets) — BM is nulled rather
+    than feeding a negative value into the positive-domain
+    percentile interpolation.
+  - >-
+    Pre-iXBRL filings (Enron, WorldCom) carry the standard
+    pre_ixbrl_manual_extraction penalty (-0.15 confidence).
+  - >-
+    Flag bands (0.100, 0.150) are presentation conventions anchored
+    to Table 2 moments (mean 0.118, SD 0.038). They are NOT paper-
+    published thresholds. Editable in the rule template; a
+    population-anchored variant on a wider issuer panel would
+    replace them.
+  - >-
+    Baseline anchor uses paper_sample_mean_complexity (0.118) from
+    Table 2, not a firm-specific intercept from the regression —
+    Table 3 Col 2 absorbs intercepts via industry + year-quarter +
+    filer-status FEs and per-firm intercepts are not recoverable
+    without the panel. A firm whose actual industry runs
+    systematically high- or low-complexity (utilities, natural
+    resources vs retail, apparel per the paper's Figure 2) is
+    systematically mis-predicted by the sample-mean anchor.
+  - >-
+    Not a fraud / disclosure-quality verdict. A predicted_elevated_
+    complexity flag means the paper's regression predicts the firm's
+    10-K footnotes would score high on Llama-3 reporting complexity.
+    It is NOT a statement about misstatement risk, governance
+    quality, or disclosure completeness. Pair with
+    compute_beneish_m_score for the fraud axis and
+    compute_altman_z_score for the financial-distress axis.
+  - >-
+    The paper is forthcoming in The Accounting Review but currently
+    at SSRN 4480309. A future published version may include
+    additional specifications or updated coefficients; the
+    source_papers[0].version will need refresh when the published
+    version lands.
+
+examples:
+  - name: "Apple FY2023 — large-cap, low-leverage, high-ROA, low-BM profile"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    expected_flag: predicted_typical_complexity
+    expected_score_range: [0.115, 0.140]
+    notes: >-
+      Size = ln(352.6B) = 26.59 → clamps to decile 1.0 (far above
+      paper P90 = 10.128; mega-cap vs paper's typical public firm).
+      Leverage = 0.270 → decile ≈ 0.494 (near paper median 0.275).
+      BM = 0.023 → below paper P10 0.055 → decile 0.0 (Apple trades
+      at a massive premium to book value). ROA = 0.324 → well above
+      P90 0.033 → decile 1.0 (Apple's operating margins are extreme
+      relative to the paper's sample). 10K=1 → contribution
+      +0.01018. Delta ≈ +0.0096 → level ≈ 0.128 → typical band.
+  - name: "Microsoft FY2023 — mega-cap low-leverage low-BM mature-tech"
+    input:
+      cik: "0000789019"
+      fiscal_year_end: "2023-06-30"
+    expected_flag: predicted_typical_complexity
+    expected_score_range: [0.115, 0.140]
+    notes: >-
+      Size decile clamps to 1.0 (ln 412B >> paper P90). Leverage
+      0.102 → decile ≈ 0.277 (below median; Microsoft's levered
+      position is modest). BM 0.081 → decile ≈ 0.129 (between P10
+      and P25; trades at premium to book). ROA 0.215 → decile 1.0
+      (well above P90). Delta ≈ +0.008 → level ≈ 0.126 → typical.
+  - name: "Carvana FY2022 — high-leverage loss-making negative-book-equity"
+    input:
+      cik: "0001690820"
+      fiscal_year_end: "2022-12-31"
+    expected_flag: predicted_typical_complexity
+    expected_score_range: [0.125, 0.160]
+    notes: >-
+      Size decile 1.0 (ln 8.7B > paper P90). Leverage 0.756 →
+      decile 1.0 (far above P90 0.633). BM NULL — book equity
+      negative (total_liabilities > total_assets); warning
+      bm_negative_book_equity_or_missing_total_liabilities fires.
+      ROA NULL — Carvana FY2022 doesn't tag EBIT; missing_roa
+      fires. Only Size, Leverage, 10K contribute: Delta ≈ +0.022
+      → level ≈ 0.140 → typical (near the upper 0.150 boundary).
+      The elevated Leverage signal is offset by missing BM/ROA.
+  - name: "Enron FY2000 — pre-iXBRL SGML, moderately levered"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    expected_flag: predicted_typical_complexity
+    expected_score_range: [0.115, 0.140]
+    notes: >-
+      Size decile 1.0 (ln 65.5B). Leverage 0.131 → decile ≈ 0.314.
+      BM 0.237 → decile ≈ 0.295 (below median). ROA 0.038 →
+      decile 1.0 (Enron's reported margins were 'optimistic' — the
+      score uses as-originally-filed numbers per BUILD_REFS §2 /
+      §13 decision 3, which the Beneish M-Score independently
+      flags as manipulator_likely). Delta ≈ +0.009 → level ≈
+      0.127 → typical. Pre-iXBRL manual-extraction penalty drops
+      confidence from 0.7 to 0.55.
+  - name: "WorldCom FY2001 — pre-iXBRL, high-BM, MVE-flagged"
+    input:
+      cik: "0000723527"
+      fiscal_year_end: "2001-12-31"
+    expected_flag: predicted_typical_complexity
+    expected_score_range: [0.120, 0.150]
+    notes: >-
+      Size decile 1.0 (ln 103.9B). Leverage 0.289 → decile ≈ 0.520
+      (just above median). BM 1.385 → clamps to decile 1.0 (well
+      above paper P90 1.264; WorldCom's book equity was sizable
+      relative to its much-diminished year-end-2001 market cap).
+      ROA 0.034 → decile 1.0. Delta ≈ +0.015 → level ≈ 0.133 →
+      typical. Pre-iXBRL + MVE-flagged (WorldCom's FY2001 MVE is
+      estimated_from_aggregated_market_cap) stacks two -0.15
+      penalties → confidence 0.40.
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 300

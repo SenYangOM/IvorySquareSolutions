@@ -1,0 +1,290 @@
+# mvp/rules/templates/predict_filing_complexity_from_determinants_components.yaml
+#
+# Rule template for the predict_filing_complexity_from_determinants
+# skill (L3 paper-derived). Authored by the accounting_expert persona
+# during Paper 5 onboarding (post-MVP paper_examples/ workstream).
+# Consumed by the skill for its flag thresholds + interpretation
+# bands, and by any downstream L2 interpretation skill that explains a
+# firm's predicted-complexity flag in accountant's voice.
+#
+# Paper. Bernard, D., Blankespoor, E., de Kok, T., & Toynbee, S.
+# (December 2025). Using GPT to measure business complexity.
+# Forthcoming The Accounting Review. SSRN 4480309. PDF sha256
+# a4e82cafd4d51cdf22ede47dd29a8294c2ecc38c7da337f7874061630a0a6564.
+#
+# Authoring note on rule shape. Like compute_business_complexity_signals,
+# this skill emits a single composite scalar
+# (predicted_complexity_level), not a vector of components. The rule
+# template therefore has ONE component block — the composite level —
+# plus the per-regressor coefficient table, the per-regressor Table-2
+# percentile anchors, the flag-band block, and the dropped-regressors
+# roadmap. A future L2 interpret-predicted-complexity skill could
+# iterate over the five-regressor contribution trace to generate
+# signal-level commentary, but that is out of scope for this template
+# at MVP.
+
+template_version: "0.1.0"
+paper: "Bernard, D., Blankespoor, E., de Kok, T., & Toynbee, S. (December 2025). Using GPT to measure business complexity. Forthcoming, The Accounting Review. SSRN 4480309."
+paper_pdf_sha256: "a4e82cafd4d51cdf22ede47dd29a8294c2ecc38c7da337f7874061630a0a6564"
+
+# -----------------------------------------------------------------------------
+# Composite predicted-complexity level
+# -----------------------------------------------------------------------------
+components:
+
+  - component: predicted_complexity_level
+    full_name: "Predicted Filing Complexity (Bernard et al. 2025 Table 3 Column 2)"
+    description: >-
+      Firm-year scalar prediction of the paper's Llama-3-measured
+      filing complexity, computed from the paper's OWN Table 3
+      Column 2 OLS determinants regression applied to five firm
+      characteristics (10K indicator, Size, Leverage, BM, ROA).
+      Anchored on the paper's Table 2 sample mean (0.118). NOT the
+      Llama-3 measure itself; the paper reports R² = 0.225, so the
+      regression explains ~23% of Llama-3-complexity variance.
+    formula: "predicted_complexity_level = 0.118 + 0.014 * (I[10K] - 0.273) + 0.012 * (decile_size - 0.5) + 0.012 * (decile_leverage - 0.5) + 0.005 * (decile_bm - 0.5) - 0.008 * (decile_roa - 0.5)"
+    canonical_inputs:
+      - "total_assets (period=t)"
+      - "total_liabilities (period=t)"
+      - "long_term_debt (period=t)"
+      - "ebit (period=t)"
+      - "market_value_of_equity (fixture: data/market_data/equity_values.yaml)"
+    paper_coefficient: null
+    coefficient_notes: >-
+      The five shipped coefficients (10K=+0.014, Size=+0.012,
+      Leverage=+0.012, BM=+0.005, ROA=-0.008) are paper-exact from
+      Table 3 Column 2 (Bernard et al. 2025 p. 47). Six additional
+      regressors (Investment, FirmAge, Lifecycle-Intro/Growth/
+      Mature/Shakeout/Decline, ReturnVolatility, AnalystFollow,
+      Institutional) are dropped at MVP because the required data
+      sources are not ingested — see `dropped_regressors` block
+      below. Decile ranks are estimated via piecewise-linear
+      interpolation through paper Table 2 percentiles (P10 / P25 /
+      Median / P75 / P90); see `table_2_percentile_anchors` below.
+    paper_reference:
+      source: "Bernard et al. (2025)"
+      table: "Table 3 Column 2 (industry-FE determinants regression); Table 2 descriptive statistics (percentile anchors); Table 1 Panel B (sample 10-K ratio = 15865/58148 = 0.273)"
+      page: "46-47"
+    interpretation_rules:
+
+      - condition: "value >= 0.150"
+        interpretation: |
+          Predicted complexity is in the
+          "predicted_elevated_complexity" band (>= 0.150). The
+          paper's Table 3 Col 2 regression predicts this firm's
+          10-K footnotes would score in the top ~16% of the paper's
+          sample on Llama-3 reporting complexity. Under the paper's
+          sample, filings this dense tend to be large, levered,
+          high-BM, low-ROA firms — the compound "mature levered
+          value-firm" profile associated with complex footnote
+          disclosure (pension + debt + tax + goodwill notes).
+          Consider allocating extra footnote-reading time; pair
+          with compute_business_complexity_signals (Paper 3) for
+          the monitoring-demand axis.
+        severity: "high"
+        follow_up_questions:
+          - "Which regressors drove the elevated level? Size + Leverage is the 'big levered firm' pattern; high BM is the 'trades below book' pattern; low ROA is the 'weak-profitability' pattern — each carries different footnote-complexity expectations."
+          - "Does the firm's industry run high-complexity (utilities, financial services, health/pharma, natural resources per Figure 2 of the paper)? Our baseline uses the paper's sample-mean; industry adjustment would refine the prediction."
+          - "Do the six DROPPED regressors (Investment, FirmAge, Lifecycle, ReturnVolatility, AnalystFollow, Institutional) likely push the firm HIGHER or LOWER than our 5-regressor prediction? A mature-lifecycle low-analyst firm would tend to push higher."
+        citations_required:
+          - "total_assets (period=t)"
+          - "total_liabilities (period=t)"
+          - "long_term_debt (period=t)"
+        contextual_caveats:
+          - "The 0.150 cutoff is a presentation convention (Table 2 mean + 0.84*SD). A level at 0.148 is economically indistinguishable from 0.152."
+          - "This is NOT the Llama-3 score itself. R² = 0.225 means ~77% of Llama-3-complexity variance is NOT explained by our 5-regressor subset."
+
+      - condition: "0.100 <= value < 0.150"
+        interpretation: |
+          Predicted complexity is in the "predicted_typical_complexity"
+          band (0.100-0.150). The paper's regression places this
+          firm within roughly 0.5 SD of the sample-mean filing. This
+          is the MOST COMMON band — the paper's 58k-filing sample
+          has mean 0.118 and SD 0.038, so most firms under our
+          5-regressor port land here. No compelling reason to
+          prioritise deep footnote reading on predicted-complexity
+          grounds alone; other signals (distress, manipulation,
+          monitoring-demand) are more discriminating at typical
+          levels.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the firm near one band edge (>0.145 or <0.105)? Close-to-threshold filings are ambiguous under our limited-regressor port."
+          - "Is the level drifting year-over-year toward a band edge? A firm whose Leverage is rising + ROA is falling drifts toward elevated."
+          - "Are the six dropped regressors likely to push the firm outside this band? A high-return-volatility firm (not a MVP regressor) would tend to push higher."
+        citations_required:
+          - "total_assets (period=t)"
+        contextual_caveats:
+          - "All 5 MVP sample filings are in this band — typical_complexity is the default outcome on our large-cap-only corpus. Discrimination emerges on a wider sample."
+
+      - condition: "value < 0.100"
+        interpretation: |
+          Predicted complexity is in the
+          "predicted_reduced_complexity" band (< 0.100). The paper's
+          regression predicts this firm's 10-K footnotes would score
+          in the bottom ~16% of the paper's sample. Under the
+          paper's sample, filings this light tend to be small,
+          unlevered, high-ROA firms with relatively simple
+          operational footprints. This is NOT a disclosure-quality
+          verdict — a simple firm with clean disclosure
+          legitimately falls here.
+        severity: "low"
+        follow_up_questions:
+          - "Is the firm genuinely simple (small, unlevered, single-segment) or is our 5-regressor prediction missing complexity captured by the six dropped regressors?"
+          - "Is the firm a young pre-profitability company? Our baseline (sample-mean 0.118) may be too high for truly Intro-lifecycle firms — a future expansion with Lifecycle regressors would likely raise this prediction."
+        citations_required:
+          - "total_assets (period=t)"
+        contextual_caveats:
+          - "None of the 5 MVP sample filings fall in this band — the MVP corpus is all large-caps. The band exists primarily for a wider-sample variant."
+          - "Simple does NOT mean low-quality disclosure. A focused firm with clean operations legitimately scores here."
+
+      - condition: "value is null"
+        interpretation: |
+          The skill could not compute the level for this filing.
+          total_assets is missing — without it, Size, Leverage, and
+          ROA are all unevaluable (TA is the denominator for
+          Leverage and ROA and the input to Size's ln). BM may also
+          be unevaluable depending on total_liabilities. The result
+          is honestly 'indeterminate' — a downstream caller must
+          NOT treat it as 'predicted_reduced_complexity' or
+          'predicted_typical_complexity'.
+        severity: "none"
+        follow_up_questions:
+          - "Is the underlying data gap recoverable (a missing 10-K filing, a mapping miss on total_assets)?"
+          - "If the gap is structural, most paper-derived skills will also return indeterminate for this filing."
+        citations_required: []
+        contextual_caveats:
+          - "Indeterminate is a first-class output, not an exception (per the playbook 'null is a first-class output' callout)."
+
+# -----------------------------------------------------------------------------
+# Paper-exact Table 3 Column 2 coefficients (five shipped regressors)
+# -----------------------------------------------------------------------------
+paper_coefficients:
+  paper_source: "Bernard et al. (2025) Table 3 Column 2 — industry-FE + year-quarter-FE + filer-status-FE specification. N=58,140. R²=0.225. Standard errors clustered by firm."
+  ten_k:
+    coefficient: 0.014
+    t_statistic: 30.15
+    significance: "***"
+    description: "Indicator for 10-K filing (vs 10-Q); paper Table 1 Panel B reports 15,865 10-Ks of 58,148 filings."
+  size:
+    coefficient: 0.012
+    t_statistic: 5.74
+    significance: "***"
+    description: "ln(total_assets). Paper Appendix A: 'Natural log of total assets (ATQ) at the end of quarter q.'"
+  leverage:
+    coefficient: 0.012
+    t_statistic: 8.10
+    significance: "***"
+    description: "(Debt in current liabilities + long-term debt) / total_assets; paper uses (DLCQ+DLTTQ)/ATQ. MVP uses LTD-only proxy; see manifest implementation_decisions[4]."
+  bm:
+    coefficient: 0.005
+    t_statistic: 3.20
+    significance: "***"
+    description: "Book value of equity / market value of equity. Book = total_assets - total_liabilities (paper default when preferred-equity breakout unavailable); market from data/market_data/equity_values.yaml fixture."
+  roa:
+    coefficient: -0.008
+    t_statistic: -6.55
+    significance: "***"
+    description: "IBQ / ATQ (income before extraordinary items, quarterly). MVP uses EBIT / total_assets as a proxy; see manifest implementation_decisions[3]."
+
+# -----------------------------------------------------------------------------
+# Table 2 percentile anchors for the four continuous regressors
+# -----------------------------------------------------------------------------
+table_2_percentile_anchors:
+  paper_source: "Bernard et al. (2025) Table 2 Descriptive statistics, p. 46. Decile-rank interpolation uses these five anchors (P10/P25/Median/P75/P90) with values outside the band clamped to 0.0 / 1.0."
+  size:
+    p10: 5.002
+    p25: 6.267
+    median: 7.636
+    p75: 8.906
+    p90: 10.128
+    unit: "ln of millions of USD (paper uses ln(ATQ in $MM))"
+  leverage:
+    p10: 0.020
+    p25: 0.081
+    median: 0.275
+    p75: 0.453
+    p90: 0.633
+    unit: "ratio"
+  bm:
+    p10: 0.055
+    p25: 0.193
+    median: 0.434
+    p75: 0.823
+    p90: 1.264
+    unit: "ratio"
+  roa:
+    p10: -0.086
+    p25: -0.014
+    median: 0.003
+    p75: 0.016
+    p90: 0.033
+    unit: "ratio"
+
+# -----------------------------------------------------------------------------
+# Flag-band block
+# -----------------------------------------------------------------------------
+predicted_complexity_bands:
+  paper_source: "Bernard et al. (2025) Table 2 moments: mean Complexity = 0.118, SD = 0.038. Bands at 0.100 and 0.150 are a practitioner presentation convention (mean ± ~0.5 SD and mean + ~0.84 SD) — the paper does not publish level-based bands."
+  elevated_floor: 0.150
+  typical_lower: 0.100
+  baseline_anchor:
+    sample_mean_complexity: 0.118
+    sample_sd_complexity: 0.038
+  ten_k_sample_ratio: 0.273  # 15865 / 58148, Table 1 Panel B.
+  notes: >-
+    Bands are anchored to Table 2 moments, NOT paper-published
+    thresholds. A population-specific calibration on a wider issuer
+    panel would replace the presentation cuts with population-
+    anchored quantiles. The paper's continuous scalar has no natural
+    band partition; practitioner interpretation requires cuts.
+
+# -----------------------------------------------------------------------------
+# Dropped regressors — roadmap for future expansion
+# -----------------------------------------------------------------------------
+dropped_regressors:
+  paper_source: "Bernard et al. (2025) Table 3 Column 2. Six regressors (Investment, FirmAge, Lifecycle Intro/Growth/Mature/Shakeout/Decline, ReturnVolatility, AnalystFollow, Institutional) are dropped at MVP because the required upstream data is not ingested."
+  investment:
+    paper_coefficient: -0.004
+    paper_t_statistic: -3.31
+    required_data: "Research-and-development + capital expenditures, both canonical line items MVP does not currently map."
+    expansion_cost: "Canonical-mapping expansion; ~1 day's work to add rd_expense + capex_spending line items and populate across the 5 MVP filings."
+  firm_age:
+    paper_coefficient: -0.003
+    paper_t_statistic: -1.64
+    required_data: "Years of Compustat history per firm; MVP does not ingest the Compustat panel."
+    expansion_cost: "Either Compustat panel ingestion or a per-issuer first-SEC-filing-date lookup. The latter is cheaper — ~0.5 day's work."
+  lifecycle_growth:
+    paper_coefficient: -0.006
+    paper_t_statistic: -5.10
+    required_data: "Dickinson (2011) CFO/CFI/CFF sign-pattern partition. MVP canonical has combined operating cash flow but not separated investing + financing activities."
+    expansion_cost: "Canonical-mapping expansion to add cash_flow_investing + cash_flow_financing; ~2 days' work."
+  lifecycle_mature:
+    paper_coefficient: -0.011
+    paper_t_statistic: -9.89
+    required_data: "Same as Growth (Dickinson 2011 partition)."
+    expansion_cost: "Same as Growth — comes together with the cash_flow_investing / cash_flow_financing expansion."
+  lifecycle_shakeout:
+    paper_coefficient: -0.004
+    paper_t_statistic: -2.78
+    required_data: "Same as Growth."
+    expansion_cost: "Same as Growth."
+  lifecycle_decline:
+    paper_coefficient: 0.003
+    paper_t_statistic: 2.42
+    required_data: "Same as Growth."
+    expansion_cost: "Same as Growth."
+  return_volatility:
+    paper_coefficient: 0.007
+    paper_t_statistic: 5.69
+    required_data: "Monthly-return standard deviation over trailing 12 months; MVP does not ingest CRSP."
+    expansion_cost: "CRSP-substitute: historical price feed (Yahoo or Refinitiv) for the 5 MVP issuers; ~2 days' work including fixture population + loader."
+  analyst_follow:
+    paper_coefficient: -0.005
+    paper_t_statistic: -3.57
+    required_data: "ln(1 + analyst count); MVP does not ingest IBES."
+    expansion_cost: "Manual per-issuer fixture (5 data points) is cheap; ~0.5 day. Broader coverage requires IBES access."
+  institutional:
+    paper_coefficient: -0.009
+    paper_t_statistic: -5.45
+    required_data: "Institutional ownership percentage; MVP does not ingest Thomson 13F."
+    expansion_cost: "Manual per-issuer fixture (5 data points) is cheap; ~0.5 day. Broader coverage requires Thomson 13F access."

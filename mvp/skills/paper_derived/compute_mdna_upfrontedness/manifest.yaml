@@ -1,0 +1,364 @@
+# Manifest for compute_mdna_upfrontedness — Kim, Muhn, Nikolaev & Zhang
+# (2024) "Learning Fundamentals from Text" Equation 9 firm-level
+# information-positioning measure applied to a US public 10-K filing's
+# MD&A section.
+#
+# Authored by the quant_finance_methodologist persona. The Paragraph
+# Position measure (Equation 8) is paper-exact; the firm-level
+# Information Positioning measure (Equation 9) is implemented with an
+# explicitly-documented paragraph-length-share proxy for the paper's
+# attention-derived paragraph-importance weighting — see
+# implementation_decisions and the notes file
+# workshop/paper_to_skill/notes/fundamentals_text.md.
+
+skill_id: compute_mdna_upfrontedness
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute the Kim, Muhn, Nikolaev & Zhang (2024) MD&A
+  "Upfrontedness" / firm-level Information Positioning score for a
+  US public company's 10-K filing. Returns the scalar score in [0, 1]
+  (≈0.5 for a typical firm, per the paper's Appendix D distribution),
+  a categorical flag (forthcoming | typical | obfuscating_likely |
+  indeterminate) computed from the paper's reported P25/P75 cut-offs,
+  per-paragraph position and importance traces, and citations back to
+  the MD&A source passage. Use this as a textual-structure red-flag
+  screen; a low score (<0.50) means the firm has placed long,
+  information-dense paragraphs toward the end of MD&A rather than up
+  front — a pattern the paper associates with negative sentiment, low
+  profitability, and high earnings volatility. Do NOT treat the score
+  as an obfuscation verdict; the paper's construct is descriptive, and
+  our implementation uses a length-share proxy for the attention-
+  weighted importance used in the original paper.
+
+provenance:
+  source_papers:
+    - citation: "Kim, A. G., Muhn, M., Nikolaev, V. V., & Zhang, Y. (November 2024). Learning Fundamentals from Text. University of Chicago Booth School of Business Working Paper."
+      doi_or_url: "file:///home/iv/research/Proj_ongoing/paper_examples/fundamentals_text.pdf"
+      local_pdf: "data/papers/fundamentals_text.pdf"
+      pdf_sha256: "0444ce3fa30dedf450d642fb81f6665a38f312c94584037886cec69e37d64de5"
+  study_scope:
+    asset_class: "US public equities, universe of 10-K filings on SEC EDGAR"
+    time_period_in_paper: "1996-2023 (main sample 2004-2024 for Table I; regression sample for Upfrontedness is Appendix D N=66,757)"
+    sample_size_in_paper: "76,929 filings / 20,712,462 paragraphs in the main sample; 66,757 firm-years in the Upfrontedness analysis (Appendix D Panel A)"
+  problem:
+    one_line: "Measure whether a firm places informationally-important MD&A paragraphs up front or at the back of the section."
+    long_form: >-
+      The paper posits (Section VI) that managers with obfuscation
+      incentives strategically push important but negative information
+      toward the end of the MD&A, exploiting cognitively-constrained
+      investors' limited attention. A firm whose MD&A front-loads
+      heavy content has a higher Information Positioning score; a
+      firm that buries content has a lower score. Score shape:
+      sum over paragraphs of (1 − position_k/N) × importance_k.
+  methodology:
+    summary: >-
+      Extract the MD&A section via the extract_mdna skill. Split into
+      paragraphs on blank-line separators (filter paragraphs shorter
+      than 20 characters to drop headers / list fragments). Compute
+      Equation 8 (paragraph position = 1 − rank/N) per paragraph.
+      Compute Equation 9 (firm-level Information Positioning) as the
+      sum of paragraph_position × paragraph_importance, where
+      paragraph_importance is the paper's attention-model output. At
+      MVP we ship a length-share proxy for importance (see
+      implementation_decisions). Flag bands are from the paper's
+      reported Appendix D Panel A distribution: P25=0.5012 and
+      P75=0.5283 delimit the typical band.
+    formulas_extracted_from_paper:
+      paragraph_position: "Paragraph_Position_k = (1 − Position_k / N) where Position_k ∈ {1..N}"
+      information_positioning: >-
+        Information_Positioning = Σ_k [ (1 − Position_k/N) × Paragraph_Importance_k ].
+        In the paper, Paragraph_Importance_k comes from the attention model.
+        Here Paragraph_Importance_k = length_k / total_length (MVP proxy).
+      flag_bands: >-
+        forthcoming when score ≥ 0.5283 (paper P75);
+        typical when 0.5012 ≤ score < 0.5283 (paper P25..P75);
+        obfuscating_likely when score < 0.5012 (paper P25);
+        indeterminate when the MD&A has fewer than 10 valid paragraphs.
+    threshold: "Upfrontedness flag at P25=0.5012 and P75=0.5283 (Kim et al. 2024 Appendix D Panel A, N=66,757)."
+  expected_results:
+    metric_kind: "scalar Upfrontedness in [0, 1] + 4-category flag + per-paragraph trace"
+    interpretation_guide: >-
+      The paper's Appendix D Panel A reports mean 0.5161, std 0.0243,
+      P50 0.5143 across 66,757 US public firm-year MD&As — computed
+      with the paper's attention-model-derived paragraph-importance
+      weighting. Our length-share proxy produces scores that are
+      systematically lower than the paper's on modern iXBRL filings
+      (typically 0.43-0.51 in the MVP sample) because long
+      regulatory/footnote content at the end of MD&A is up-weighted
+      by length-share but apparently down-weighted by the paper's
+      attention model. The skill reproduces Equations 8 and 9
+      faithfully; the divergence from the paper's 0.5161 population
+      mean is a documented feature of the proxy (see
+      implementation_decisions[0]). The flag thresholds still use
+      the paper's quartiles as reference points, but callers should
+      read a 'typical' or 'forthcoming' flag as "the length-share
+      proxy would have ranked this firm in that quartile of the
+      paper's sample," not "the paper's attention model would have
+      said so."
+  takeaways:
+    - "Upfrontedness is a descriptive textual-structure score, not an obfuscation verdict."
+    - "The paper's attention-derived importance weighting is unreleased; our length-share proxy is a documented approximation and carries warning=paragraph_importance_proxy_used on every call."
+    - "The flag thresholds are drawn from the paper's Appendix D quartiles; they are population anchors, not model calibration."
+    - "Pre-iXBRL filings (Enron, WorldCom) have less-structured paragraph breaks than modern iXBRL filings; scores on those filings carry a pre_ixbrl_paragraph_structure data-quality warning."
+  use_cases:
+    - "Narrative-structure red-flag screen during equity or credit diligence."
+    - "Complement to obfuscation proxies (Fog index, readability) — Upfrontedness adds a positional axis the dictionaries miss."
+    - "Cross-sectional peer comparison: a firm whose Upfrontedness falls materially below a matched peer's is a candidate for a deeper qualitative read."
+
+implementation_decisions:
+  - decision: >-
+      Paragraph_Importance is proxied by the paragraph's share of
+      total MD&A character length (length_k / Σ_k length_k) rather
+      than the paper's attention-model-derived importance. Every
+      call emits warning=paragraph_importance_proxy_used.
+    rationale: >-
+      The paper's attention model is not released and re-training it
+      requires OpenAI text-embedding-3-large at corpus scale, 19
+      years of CRSP/Compustat return data, and GPU-scale training —
+      infeasible at MVP scope. Length-share is a defensible proxy
+      for informational density (Bushee-Gow-Taylor 2018; Cohen-
+      Malloy-Nguyen 2020) and is the minimum non-trivial choice —
+      uniform importance makes Equation 9 collapse to the constant
+      (N-1)/(2N). The proxy preserves the paper's economic signal
+      (long paragraphs at the front → score > 0.5; at the back →
+      score < 0.5). Swapping in an attention-model-derived
+      importance is a post-MVP work item tracked in
+      workshop/paper_to_skill/notes/fundamentals_text.md §f item 2.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Paragraphs are split on two-or-more consecutive newline
+      characters in the extract_mdna skill's output. Paragraphs
+      whose stripped length is below 20 characters are dropped
+      (headers, list fragments).
+    rationale: >-
+      The paper §II.A says it splits on "paragraph separators of
+      the original disclosures." We operate on the post-HTML-strip
+      text extract_mdna returns, where paragraph boundaries survive
+      as blank-line separators. The <20-char floor removes
+      navigational artifacts (e.g. "Item 7." header, bare "(a)",
+      "Other") that extract_mdna does not filter.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      When fewer than 10 valid paragraphs remain after filtering,
+      the skill returns score=null, flag=indeterminate, and
+      warning=mdna_too_short.
+    rationale: >-
+      The paper's regression sample requires ≥10 paragraphs; below
+      that, positional ranking is not a meaningful signal. This
+      matches the paper's scope rather than inventing our own floor.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Flag band thresholds are the paper's reported P25 (0.5012)
+      and P75 (0.5283) from Appendix D Panel A.
+    rationale: >-
+      The paper does not publish a binary threshold. Using its own
+      reported quartiles gives a directly interpretable 3-band flag
+      (obfuscating_likely / typical / forthcoming) rooted in the
+      paper's distribution. An alternative would be a test-sample
+      mean ± 1σ band; quartiles are simpler and less sensitive to
+      our 5-filing sample size.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      The skill delegates MD&A extraction to the extract_mdna L1
+      skill via the registry (default_registry().get('extract_mdna'))
+      rather than importing it directly.
+    rationale: >-
+      Required by mvp_build_goal.md §5 (no sibling imports across
+      skills layers) and P3 (composites invoke sub-skills via the
+      registry). Any fix to extract_mdna's paragraph separation
+      flows into this skill automatically.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Pre-iXBRL filings (Enron FY2000, WorldCom FY2001) emit a
+      warning=pre_ixbrl_paragraph_structure and their confidence is
+      reduced by 0.15. No score-level imputation — the structure is
+      just noisier.
+    rationale: >-
+      SGML-era filings lack the consistent paragraph breaks
+      iXBRL-era filings have. The confidence degradation is the
+      documented mechanism per §13 decision 3.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer (e.g. '0000320193'
+        for Apple Inc.).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd. Must match
+        an ingested filing under data/filings/.
+
+outputs:
+  type: object
+  required: [upfrontedness_score, flag, paragraph_count, components, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    upfrontedness_score:
+      type: ["number", "null"]
+      description: >-
+        Firm-level Information Positioning score per Kim et al. (2024)
+        Equation 9. Range [0, 1]; a typical 10-K produces ≈0.5 (paper
+        Appendix D mean 0.5161). Null when flag is indeterminate.
+    flag:
+      type: string
+      enum: [forthcoming, typical, obfuscating_likely, indeterminate]
+      description: >-
+        Categorical flag relative to the paper's Appendix D quartiles.
+        'forthcoming' when score ≥ 0.5283 (paper P75); 'typical'
+        when 0.5012 ≤ score < 0.5283 (paper P25..P75);
+        'obfuscating_likely' when score < 0.5012 (paper P25);
+        'indeterminate' when the MD&A had fewer than 10 valid paragraphs
+        or extract_mdna could not identify the section.
+    paragraph_count:
+      type: integer
+      description: >-
+        Number of valid MD&A paragraphs used in the computation
+        (after the <20-character filter). 0 when the MD&A could not
+        be extracted.
+    components:
+      type: object
+      description: >-
+        Supporting diagnostics. `mean_paragraph_position` is the simple
+        average of Equation 8 across paragraphs (always close to 0.5 for
+        non-pathological N). `total_characters` is the sum of
+        paragraph lengths used as the importance-weight denominator.
+        `longest_paragraph_position_score` reports the position score
+        (Equation 8 value) of the longest paragraph — a quick-look for
+        whether the single heaviest paragraph sits up front or at the
+        back.
+      additionalProperties: true
+      properties:
+        mean_paragraph_position:
+          type: ["number", "null"]
+          description: Average of (1 − rank/N) across valid paragraphs.
+        total_characters:
+          type: ["integer", "null"]
+          description: Sum of paragraph character lengths (importance-weight denominator).
+        longest_paragraph_position_score:
+          type: ["number", "null"]
+          description: Equation-8 position score of the longest paragraph.
+        longest_paragraph_index:
+          type: ["integer", "null"]
+          description: 1-indexed position of the longest paragraph in the MD&A.
+    citations:
+      type: array
+      description: >-
+        One citation pointing at the MD&A section the score was
+        computed from (locator <cik>/<accession>::mdna::item_7). Empty
+        when section could not be located.
+      items:
+        type: object
+        description: One Citation record.
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 0.7 (the
+        paragraph-importance proxy is always active, capped below 1.0
+        until a post-MVP attention-model-backed variant ships);
+        reduced by −0.15 for pre-iXBRL paragraph-structure filings
+        and set to 0.0 when flag is indeterminate.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Always includes
+        'paragraph_importance_proxy_used' when the score is non-null;
+        adds 'pre_ixbrl_paragraph_structure' for Enron/WorldCom;
+        'mdna_too_short' when fewer than 10 paragraphs were found;
+        'mdna_section_not_located' when extract_mdna returned null.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    upfrontedness_score: >-
+      when upfrontedness_score is non-null, the citations array must
+      contain exactly one Citation whose locator is of the form
+      <cik>/<accession>::mdna::item_7 and whose excerpt_hash matches
+      the sha256 of the MD&A section text.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::mdna::item_7"
+
+confidence:
+  computed_from:
+    - "paragraph_importance_proxy_penalty (fixed −0.3 from 1.0 to 0.7; active on every non-null call)"
+    - "pre_ixbrl_paragraph_structure (−0.15 when data_quality_flag indicates SGML-era filing)"
+    - "indeterminate_zero_out (clamped to 0.0 when flag is indeterminate)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: extract_mdna
+      min_version: 0.1.0
+  lib:
+    - mvp.lib.citation
+    - mvp.lib.hashing
+    - mvp.ingestion.filings_ingest
+  rules:
+    - rules/templates/mdna_upfrontedness_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/mdna_upfrontedness/
+  eval_metrics:
+    - name: upfrontedness_within_0_05_of_paper_mean
+      target: ">= 4/5 cases (paper Appendix D mean ± 2σ band)"
+    - name: flag_non_indeterminate_for_populated_mdna
+      target: ">= 4/5 cases (non-null MD&A → non-indeterminate flag)"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    Paragraph_Importance is a length-share proxy for the paper's
+    attention-derived importance. The score is a reasonable shape
+    match for the paper's Appendix D distribution but is not
+    equivalent to the model-derived metric; treat as a screening
+    signal, not a tight reproduction.
+  - >-
+    The paper's sample is 1996-2023 US public 10-K filings. Other
+    substrates (10-Q, proxy statements, foreign filings) are out of
+    scope and the P25/P75 thresholds do not apply to them.
+  - >-
+    Filings with unusual MD&A formatting (heavy tabular content,
+    non-standard paragraph breaks) produce noisier paragraph counts
+    and less-interpretable scores. The confidence model does not yet
+    penalise that beyond the pre-iXBRL case.
+  - >-
+    The flag bands are population-level quantiles from the paper's
+    66,757-firm sample; they are not individual-firm statistical
+    cutoffs. A score just below P25 should be treated as a screen
+    call, not a ruling.
+
+examples:
+  - name: "Apple FY2023 — modern iXBRL MD&A"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Apple's FY2023 MD&A is ~40KB of cleanly-structured iXBRL text.
+      Expected Upfrontedness in the paper's central band
+      (roughly 0.47 to 0.56); flag typically 'typical'.
+  - name: "Enron FY2000 — pre-iXBRL SGML MD&A"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    notes: >-
+      Enron's FY2000 MD&A is SGML-era; paragraph breaks are less
+      consistent. Expected score is computable but carries
+      warning=pre_ixbrl_paragraph_structure and confidence 0.55.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 350

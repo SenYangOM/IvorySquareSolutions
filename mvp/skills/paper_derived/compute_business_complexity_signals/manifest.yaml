@@ -1,0 +1,582 @@
+# Manifest for compute_business_complexity_signals — Bernard, Cade,
+# Connors & de Kok (2025) "Descriptive evidence on small business
+# managers' information choices" (Review of Accounting Studies)
+# Section 4 / Table 3 Panel a determinants of information-acquisition
+# intensity, ported from private retail-cannabis stores to US public
+# companies via three deterministically-computable analog signals.
+#
+# Authored by the quant_finance_methodologist persona during paper-3
+# onboarding (post-MVP paper_examples/ workstream). The paper's
+# headline finding (Section 5's hedonic-asymmetry test on email-open
+# logs) is behavioural-empirical on proprietary Headset, Inc. tracking
+# data with no public-company analog — the workshop playbook callout
+# ("When the paper's setting is worlds-away from public companies:
+# port the determinants framework, not the behavioural finding") sent
+# us to Section 4 / Table 3 for a deterministically-computable
+# construct that captures the paper's *economic question* — "what firm
+# characteristics predict managerial demand for monitoring tools?" —
+# without requiring the behavioural data.
+#
+# See workshop/paper_to_skill/notes/bernard_2025_information_acquisition.md
+# for the full skill-scope decision.
+
+skill_id: compute_business_complexity_signals
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute Bernard, Cade, Connors & de Kok (2025) Section 4 / Table 3
+  Panel a firm-year business-complexity signals for a US public
+  company's 10-K filing. Returns a composite business_complexity_score
+  in [0, 1] (≈0 for small, volatile, low-overhead single-segment
+  firms; ≈1 for large, stable, corporate-overhead-heavy firms whose
+  profile predicts intense managerial monitoring demand), a
+  categorical flag (complex_monitoring_intensive |
+  moderate_monitoring_intensity | simple_monitoring_light |
+  indeterminate) computed from the paper-derived weights in Table 3
+  Panel a column 1, three per-signal diagnostics (size by revenue,
+  revenue stability year-over-year, corporate-overhead intensity
+  via SG&A / revenue), and citations back to the source line items.
+  Use this as a structural-complexity meta-signal BEFORE deciding
+  how much scrutiny to put on a filing's governance or disclosure
+  practices: a complex_monitoring_intensive flag means the paper's
+  model predicts this firm's managers would demand intense
+  monitoring tools, not that the firm's actual disclosures are
+  high-quality. Pair with compute_mdna_upfrontedness or
+  compute_context_importance_signals for complementary lenses.
+
+provenance:
+  source_papers:
+    - citation: "Bernard, D., Cade, N. L., Connors, E. H., & de Kok, T. (2025). Descriptive evidence on small business managers' information choices. Review of Accounting Studies, 30, 3254-3294. DOI: 10.1007/s11142-025-09885-5."
+      doi_or_url: "https://doi.org/10.1007/s11142-025-09885-5"
+      local_pdf: "data/papers/bernard_2025_information_acquisition.pdf"
+      pdf_sha256: "1760a4c614f6051052beff0fad61587bdd344bea700f5205e24e5142399d8290"
+  study_scope:
+    asset_class: "Private US / Canada retail cannabis dispensary stores (small businesses); paper analogised to US public equities via canonical-line-item ports"
+    time_period_in_paper: "2019 email sample (Jan-Dec 2019, 61,721 store-days); 2022 dashboard sample (Jan-May 2022)"
+    sample_size_in_paper: "946 stores in the email sample; 640 stores in the overlap-dashboard sample; 2,397 stores in the full Retailer catalogue as of May 2022"
+  problem:
+    one_line: "What firm characteristics predict managerial demand for business-intelligence monitoring tools?"
+    long_form: >-
+      Section 4 of the paper regresses measures of information-
+      acquisition intensity (percentage of days the store opens
+      Headset's daily email; mean number of daily email opens) on a
+      set of store-level business characteristics. Table 3 Panel a
+      column 1 reports the extensive-margin (email-opened-at-all)
+      specification, with three statistically-significant
+      generalisable determinants: average sales (positive; large
+      stores monitor more), sales volatility (negative; volatile
+      stores monitor less — likely because they are small /
+      newer / not yet on mature info workflows), and single-store
+      indicator (negative; chains monitor more than one-off stores).
+      We port these three determinants to US-public-company analog
+      signals — large revenue, revenue stability YoY, corporate-
+      overhead intensity — and bundle them into a composite using
+      paper-derived |t-statistics| as weights. Output: scalar score,
+      three-band flag, per-signal trace.
+  methodology:
+    summary: >-
+      Read canonical statements for year t and year t-1 via
+      build_canonical_statements. Compute three binary signals
+      against fixed paper-derived thresholds: (i) size = 1 if
+      revenue_t ≥ $1,000,000,000 ("large cap" practitioner cutoff
+      for the paper's Average sales positive coefficient); (ii)
+      stability = 1 if |Revenue_t − Revenue_{t-1}| / Revenue_{t-1}
+      ≤ 0.10 (a 2-period YoY proxy for the paper's within-store
+      sales-CV; sign-reversed via binary-definition reversal to keep
+      the composite uniformly positive); (iii) complexity = 1 if
+      SG&A / Revenue ≥ 0.15 (proxy for the paper's Single-store
+      negative coefficient — chains have more corporate overhead
+      than singletons; sign-reversal via proxy definition). Weighted
+      sum with weights normalised from Table 3 Panel a column 1
+      |t-statistics| (size=0.3158, stability=0.2947, complexity=0.3895).
+      Score is in [0, 1]; bands at 0.30 and 0.60 (a presentation
+      convention matching compute_context_importance_signals, not
+      paper-published). Indeterminate when revenue_t is missing.
+    formulas_extracted_from_paper:
+      size_paper: "Average sales_i = mean(daily_store_sales over sample period). Table 3 Panel a col 1 coefficient = +0.003 (SE 0.001), t ≈ 3.0."
+      size_proxy: "size_signal = 1 if revenue_t >= $1B else 0  # large-cap binary proxy at MVP (paper uses log-level continuous; binary at MVP)"
+      stability_paper: "Sales volatility_i = std(daily_store_sales) / mean(daily_store_sales). Table 3 Panel a col 1 coefficient = -0.098 (SE 0.035), t ≈ -2.8."
+      stability_proxy: "stability_signal = 1 if |Revenue_t − Revenue_{t-1}| / Revenue_{t-1} <= 0.10 else 0  # 2-period YoY stability proxy; sign-reversed from the paper's volatility indicator to keep composite-positive"
+      complexity_paper: "Single store_i = 1 if store has no sister stores else 0. Table 3 Panel a col 1 coefficient = -0.100 (SE 0.027), t ≈ -3.7."
+      complexity_proxy: "complexity_signal = 1 if SG&A_t / Revenue_t >= 0.15 else 0  # high-overhead proxy for chain-vs-singleton; sign-reversed via proxy definition"
+      composite: "business_complexity = w_size · I[size fires] + w_stability · I[stability fires] + w_complexity · I[complexity fires], weights = absolute t-stats normalised (size 3.0 / stability 2.8 / complexity 3.7; sum 9.5)"
+    threshold: "complex_monitoring_intensive when score >= 0.60; moderate_monitoring_intensity when 0.30 <= score < 0.60; simple_monitoring_light when score < 0.30; indeterminate when revenue_t is missing."
+  expected_results:
+    metric_kind: "scalar business_complexity in [0, 1] + 4-category flag + per-signal trace"
+    interpretation_guide: >-
+      The paper's Table 3 Panel a column 1 reports the three
+      dominant determinants of extensive-margin email-opening at the
+      store-day level: Average sales (+0.003), Sales volatility
+      (-0.098), Single store (-0.100). We adopt the magnitudes of
+      those |t-statistics| (3.0, 2.8, 3.7) as the relative weights
+      in our composite (re-normalised to sum to 1.0 across the
+      three kept signals). A high-scoring firm matches multiple of
+      the paper's "monitoring-demand-predicting" cells; a low-scoring
+      firm matches none. The score is NOT the paper's email-open
+      percentage — our composite is a firm-year scalar, whereas the
+      paper's dependent variable is a store-day binary. Read our
+      score as a paper-grounded firm-year proxy for "does this
+      paper's evidence say this firm would demand intense monitoring
+      tools?" rather than "how often would its managers open an
+      imagined analog of the Headset daily email?"
+  takeaways:
+    - "Business complexity is a structural-complexity meta-signal — it predicts WHEN managerial monitoring demand should be high, not whether actual disclosures are high-quality."
+    - "Per-signal weights are paper-anchored (Table 3 Panel a col 1 |t-stats|) but composite bands are a presentation convention, not paper-published."
+    - "Stability signal uses a 2-period YoY-revenue proxy for the paper's within-store daily-sales CV — coarser and noisier, and sign-reversed via binary-definition reversal to keep the composite uniformly positive."
+    - "Complexity signal uses SG&A / Revenue as a proxy for the paper's Single-store chain-vs-singleton binary (the latter is not observable in a 10-K). High-SG&A-intensity is the analog of chain-operations-overhead; sign-reversed via proxy construction."
+    - "The paper's headline Section-5 hedonic-asymmetry finding is NOT implemented — the test requires daily email-open logs that have no public-company analog."
+    - "Pre-iXBRL filings (Enron, WorldCom) carry the standard pre_ixbrl_manual_extraction confidence penalty (−0.15)."
+  use_cases:
+    - "Triage step before deep governance / disclosure reading — high business_complexity means the paper predicts managerial monitoring demand is elevated, which often correlates with richer internal-reporting footprints."
+    - "Pair with compute_mdna_upfrontedness: high business_complexity + low Upfrontedness is a sharper concern than either alone (the firm whose monitoring demand is elevated is also back-loading its narrative)."
+    - "Pair with compute_context_importance_signals: high business_complexity AND high context_importance is the 'this firm's numeric disclosures alone are not enough — AND the firm's operational profile demands rich monitoring' double-up."
+    - "Cross-sectional comparison: rank a peer set on business_complexity to find the firms whose operational profile most predicts monitoring-tool demand."
+
+implementation_decisions:
+  - decision: >-
+      The paper's headline hedonic-asymmetry finding (Section 5,
+      Table 5) is NOT implemented. The paper's headline empirical
+      test regresses measures of email-opening behaviour on
+      performance cues, using Headset's per-store-per-day email-
+      open tracking logs. Neither the tracking data nor any
+      public-company analog exists in our store. We do NOT try to
+      port this via 8-K timing, insider-trading patterns, or other
+      indirect proxies — those would be different research
+      constructs, not faithful ports. The skill ships only
+      Section 4 / Table 3's determinants framework: what firm
+      characteristics predict monitoring-service demand?
+    rationale: >-
+      Playbook rule "When the paper's setting is worlds-away from
+      public companies (private, behavioural, proprietary-data):
+      port the determinants framework, not the behavioural
+      finding." The determinants framework is a cross-sectional
+      firm-characteristic regression with coefficients that
+      generalise directionally; the behavioural finding is tied
+      to the proprietary tracking data. Shipping an honest port
+      of the former is the only defensible path; faking the
+      latter via a proxied behavioural signal would be a P2
+      violation.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Three analog signals shipped, not the paper's six store-level
+      Table 3 Panel a regressors. Kept: size (Average sales,
+      +coef), stability (Sales volatility, -coef → sign-reversed),
+      complexity (Single store, -coef → proxied via SG&A /
+      Revenue). Dropped: Sells medical (industry-specific control,
+      no analog), Late joiner (sample-period-specific control, no
+      analog), Parent number of states (not significant on email
+      extensive margin; no canonical segments-count line item),
+      Average category HHI (not significant).
+    rationale: >-
+      The three kept signals are the three statistically
+      significant generalisable determinants at the extensive
+      margin. Keeping Sells medical or Late joiner would require
+      paper-sample-specific constants with no defensible public-
+      firm analog. The Parent-number-of-states signal is
+      interesting but not reproducible at MVP without a
+      segments-count mapping, which would be a canonical-data
+      expansion. Average category HHI is dropped because the
+      paper's own coefficient is not significant — we preserve
+      signal strength by dropping it.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Size threshold is $1B revenue (public-firm "large-cap"
+      practitioner cutoff), binary rather than continuous. The
+      paper uses log(Average sales) as a continuous linear
+      regressor with coefficient +0.003 per log-unit. Our binary
+      indicator fires at revenue_t ≥ $1B, which corresponds to
+      log10(rev) ≥ 9.0.
+    rationale: >-
+      Binary discretisation matches the paper's own partition-
+      style analyses (Table 6 terciles of store sales). A
+      log-continuous version would align exactly with the paper's
+      linear specification; bundling into a binary-sum composite
+      at MVP is simpler and keeps the skill-output shape aligned
+      with compute_context_importance_signals. A future
+      continuous-score variant is filed as post-MVP expansion.
+      The $1B threshold is chosen deliberately: it's two orders
+      of magnitude above mid-cap and three above small-cap, and
+      cleanly separates the five MVP sample filings (all above
+      $1B — all fire size, by design; the threshold discriminates
+      against a future small-cap expansion sample).
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Stability-signal sign-reversal. The paper's Sales volatility
+      coefficient is NEGATIVE (-0.098): volatile stores monitor
+      LESS. To keep the composite score interpretation uniformly
+      positive ("higher score = more monitoring demand"), we flip
+      the indicator definition — instead of I[volatility > threshold]
+      with negative weight, we use I[volatility ≤ threshold] (i.e.
+      "stable" firm fires) with positive weight. The economic
+      direction is preserved; the algebra is equivalent up to a
+      constant.
+    rationale: >-
+      Surface clarity: a composite whose signals all point in the
+      same direction (higher = more monitoring demand) is easier
+      for downstream callers to reason about than one with mixed
+      signs. Signed explicitly in manifest so a reviewer doesn't
+      mistake this for a coefficient-sign bug. The alternative —
+      keeping the paper's original indicator and negating the
+      weight — would invert the score semantics at a case-by-case
+      level and confuse composite construction.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Complexity-signal uses SG&A / Revenue, NOT Single-store.
+      The paper's Single store binary is natively observable —
+      the store is either part of a chain or isn't. In the 10-K
+      context, the closest canonical-line-item analog is SG&A /
+      Revenue. High SG&A-intensity is associated with multi-entity
+      corporate structures (more layers of management, more
+      cross-entity reporting); low SG&A-intensity suggests a simple
+      operational footprint. Threshold 0.15 separates "substantial
+      corporate overhead" from "lean operations." Proxy
+      documented; sign-reversal comes via the proxy construction
+      (not the coefficient).
+    rationale: >-
+      Alternative proxies considered: (a) number-of-operating-
+      segments (not a canonical line item at MVP), (b) goodwill /
+      total_assets (proxy for M&A-driven complexity; not always
+      present for firms with organic growth), (c) total_debt /
+      total_assets (proxy for capital-structure complexity; not
+      the same as operational complexity). SG&A-intensity is the
+      cleanest balance between (i) computability from the existing
+      16 canonical line items and (ii) economic meaning as a
+      corporate-overhead proxy. Drift from the paper's Single-store
+      concept is real — a big-R&D tech firm with a single segment
+      could fire complexity via high G&A — documented in
+      limitations. Note that our mapping picks up
+      SellingGeneralAndAdministrativeExpense when reported, else
+      GeneralAndAdministrativeExpense, so firms that disaggregate
+      (e.g. Microsoft reports separate R&D + S&M + G&A — we pick
+      up only the G&A sub-component) produce slightly lower
+      intensity values than firms that report aggregated SG&A.
+      Documented as a mapping-heterogeneity caveat; the binary
+      threshold is calibrated to discriminate sensibly either way.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Stability proxy uses 2-period YoY-revenue, not within-period
+      daily-sales CV. The paper's Sales volatility is
+      std(daily_sales) / mean(daily_sales) within-store over the
+      sample period. We have only annual financial statements.
+      We use |Revenue_t − Revenue_{t-1}| / Revenue_{t-1} as a
+      2-period proxy. Same shape as
+      compute_context_importance_signals' 2-period volatility
+      proxy for Dichev-Tang. Returns null when t-1 unavailable.
+      Warning stability_two_period_proxy on every non-null call.
+    rationale: >-
+      The daily-granularity volatility the paper uses is not
+      computable from annual 10-Ks at MVP. A 2-period YoY-revenue
+      delta is a coarse proxy on two axes: window length (2
+      annual observations vs ~365 daily observations) and
+      granularity (annual total vs daily mean). It systematically
+      under-reports volatility for firms with within-year
+      seasonality but stable annual totals. Documented; future
+      expansion to quarterly filings (10-Q time-series) would
+      allow a closer proxy.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Per-signal binary thresholds ($1B revenue, 10% YoY stability,
+      15% SG&A / Revenue) are practitioner-derived defaults, not
+      paper-published. The paper's regressors are continuous linear
+      terms with no partitions. We use fixed-point thresholds that
+      approximate common practitioner large-cap / stable-growth /
+      high-overhead cutoffs. Documented in the rule template
+      (mvp/rules/templates/business_complexity_signals_components.yaml)
+      so an accounting expert can edit without touching code.
+    rationale: >-
+      The paper's continuous-linear specification translates to
+      binary thresholds at whatever cutoff a practitioner finds
+      meaningful — there is no "paper threshold" to pin. Each
+      threshold is sourced to a literature convention: $1B revenue
+      is the common "large-cap" boundary in US public-firm
+      analysis, 10% YoY is a common "stable-growth" cutoff in
+      equity research, 15% SG&A / Revenue is a corporate-overhead
+      threshold common in margin-analysis work. A future
+      population-anchored variant would re-derive these from a
+      wider issuer set.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Indeterminate when revenue_t is missing. Revenue is the
+      denominator for two of three signals and the threshold
+      input for the first. If revenue_t is null, none of the
+      three signals can be evaluated → score null, flag
+      indeterminate. If only stability cannot compute (no
+      prior-year data) OR complexity cannot compute (no SG&A
+      line item), the affected signal is treated as "off"
+      (conservative under-count), the score still publishes,
+      and a warning surfaces which signals were not evaluable.
+    rationale: >-
+      Revenue is the load-bearing denominator; without it, the
+      composite has nothing to anchor against. The conservative
+      under-count for single-signal-missing keeps the score
+      directionally right (high score still means "many signals
+      fired") and surfaces the ambiguity to the caller. Symmetric
+      flag-elevation (treating missing as "on") would be the
+      wrong direction — it would silently inflate scores.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Composes via canonical statements only; does NOT delegate
+      to any sub-skill via the registry.
+    rationale: >-
+      Required by mvp_build_goal.md §5 modularity: skills compose
+      sub-skills only when they need their output. The three
+      signals are purely line-item arithmetic. Pairs with
+      compute_mdna_upfrontedness or compute_context_importance_signals
+      in a future L4 composite that combines "would managers demand
+      monitoring here?" (this skill) with "is the narrative
+      front-loaded?" (Upfrontedness) or "does the paper predict
+      context would help?" (Context-Importance).
+    reviewer_persona: quant_finance_methodologist
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer
+        (e.g. '0000320193' for Apple Inc.).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+        Must match an ingested filing under data/filings/.
+
+outputs:
+  type: object
+  required: [business_complexity_score, flag, signals, components, weights, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    business_complexity_score:
+      type: ["number", "null"]
+      description: >-
+        Composite weighted score in [0, 1]. Higher means more of
+        the paper's Table 3 Panel a col 1 determinants predict
+        intense managerial monitoring demand for this firm. Null
+        when flag is indeterminate.
+    flag:
+      type: string
+      enum: [complex_monitoring_intensive, moderate_monitoring_intensity, simple_monitoring_light, indeterminate]
+      description: >-
+        Categorical flag derived from the composite score:
+        'complex_monitoring_intensive' when score ≥ 0.60 (at least
+        two of three signals fired); 'moderate_monitoring_intensity'
+        when 0.30 ≤ score < 0.60 (one signal firing);
+        'simple_monitoring_light' when score < 0.30 (no signals
+        firing); 'indeterminate' when revenue_t could not be
+        evaluated.
+    signals:
+      type: object
+      description: >-
+        Per-signal raw values. `revenue_usd` is the firm's revenue
+        in year t (the input to the size binary). `yoy_revenue_change`
+        is |Revenue_t − Revenue_{t-1}| / Revenue_{t-1} (the input
+        to the stability binary). `sga_to_revenue_ratio` is
+        SG&A_t / Revenue_t (the input to the complexity binary).
+        Any signal can be null when underlying inputs are missing.
+      additionalProperties: true
+      properties:
+        revenue_usd:
+          type: ["number", "null"]
+          description: Revenue for year t in USD. Null when revenue line item missing.
+        yoy_revenue_change:
+          type: ["number", "null"]
+          description: "Absolute relative YoY revenue change |Revenue_t − Revenue_{t-1}| / Revenue_{t-1}. Null when prior-year revenue missing or zero."
+        sga_to_revenue_ratio:
+          type: ["number", "null"]
+          description: SG&A / Revenue. Null when SG&A or revenue missing.
+    components:
+      type: object
+      description: >-
+        Per-signal "fired" indicators (1 if signal crosses its
+        threshold in the paper's predicted direction, 0 otherwise,
+        null when raw value is null). These are the I[·] terms
+        in the composite.
+      additionalProperties: true
+      properties:
+        size_fired:
+          type: ["integer", "null"]
+          description: I[revenue_t >= $1B]; null when revenue raw is null.
+        stability_fired:
+          type: ["integer", "null"]
+          description: I[|ΔRev / Rev_{t-1}| ≤ 0.10]; null when prior-year revenue unavailable. Sign-reversed from the paper's volatility coefficient.
+        complexity_fired:
+          type: ["integer", "null"]
+          description: I[SG&A / Revenue ≥ 0.15]; null when SG&A or revenue unavailable. Sign-reversed from the paper's Single-store coefficient via proxy construction.
+    weights:
+      type: object
+      description: >-
+        Fixed paper-derived weights. Exposed in output (not just
+        provenance) because the score is a weighted sum and a
+        caller may want to reproduce the arithmetic.
+      additionalProperties: true
+      properties:
+        size:
+          type: number
+          description: Weight on size_fired (0.3158, normalized from Table 3 Panel a col 1 |t-stat| 3.0).
+        stability:
+          type: number
+          description: Weight on stability_fired (0.2947, normalized from |t-stat| 2.8).
+        complexity:
+          type: number
+          description: Weight on complexity_fired (0.3895, normalized from |t-stat| 3.7).
+    citations:
+      type: array
+      description: >-
+        Citations back to the canonical line items consumed by
+        the score. One per concrete upstream value (revenue,
+        selling_general_admin_expense — year t; revenue — year t-1
+        when stability signal evaluable).
+      items:
+        type: object
+        description: One Citation record (mvp.lib.citation.Citation shape).
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 0.7 (the
+        2-period stability proxy and the SG&A-intensity
+        complexity proxy are always active, capping confidence
+        below 1.0). −0.15 when at least one consumed line item
+        is from a pre-iXBRL manual-extraction fixture. 0.0 when
+        the flag is indeterminate.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Always includes
+        'stability_two_period_proxy' when the stability signal is
+        non-null; always includes 'complexity_sga_proxy' when the
+        complexity signal is non-null; adds
+        'pre_ixbrl_manual_extraction' for SGML-era filings; adds
+        'missing_prior_year' when t-1 unavailable; adds
+        'missing_sga' when SG&A line item is missing.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    business_complexity_score: >-
+      when business_complexity_score is non-null, the citations
+      array must include the canonical line items consumed (a
+      subset of: revenue, selling_general_admin_expense).
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<role>::<line_item>"
+
+confidence:
+  computed_from:
+    - "two_proxy_penalty (fixed -0.3 from 1.0 to 0.7; active on every non-null call because the stability 2-period proxy and the complexity SG&A proxy are both in use whenever revenue is populated)"
+    - "pre_ixbrl_manual_extraction (-0.15 when at least one consumed line item is from a manual_extraction fixture)"
+    - "indeterminate_zero_out (clamped to 0.0 when flag is indeterminate)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills: []
+  lib:
+    - mvp.lib.citation
+    - mvp.standardize.statements
+    - mvp.ingestion.filings_ingest
+  rules:
+    - rules/templates/business_complexity_signals_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/business_complexity_signals/
+  eval_metrics:
+    - name: signals_resolve_for_populated_filings
+      target: ">= 5/5 cases produce non-null business_complexity_score"
+    - name: flag_directionally_consistent_with_filing_profile
+      target: ">= 4/5 cases produce flag matching the gold's directional band (large-caps → complex or moderate; volatile loss-firms → moderate or simple)"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The paper's headline hedonic-asymmetry finding (Section 5,
+    Table 5) is NOT implemented. It requires daily email-open
+    tracking logs that have no public-company analog. The three
+    shipped signals are the Section 4 Table 3 determinants
+    framework only — they describe the firm's business profile
+    as a predictor of monitoring demand, not the paper's
+    behavioural asymmetry phenomenon.
+  - >-
+    The paper's regression coefficients were estimated on 946
+    retail-cannabis dispensary stores (private, 2019-2022).
+    Porting to US-public-company filings is an analog — an
+    accountant calibrating on a public-company panel would likely
+    find different coefficient magnitudes. The weights are
+    paper-anchored for directionality and relative importance,
+    but absolute calibration on public firms is not claimed.
+  - >-
+    Stability signal uses a 2-period YoY-revenue proxy for the
+    paper's within-store daily-sales CV. Systematically
+    under-reports volatility for firms whose annual revenue
+    happens to be similar in t and t-1 but variable within-year
+    (seasonal businesses, firms with one-off charges).
+  - >-
+    Complexity signal uses SG&A / Revenue as a proxy for the
+    paper's Single-store chain-vs-singleton binary. A firm with
+    high SG&A but a simple single-segment structure (e.g. a tech
+    firm with heavy R&D in SG&A) would fire complexity without
+    matching the paper's chain concept. Additionally, the
+    selling_general_admin_expense mapping picks up the narrower
+    GeneralAndAdministrativeExpense fact for firms that
+    disaggregate (e.g. Microsoft reports separate R&D + S&M +
+    G&A — we pick up only the G&A sub-component) producing
+    slightly lower intensity values than firms that report
+    aggregated SG&A.
+  - >-
+    Size threshold ($1B revenue) is a practitioner large-cap
+    cutoff, not a paper threshold. The paper's Average sales
+    regressor is continuous linear; our binary discretisation
+    loses information. All 5 MVP sample filings are above $1B;
+    the threshold's discriminating power emerges only on a wider
+    issuer set.
+  - >-
+    Per-component thresholds ($1B revenue, 10% stability, 15%
+    SG&A intensity) are practitioner-derived defaults, not
+    paper-published. Editable in the rule template; a
+    population-anchored variant would be cleaner.
+  - >-
+    Pre-iXBRL filings (Enron, WorldCom) carry the standard
+    pre_ixbrl_manual_extraction confidence penalty (−0.15).
+  - >-
+    Not a governance verdict. A complex_monitoring_intensive flag
+    means the paper's model predicts this firm's managers would
+    demand intense monitoring tools, NOT that the firm's actual
+    disclosure practices or governance are high-quality. Pair
+    with compute_mdna_upfrontedness or
+    compute_context_importance_signals for complementary lenses.
+
+examples:
+  - name: "Apple FY2023 — large stable low-overhead issuer"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Revenue $383B → size fires. YoY revenue ≈ −3% → stability
+      fires. SG&A / Revenue ≈ 0.07 → complexity does NOT fire.
+      Score ≈ 0.61 → complex_monitoring_intensive (just above
+      0.60 band). A steady-state mega-cap whose profile predicts
+      intense monitoring-tool demand driven by size and stability
+      rather than overhead complexity.
+  - name: "WorldCom FY2001 — large high-overhead telecoms issuer"
+    input:
+      cik: "0000723527"
+      fiscal_year_end: "2001-12-31"
+    notes: >-
+      Revenue $35B → size fires. YoY revenue change ≈ 10%
+      (borderline; stability MAY fire depending on rounding).
+      SG&A / Revenue ≈ 0.31 → complexity fires. Score in
+      [0.70, 1.00] range → complex_monitoring_intensive. The
+      classical overhead-heavy multi-entity conglomerate the
+      paper's Single-store / SG&A-intensity proxy is designed
+      to flag.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 250

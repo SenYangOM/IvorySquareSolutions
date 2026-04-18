@@ -1,0 +1,171 @@
+# Gold-standard case — compute_beneish_m_score for Carvana Co. FY2022 (CIK 0001690820).
+#
+# Authored by the evaluation_agent persona per mvp/human_layer/gold_authoring_guide.md.
+# Carvana is an INDETERMINATE case: its 10-K omits both DepreciationDepletionAnd-
+# Amortization and OperatingIncomeLoss as iXBRL-tagged concepts, so the skill
+# cannot populate depreciation_and_amortization — which breaks both DEPI and
+# TATA — and returns flag=indeterminate.
+#
+# Per success_criteria.md §4.2, indeterminate-matches-indeterminate counts as
+# pass on flag_match_rate. On within_0.10, null-matches-null is also pass (both
+# unknown).
+
+case_id: carvana_2022_beneish
+skill_id: compute_beneish_m_score
+skill_version: "0.1.0"
+
+issuer:
+  name: "Carvana Co."
+  cik: "0001690820"
+  ticker: "CVNA"
+
+filing:
+  accession: "0001690820-23-000052"
+  filing_type: "10-K"
+  fiscal_period_end: "2022-12-31"
+  prior_year_accession: "0001690820-22-000080"
+  prior_year_fiscal_period_end: "2021-12-31"
+
+inputs:
+  cik: "0001690820"
+  fiscal_year_end: "2022-12-31"
+  use_restated_if_available: false
+
+expected:
+  m_score:
+    value: null
+    tolerance: 0.10
+    source_of_truth: live_implementation
+    rationale: |
+      Carvana's 10-K does not tag a consolidated DepreciationDepletion-
+      AndAmortization concept nor an OperatingIncomeLoss concept. The
+      standardizer cannot populate depreciation_and_amortization for
+      either FY2022 or FY2021. This breaks the DEPI and TATA
+      computations (both require D&A), so the M-score skill returns
+      m_score=null and flag=indeterminate per its contract. Gold
+      encodes null-matches-null — treated as pass on within_0.10 by
+      the eval runner per §4.2.
+  flag:
+    value: indeterminate
+    rationale: >-
+      Expected behavior when any required component is null. The
+      skill's manifest's implementation_decisions block documents this
+      path explicitly.
+  components:
+    DSRI:
+      range: [1.00, 1.35]
+      point_estimate: 1.16
+      rationale: |
+        Computable: Carvana's trade receivables and revenue are
+        populated. DSRI ~1.16 — modest receivables-relative-to-
+        revenue growth.
+    GMI:
+      range: [1.40, 2.00]
+      point_estimate: 1.64
+      rationale: |
+        Computable: Carvana's gross margin compressed materially —
+        from 11.4% in FY2021 to 6.9% in FY2022 (used-vehicle price
+        normalization hit Carvana's retail-GPU model hard). GMI ~1.64
+        falls in the "high" band of m_score_components.yaml. In
+        isolation this would be a red flag — but the missing DEPI and
+        TATA components prevent a composite score.
+    AQI:
+      range: [1.10, 1.35]
+      point_estimate: 1.23
+      rationale: |
+        Computable. Inner ratio inflated — ASC 842 right-of-use
+        assets, higher intangibles.
+    SGI:
+      range: [1.00, 1.15]
+      point_estimate: 1.06
+      rationale: |
+        Computable. Revenue grew 6% year-over-year — below the
+        growth-hype prior years. Modestly above 1.0.
+    DEPI:
+      value: null
+      rationale: |
+        NULL — Carvana's iXBRL omits a consolidated D&A concept.
+        Phase 3 rules' DEPI component cannot be interpreted when D&A
+        is null. Skill output's DEPI is null and warnings include
+        "DEPI: inputs missing (depreciation_and_amortization_t,
+        depreciation_and_amortization_{t-1})".
+    SGAI:
+      range: [1.15, 1.40]
+      point_estimate: 1.27
+      rationale: |
+        Computable. SG&A grew faster than revenue (cost-reduction had
+        not yet landed in FY2022; it hit in FY2023).
+    LVGI:
+      range: [1.10, 1.35]
+      point_estimate: 1.21
+      rationale: |
+        Computable. Leverage expanded materially — Carvana raised
+        high-yield debt + ABL facility draws in 2022.
+    TATA:
+      value: null
+      rationale: |
+        NULL — TATA's MVP approximation requires depreciation_and_
+        amortization_t, which is null. Warnings include "TATA:
+        inputs missing (depreciation_and_amortization_t)".
+  citation_expectations:
+    min_count: 14
+    must_resolve: true
+    must_cite:
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+      - "trade_receivables_net (period=t)"
+      - "trade_receivables_net (period=t-1)"
+      - "cost_of_goods_sold (period=t)"
+      - "cost_of_goods_sold (period=t-1)"
+      - "current_assets (period=t)"
+      - "current_assets (period=t-1)"
+      - "current_liabilities (period=t)"
+      - "current_liabilities (period=t-1)"
+      - "property_plant_equipment_net (period=t)"
+      - "property_plant_equipment_net (period=t-1)"
+      - "total_assets (period=t)"
+      - "total_assets (period=t-1)"
+      - "selling_general_admin_expense (period=t)"
+      - "selling_general_admin_expense (period=t-1)"
+      - "long_term_debt (period=t)"
+      - "long_term_debt (period=t-1)"
+  confidence:
+    min: 0.0
+    max: 0.10
+    rationale: |
+      flag=indeterminate pins confidence to 0.0 per the skill's
+      confidence model. Live value is 0.0.
+  warnings_must_include:
+    - "DEPI: inputs missing"
+    - "TATA: inputs missing"
+
+external_references:
+  - source: "Beneish, M. D. (1999). The Detection of Earnings Manipulation. Financial Analysts Journal, 55(5), 24-36."
+  - source: "BUILD_REFS.md §4.4"
+    note: "Carvana 2022: expected gray-zone result (applied to Altman Z, not directly applicable here; for Beneish M the case is indeterminate because D&A is missing)."
+  - source: "BUILD_LOG.md Phase 2 Carvana notes"
+    note: "Carvana doesn't tag DepreciationDepletionAndAmortization as a single line or OperatingIncomeLoss as a concept in its filings — a real data-availability gap, not a mapping bug."
+
+caveats:
+  - "Carvana FY2022 is THE data-availability test case for the MVP. Indeterminate is a legitimate skill output, not a bug — it's evidence the skill knows what it can't compute and says so with typed warnings."
+  - "The three null components (DEPI, TATA) are correctly null in live output. Gold matches that explicitly."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation output (Phase 4 run). The skill correctly
+    identifies the missing D&A input and returns indeterminate — this
+    is the MVP's 'honest-about-gaps' contract per success_criteria
+    §2's Required-failure-modes block.
+  data_quality_caveats:
+    - "Carvana's iXBRL does not tag a consolidated DepreciationDepletionAndAmortization concept."
+    - "Carvana's iXBRL does not tag OperatingIncomeLoss as a concept — affects Altman X3 (in the sibling Altman gold case)."
+    - "Carvana capitalizes finance-lease ROU alongside owned PP&E; property_plant_equipment_net uses the PropertyPlantAndEquipmentAndFinanceLeaseRightOfUseAsset... fallback."
+    - "Fix path: breaking out a depreciation concept via the PP&E roll-forward footnote is post-MVP; the MVP's stance is to fail honestly and indicate why."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, Phase 5 gold authoring"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

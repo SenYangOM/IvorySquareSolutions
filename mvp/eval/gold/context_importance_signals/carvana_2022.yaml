@@ -1,0 +1,150 @@
+# Gold-standard case — compute_context_importance_signals for
+# Carvana Co. FY2022 (CIK 0001690820, accession 0001690820-23-000052).
+#
+# Authored by the evaluation_agent persona during paper-2 onboarding
+# (post-MVP paper_examples/ workstream). Carvana FY2022 is the
+# load-bearing case for the negative-book-equity MTB encoding path
+# documented in the manifest's mtb_negative_book_equity warning —
+# total_assets 8.7B, total_liabilities 9.75B → book equity -1.05B,
+# which the skill encodes as MTB=0.0 to fire the low-extremity band.
+# The case also exercises the indeterminate-input handling for the
+# loss/volatility/accruals signals (Carvana's iXBRL doesn't tag
+# OperatingIncomeLoss → EBIT_t is null → those three signals can't
+# be computed). The score still publishes (0.1982 from MTB alone)
+# rather than going indeterminate, which is the documented
+# conservative-under-count behaviour for one-of-vol-or-mtb-missing.
+
+case_id: carvana_2022_context_importance_signals
+skill_id: compute_context_importance_signals
+skill_version: "0.1.0"
+
+issuer:
+  name: "Carvana Co."
+  cik: "0001690820"
+  ticker: "CVNA"
+
+filing:
+  accession: "0001690820-23-000052"
+  filing_type: "10-K"
+  fiscal_period_end: "2022-12-31"
+
+inputs:
+  cik: "0001690820"
+  fiscal_year_end: "2022-12-31"
+
+expected:
+  context_importance_score:
+    value: 0.1982
+    tolerance: 0.05
+    source_of_truth: live_implementation
+    rationale: |
+      Live run at paper-2-onboarding time produced score 0.1982
+      (which equals WEIGHTS["mtb"] exactly). MTB is encoded as 0.0
+      because Carvana's book equity (TotalAssets 8.698B − TotalLiabilities
+      9.751B = -1.053B) is non-positive; the encoded 0.0 fires the
+      low-extremity band (≤ 0.8). The other three signals
+      (loss / volatility / accruals) are null because Carvana's iXBRL
+      doesn't tag OperatingIncomeLoss → EBIT_t is null → none of the
+      three can be computed. Tolerance ±0.05 allows for minor weight
+      drift if an accounting expert edits the rule template's
+      paper-derived Diff statistics (currently 2.94 / 1.79 / 1.34 / 1.50
+      from Table 7 Panel A column "Earnings").
+  flag:
+    value: context_marginal
+    rationale: >-
+      Score 0.1982 falls below the 0.30 helpful-band threshold, so
+      the flag is context_marginal. This may seem under-stated for a
+      visibly distressed firm — Carvana FY2022 is the textbook
+      "balance-sheet-insolvent" case the paper's MTB partition is
+      designed to flag. The marginal flag here reflects that 3 of
+      the 4 signals could not be computed (EBIT-null cascade); only
+      the MTB signal carries weight. A future expansion that adds
+      net_income as a 17th canonical line item would let the loss
+      signal fire on Carvana (NetIncome was -1.59B) and likely lift
+      the flag to context_critical (loss + MTB = 0.5866).
+  signals:
+    loss:
+      value: null
+      rationale: |
+        EBIT_t is null because Carvana's iXBRL doesn't tag
+        OperatingIncomeLoss; the loss-via-EBIT proxy can't fire
+        either way.
+    earnings_volatility:
+      value: null
+      rationale: |
+        EBIT_t is null → ROA_t can't be computed → volatility null.
+    abs_accruals_to_assets:
+      value: null
+      rationale: |
+        EBIT_t is null → |EBIT_t − CFO_t| is null → accruals null.
+        (CFO_t is real: -1.324B. The gap is on the EBIT side.)
+    mtb:
+      value: 0.0
+      rationale: |
+        Encoded sentinel value. Real MTB would be undefined: the
+        fixture's MVE is 502M, but book equity is -1.05B (negative).
+        The skill substitutes 0.0 to fire the low-extremity band —
+        the most extreme value-destroying case the MTB partition
+        could flag.
+  components:
+    loss_fired:
+      value: null
+      rationale: "Loss signal raw value is null."
+    volatility_fired:
+      value: null
+      rationale: "Volatility signal raw value is null."
+    accruals_fired:
+      value: null
+      rationale: "Accruals signal raw value is null."
+    mtb_fired:
+      value: 1
+      rationale: |
+        MTB encoded as 0.0 fires the low-extremity band (MTB ≤ 0.8).
+  citation_expectations:
+    min_count: 4
+    must_resolve: true
+    must_cite:
+      - "ebit"
+      - "total_assets"
+      - "total_liabilities"
+      - "cash_flow_from_operating_activities"
+      - "market_value_of_equity"
+  confidence:
+    min: 0.65
+    max: 0.75
+    rationale: |
+      Modern iXBRL filing (no pre_ixbrl penalty), loss-EBIT and
+      volatility 2-period proxies always active → cap 0.7. Band
+      ±0.05 allows for future confidence-model refinements.
+  warnings_must_include:
+    - "mtb_negative_book_equity"
+    - "missing_prior_year"  # if prior-year is missing for partial signals
+
+external_references:
+  - source: "Kim, A. G., & Nikolaev, V. V. (2024). Context-Based Interpretation of Financial Information. Journal of Accounting Research, accepted 31 October 2024."
+    note: "Section 5.4 / Table 7 Panel A partition signals (loss, vol, accruals, MTB) provide the per-signal weights."
+  - source: "workshop/paper_to_skill/notes/kim_2024_context_based_interpretation.md §f"
+    note: "Documents the negative-book-equity MTB encoding decision and the four implementation proxies."
+  - source: "data/market_data/equity_values.yaml"
+    note: "Carvana FY2022 MVE entry: 106,074,230 shares × $4.74/share = $502,791,850. Class A only (Class B is closely held)."
+
+caveats:
+  - "EBIT_t is null because Carvana's iXBRL doesn't tag OperatingIncomeLoss. This is a real data-availability gap shared with compute_altman_z_score (which returns z_score=null for the same reason)."
+  - "The MTB encoding (negative book equity → 0.0) is a documented design choice. A reviewer who disagrees should either change it in the rule template (raising the negative-book-equity case to context_critical) or leave the score null (forcing indeterminate)."
+  - "If a future expansion adds net_income as a canonical line item, Carvana's loss signal would fire (NetIncome was -1.59B in FY2022) and the score would jump to ≈0.59 (loss + MTB), elevating the flag to context_critical."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (paper-2 onboarding, 2026-04-17). Re-run
+    produced score=0.1982, flag=context_marginal, mtb_fired=1, all
+    other signals null.
+  data_quality_caveats:
+    - "Carvana 2021 prior-year filing IS in the MVP sample, but volatility/accruals still fail because EBIT_t is null (the t-side gap dominates)."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, paper-2 onboarding"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

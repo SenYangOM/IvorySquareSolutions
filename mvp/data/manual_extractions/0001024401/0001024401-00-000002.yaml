@@ -1,0 +1,112 @@
+filing_id: 0001024401/0001024401-00-000002
+cik: '0001024401'
+accession: 0001024401-00-000002
+fiscal_period_end: '1999-12-31'
+data_quality_flag: pre_ixbrl_sgml_manual_extraction
+notes: Values manually extracted from Enron Corp's FY1999 10-K (filed 2000-03-30), Consolidated Income Statement / Balance
+  Sheet / Statement of Cash Flows, all stated in millions of US dollars. This is the as-originally-filed filing; predates
+  the 2001 restatement.
+line_items:
+- name: revenue
+  statement_role: income_statement
+  value_usd: 40112000000
+  unit: USD
+  source_excerpt: Total revenues 40,112 31,260 20,273
+  excerpt_hash: 3b573d9da4f79052cb3038ed22ebe2770044c5113128a683ee372646982ba157
+- name: cost_of_goods_sold
+  statement_role: income_statement
+  value_usd: 34761000000
+  unit: USD
+  source_excerpt: Cost of gas, electricity and other products 34,761 26,381 17,311
+  excerpt_hash: d638331cf35e743ec9eacc8ca6ce3a8b692beaa4a070d6600c55c6d3b10032b9
+  notes: Label differs slightly from FY2000 (no 'metals'); same concept.
+- name: gross_profit
+  statement_role: income_statement
+  value_usd: 5351000000
+  unit: USD
+  source_excerpt: Total revenues 40,112 ... Cost of gas, electricity and other products 34,761
+  excerpt_hash: 645b01a512914b61533f7fbf0d5a58f0279d4269aa45472cf100be88799f85ad
+  notes: Derived as Total revenues - COGS.
+- name: selling_general_admin_expense
+  statement_role: income_statement
+  value_usd: 2996000000
+  unit: USD
+  source_excerpt: Operating expenses 2,996 2,352 1,406
+  excerpt_hash: 99a948aa3c70a833c60d8458a4aa9bdc79b3ecde8f5e5ce93b3d01f4322b5854
+  notes: Reported as 'Operating expenses'; see FY2000 note on mapping to paper-Beneish SG&A.
+- name: depreciation_and_amortization
+  statement_role: income_statement
+  value_usd: 870000000
+  unit: USD
+  source_excerpt: Depreciation, depletion and amortization 870 827 600
+  excerpt_hash: 9123bab6dcfa3c3a18e6d05ff4ce20380e226c132c631fd98c78886781f75940
+- name: ebit
+  statement_role: income_statement
+  value_usd: 1995000000
+  unit: USD
+  source_excerpt: Income Before Interest, Minority Interests and Income Taxes 1,995 1,582 565
+  excerpt_hash: baa48e58db92604f051e433248a193051f9908ea5620a7aa5a6d3489f8fdd68e
+  notes: Same mapping as FY2000 — 'Operating Income' of 802 excludes equity-method and non-operating income.
+- name: trade_receivables_net
+  statement_role: balance_sheet
+  value_usd: 3030000000
+  unit: USD
+  source_excerpt: Trade receivables (net of allowance for doubtful accounts of $40 and $14, respectively) 3,030 2,060
+  excerpt_hash: 8c232ea482e207f2c0cc3454998c72ba976e66fb194dfa5dfe32fdbef86856a5
+- name: inventory
+  statement_role: balance_sheet
+  value_usd: 598000000
+  unit: USD
+  source_excerpt: Inventories 598 514
+  excerpt_hash: 1aef07d2bf9c99fbe4abc52834e75ca41b32aa14c56bf892b31e8862b05a9129
+- name: property_plant_equipment_net
+  statement_role: balance_sheet
+  value_usd: 10681000000
+  unit: USD
+  source_excerpt: Property, plant and equipment, net 10,681 10,657
+  excerpt_hash: 916f18abd1c855436139c5c06cc6e92aac6b8fdff831f58c245ad5813dcddbf1
+- name: total_assets
+  statement_role: balance_sheet
+  value_usd: 33381000000
+  unit: USD
+  source_excerpt: Total Assets $33,381 $29,350
+  excerpt_hash: 7b68921ec8d653eba1b9671cfe967af9af3c52b8da4ef9db6c7ad1ff197b9c3b
+- name: current_assets
+  statement_role: balance_sheet
+  value_usd: 7255000000
+  unit: USD
+  source_excerpt: Total current assets 7,255 5,933
+  excerpt_hash: 33809eb6f46ffa43ba149332db781b7d18e1058aa8ee58cec2dd5496339a2f8e
+- name: current_liabilities
+  statement_role: balance_sheet
+  value_usd: 6759000000
+  unit: USD
+  source_excerpt: Total current liabilities 6,759 6,107
+  excerpt_hash: 58ac0f1f262c9d179e10f2bb431276abbf65c7aaf658957cc62195e9de1789b3
+- name: long_term_debt
+  statement_role: balance_sheet
+  value_usd: 7151000000
+  unit: USD
+  source_excerpt: Long-Term Debt 7,151 7,357
+  excerpt_hash: 9cfe1aef5078b265bb9fd72c5c3108a20ab96de2db43d7723c5aa8db8860e899
+- name: total_liabilities
+  statement_role: balance_sheet
+  value_usd: 20381000000
+  unit: USD
+  source_excerpt: Total current liabilities 6,759 ... Long-Term Debt 7,151 ... Total deferred credits and other liabilities
+    6,471
+  excerpt_hash: d263529f79d653a2509b2f4ceba14990dc5d95ad0163670e19d96af5c3bad413
+  notes: 'Derived: current + LT debt + deferred credits & other liabilities. Excludes minority interests (2,430) and company-obligated
+    preferred securities (1,000).'
+- name: retained_earnings
+  statement_role: balance_sheet
+  value_usd: 2698000000
+  unit: USD
+  source_excerpt: Retained earnings 2,698 2,226
+  excerpt_hash: 09318b6e4940ce2cee99f2ce197aa23b10db2a174c336f58be837b8e09834676
+- name: cash_flow_from_operating_activities
+  statement_role: cash_flow_statement
+  value_usd: 1228000000
+  unit: USD
+  source_excerpt: Net Cash Provided by Operating Activities 1,228 1,640 211
+  excerpt_hash: df12e8b384ad0e90f4ac7cc92f9565f16b933c2e494c62bdfd1f18a187852ca1

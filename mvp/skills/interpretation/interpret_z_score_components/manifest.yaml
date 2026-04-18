@@ -1,0 +1,250 @@
+# Manifest for interpret_z_score_components — L2 interpretation skill.
+# Consumes the 5 Altman (1968) component values and returns the per-
+# component severity band + paper-anchored interpretation text via the
+# declarative rule template authored by the accounting_expert persona.
+
+skill_id: interpret_z_score_components
+version: 0.1.0
+layer: interpretation
+status: alpha
+maintainer_persona: accounting_expert
+description_for_llm: >-
+  Interpret the five Altman (1968) Z-score components (X1 working-
+  capital / total-assets, X2 retained-earnings / total-assets, X3 EBIT
+  / total-assets, X4 market-value-of-equity / total-liabilities, X5
+  sales / total-assets) for a specific US public-company 10-K filing.
+  For each component, returns the severity band, the accounting-
+  expert-authored interpretation text, follow-up diligence questions,
+  and citations back to the canonical line items (X4's numerator
+  citation resolves against the engineering-owned market-data fixture).
+  Also returns a deterministic 2-4 sentence overall narrative that
+  names the Altman zone (safe / grey / distress / indeterminate) when
+  a composite Z score and flag are supplied. Use this after
+  compute_altman_z_score when an agent needs the "why" behind the Z
+  zone, not just the scalar.
+
+provenance:
+  source_papers: []
+
+implementation_decisions:
+  - decision: >-
+      Thresholds and band boundaries are read at run time from
+      mvp/rules/templates/z_score_components.yaml — NOT hardcoded in
+      Python. Coefficients (paper constants) stay in
+      compute_altman_z_score.
+    rationale: >-
+      Operating Principle P1. The accounting_expert persona edits the
+      YAML without touching Python; engineering changes do not
+      require accounting sign-off.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      X4's numerator citation is built against
+      data/market_data/equity_values.yaml via
+      engine.rule_executor.build_market_data_citation, with locator
+      "market_data/equity_values::market_data::market_value_of_equity_<cik>_<fye>".
+      The fixture row is the canonical source; the skill does not
+      cite a filing line for MVE.
+    rationale: >-
+      Per mvp_build_goal.md §9 MVE is an engineering-owned fixture
+      (not a canonical line item); per P3 every claim still needs a
+      resolvable citation, so we publish a dedicated locator scheme
+      that engine.citation_validator.resolve_citation recognizes.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Overall interpretation is deterministic templated text — names
+      the zone when z_flag is passed, names the two components whose
+      values are closest to their paper-threshold boundaries, and
+      closes with the 1.81 / 2.99 cut-off context. No LLM call.
+    rationale: >-
+      Determinism per success_criteria §4.4. §8 negative gate
+      prohibits generic text; per-company specificity comes from
+      substituting real component values.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end, components]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer.
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+    components:
+      type: object
+      description: >-
+        The 5 Altman ratio components as emitted by
+        compute_altman_z_score.
+      additionalProperties: false
+      properties:
+        X1:
+          type: ["number", "null"]
+          description: Working Capital / Total Assets (ratio).
+        X2:
+          type: ["number", "null"]
+          description: Retained Earnings / Total Assets (ratio).
+        X3:
+          type: ["number", "null"]
+          description: EBIT / Total Assets (ratio).
+        X4:
+          type: ["number", "null"]
+          description: Market Value of Equity / Total Liabilities (ratio).
+        X5:
+          type: ["number", "null"]
+          description: Sales / Total Assets (ratio).
+    source_confidence:
+      type: ["number", "null"]
+      description: >-
+        Optional confidence value inherited from compute_altman_z_score.
+        Passed through with the pre-iXBRL / iXBRL cap applied.
+    z_score:
+      type: ["number", "null"]
+      description: >-
+        Optional composite Z score — when passed, the overall
+        interpretation cites its numeric value.
+    z_flag:
+      type: ["string", "null"]
+      description: >-
+        Optional Z-zone label — safe / grey_zone / distress /
+        indeterminate. When passed, the overall interpretation names
+        the zone.
+
+outputs:
+  type: object
+  required:
+    - component_interpretations
+    - overall_interpretation
+    - citations
+    - confidence
+    - warnings
+  additionalProperties: true
+  properties:
+    component_interpretations:
+      type: array
+      description: >-
+        One per Altman component, in paper order (X1, X2, X3, X4, X5).
+        Each entry is a ComponentInterpretation.
+      items:
+        type: object
+        description: One ComponentInterpretation record.
+    overall_interpretation:
+      type: string
+      description: >-
+        2-4 sentence deterministic summary. Names the Altman zone
+        (when z_flag passed), the two components closest to their
+        paper thresholds, and the 1.81 / 2.99 cut-offs.
+    citations:
+      type: array
+      description: >-
+        Flat deduplicated list of all Citation records across the
+        five component interpretations. Includes the market-data
+        fixture citation for X4.
+      items:
+        type: object
+        description: One Citation record.
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1], inherited from
+        source_confidence and capped per data_quality_flag.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    component_interpretations: >-
+      Every non-null component interpretation carries citations for
+      the canonical line items that produced the component value
+      (and for X4, the market-data fixture row).
+  hash_algorithm: sha256
+  locator_format: "<doc_id>::<statement_role_or_market_data>::<line_item_or_fixture_key>"
+
+confidence:
+  computed_from:
+    - source_confidence (inherited from compute_altman_z_score when piped)
+    - pre_ixbrl_vs_ixbrl_cap
+    - null_component_count
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: compute_altman_z_score
+      min_version: 0.1.0
+  lib:
+    - mvp.standardize.statements
+    - mvp.engine.rule_executor
+    - mvp.ingestion.filings_ingest
+    - mvp.ingestion.market_data_loader
+  rules:
+    - rules/templates/z_score_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/altman/
+  eval_metrics:
+    - name: severity_matches_gold
+      target: ">= 4/5 cases per component family"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    Overall interpretation is 2-4 sentences of templated text; depth
+    lives in the component-level interpretation_text blocks.
+  - >-
+    The skill does not re-compute component values — it trusts the
+    passed-in components dict.
+  - >-
+    Supports only the 5 MVP issuers × their two fiscal years.
+  - >-
+    Altman's 1968 framework is a manufacturing-firm model; for
+    services-heavy issuers (Microsoft, Apple) the interpretation_text
+    blocks note this scope limitation rather than silently
+    suppressing it.
+
+examples:
+  - name: "Apple FY2023 — safe zone"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+      components:
+        X1: -0.005
+        X2: -0.001
+        X3: 0.324
+        X4: 9.168
+        X5: 1.087
+      z_score: 7.65
+      z_flag: "safe"
+    notes: >-
+      Apple's X4 dominates — the market values the firm far above book
+      liabilities. The overall interpretation names the safe zone and
+      flags X1 / X2 as near-threshold components.
+  - name: "Carvana FY2022 — X3 indeterminate"
+    input:
+      cik: "0001690820"
+      fiscal_year_end: "2022-12-31"
+      components:
+        X1: 0.230
+        X2: -0.239
+        X3: null
+        X4: 0.052
+        X5: 1.564
+      z_flag: "indeterminate"
+    notes: >-
+      Carvana's FY2022 EBIT is null in the canonical statements, so
+      X3 is null and the composite is indeterminate. Overall
+      interpretation names the missing component.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 150

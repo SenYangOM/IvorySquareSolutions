@@ -1,0 +1,322 @@
+# Manifest for compute_beneish_m_score — Beneish (1999) earnings-
+# manipulation discriminant applied to a US public 10-K filing.
+#
+# Authored by the quant_finance_methodologist persona. The eight-coefficient
+# probit model and the -1.78 threshold are paper-exact (Beneish 1999 p. 16
+# and Table 3); see workshop/docs/paper_onboarding_playbook.md for the
+# derivation and Phase 3's rules/templates/m_score_components.yaml for
+# the per-component interpretation bands.
+
+skill_id: compute_beneish_m_score
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute the Beneish (1999) M-score — an eight-component earnings-
+  manipulation discriminant — for a US public company's 10-K filing.
+  Returns the scalar M-score, the eight component values (DSRI, GMI,
+  AQI, SGI, DEPI, SGAI, LVGI, TATA), a categorical flag
+  (manipulator_likely / manipulator_unlikely / indeterminate), and
+  citations back to the canonical line items. Use this to screen a
+  filing for earnings-manipulation red flags; do NOT treat the output
+  as a fraud verdict — the model is a classifier and its paper-reported
+  Type I error rate is ~50%. When inputs are missing, the skill returns
+  flag=indeterminate and m_score=null with a warning listing the gaps.
+
+provenance:
+  source_papers:
+    - citation: "Beneish, M. D. (1999). The Detection of Earnings Manipulation. Financial Analysts Journal, 55(5), 24–36."
+      doi_or_url: "https://doi.org/10.2469/faj.v55.n5.2296"
+      local_pdf: "data/papers/beneish_1999.pdf"
+      pdf_sha256: "78b2f0143770c9c06871ba8e8d8fb764fc95a4dd379ae37e1c301d16c42faffe"
+  study_scope:
+    asset_class: "US public equities, ex-financial, ex-utility"
+    time_period_in_paper: "1982–1992"
+    sample_size_in_paper: "74 manipulators (AAER-sourced) + 2,332 industry-matched Compustat controls"
+  problem:
+    one_line: "Detect earnings manipulation using publicly available financial-statement data."
+    long_form: >-
+      Predict the probability that a firm has manipulated reported earnings
+      using a probit model on eight financial-statement ratios computed from
+      year t and year t-1. Beneish's goal: a screening tool cheap enough to
+      run on every public company, accurate enough that 'flagged' firms
+      warrant a closer look.
+  methodology:
+    summary: >-
+      Eight ratios compare current-year balance-sheet and income-statement
+      quantities to their prior-year analogues. A linear combination with
+      paper-reported coefficients gives M; firms with M above the cutoff
+      are flagged. The variables capture receivables quality (DSRI),
+      margin deterioration (GMI), asset quality (AQI), growth (SGI),
+      depreciation (DEPI), SG&A (SGAI), leverage (LVGI), and accruals
+      (TATA — by far the heaviest-weighted of the eight).
+    formulas_extracted_from_paper:
+      M_score: >-
+        M = -4.840 + 0.920*DSRI + 0.528*GMI + 0.404*AQI + 0.892*SGI
+            + 0.115*DEPI - 0.172*SGAI + 4.679*TATA - 0.327*LVGI
+      DSRI: "(trade_receivables_net_t / revenue_t) / (trade_receivables_net_{t-1} / revenue_{t-1})"
+      GMI: "((revenue_{t-1} - cost_of_goods_sold_{t-1}) / revenue_{t-1}) / ((revenue_t - cost_of_goods_sold_t) / revenue_t)"
+      AQI: >-
+        (1 - (current_assets_t + property_plant_equipment_net_t) / total_assets_t) /
+        (1 - (current_assets_{t-1} + property_plant_equipment_net_{t-1}) / total_assets_{t-1})
+      SGI: "revenue_t / revenue_{t-1}"
+      DEPI: >-
+        (depreciation_and_amortization_{t-1} / (depreciation_and_amortization_{t-1} + property_plant_equipment_net_{t-1})) /
+        (depreciation_and_amortization_t / (depreciation_and_amortization_t + property_plant_equipment_net_t))
+      SGAI: "(selling_general_admin_expense_t / revenue_t) / (selling_general_admin_expense_{t-1} / revenue_{t-1})"
+      LVGI: >-
+        ((long_term_debt_t + current_liabilities_t) / total_assets_t) /
+        ((long_term_debt_{t-1} + current_liabilities_{t-1}) / total_assets_{t-1})
+      TATA: >-
+        MVP approximation (see implementation_decisions):
+        ((ΔCurrent Assets - ΔCurrent Liabilities) - depreciation_and_amortization_t)
+        / total_assets_t. The paper's full definition additionally subtracts
+        ΔCash and ΔCurrent Maturities of LTD inside the numerator; neither
+        is a canonical line item at MVP, so the simplified form is used and
+        the skill warns tata_approximation.
+    threshold: "M > -1.78 ⇒ manipulator_likely (Beneish 1999 p. 16, 20:1-to-30:1 cost-ratio regime)."
+  expected_results:
+    metric_kind: "scalar M-score + categorical flag + 8 component values"
+    interpretation_guide: >-
+      Above -1.78 → flag as a screening match (Type I error ~50% per the
+      paper's holdout). Between -2.22 and -1.78 → would not flag under
+      the 2013 variant but does flag under 1999. Below -2.22 → unflagged
+      under either threshold.
+  takeaways:
+    - "Useful as a screening tool, NOT a fraud verdict."
+    - "Cutoff and coefficients are paper-specific; re-estimating on modern data would shift both."
+    - "Type I error (missed manipulators) is high; the model trades sensitivity for specificity."
+    - "Rapid-growth firms routinely register in the flagged region; cross-check with industry context."
+  use_cases:
+    - "Earnings-quality red-flag screen during equity diligence."
+    - "Quarterly earnings-season anomaly watch."
+    - "Accruals-quality factor in a multi-signal quant model."
+
+implementation_decisions:
+  - decision: >-
+      Threshold used: -1.78, paper-faithful (Beneish 1999 p. 16 §'The Model
+      as a Classification Tool').
+    rationale: >-
+      The -2.22 threshold commonly cited (and referenced in an early draft
+      of mvp_build_goal.md §3/§6) comes from Beneish, Lee & Nichols (2013),
+      a different paper with a different estimation sample. To keep
+      'paper-derived' honest we use the 1999 value and document the
+      divergence. See BUILD_REFS.md §4.2 and rules/templates/m_score_components.yaml.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      TATA is computed using the 16-canonical-line-item approximation
+      (ΔCA − ΔCL − D&A) / TA_t rather than the paper's full definition,
+      which additionally subtracts ΔCash, ΔCurrent Maturities of LTD,
+      and ΔIncome Tax Payable.
+    rationale: >-
+      The MVP canonical statements do not break out cash, current
+      maturities of long-term debt, or income tax payable as separate
+      line items. The approximation drops terms that are typically
+      small for the 5 sample issuers and leaves a monotone relationship
+      with the paper-exact TATA. The skill emits warning=tata_approximation
+      on every call so the downstream eval's ±0.10 tolerance is
+      intentional rather than silent.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      "Receivables" in DSRI is trade receivables only (canonical
+      trade_receivables_net), excluding other receivables.
+    rationale: >-
+      Beneish uses Compustat item RECT (trade receivables net of
+      allowance); our canonical_name maps to the same construct. Using
+      the fuller receivables concept (AccountsNotesAndLoansReceivableNet
+      Current) would inflate DSRI for financing-receivable-heavy
+      issuers (e.g. Carvana) without paper support.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Pre-iXBRL filings (Enron FY1999/FY2000, WorldCom FY2000/FY2001)
+      are computed on the hand-authored manual-extraction YAML values.
+      Confidence is reduced by 0.1 per line item sourced from those
+      fixtures.
+    rationale: >-
+      iXBRL did not exist; SGML extraction is the only faithful path.
+      Confidence degradation is the recommended mechanism per §13
+      decision 3.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer.
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 'year t' 10-K filing, ISO yyyy-mm-dd.
+    use_restated_if_available:
+      type: boolean
+      description: >-
+        When true, prefer restated financials over as-originally-filed
+        numbers. At MVP no restated versions are ingested for any of the
+        5 sample issuers, so this flag is a no-op; included for forward
+        compatibility.
+
+outputs:
+  type: object
+  required: [m_score, flag, components, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    m_score:
+      type: ["number", "null"]
+      description: >-
+        Scalar M-score. Null when flag is indeterminate (any required
+        component is null).
+    flag:
+      type: string
+      enum: [manipulator_likely, manipulator_unlikely, indeterminate]
+      description: >-
+        Categorical flag. 'manipulator_likely' when M > -1.78;
+        'manipulator_unlikely' when M <= -1.78; 'indeterminate' when M
+        cannot be computed.
+    components:
+      type: object
+      description: >-
+        The eight Beneish ratio components. Each can be null if an input
+        line item is missing.
+      additionalProperties: true
+      properties:
+        DSRI:
+          type: ["number", "null"]
+          description: Days Sales in Receivables Index.
+        GMI:
+          type: ["number", "null"]
+          description: Gross Margin Index.
+        AQI:
+          type: ["number", "null"]
+          description: Asset Quality Index.
+        SGI:
+          type: ["number", "null"]
+          description: Sales Growth Index.
+        DEPI:
+          type: ["number", "null"]
+          description: Depreciation Index.
+        SGAI:
+          type: ["number", "null"]
+          description: SG&A Index.
+        LVGI:
+          type: ["number", "null"]
+          description: Leverage Index.
+        TATA:
+          type: ["number", "null"]
+          description: Total Accruals to Total Assets.
+    citations:
+      type: array
+      description: >-
+        Citations for every canonical line item that fed into the
+        components. One Citation per (line_item, year).
+      items:
+        type: object
+        description: One Citation record.
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 1.0 and is reduced
+        by data-quality flags: −0.1 per pre-iXBRL manual-extraction line
+        item; −0.15 for any extrapolated component (e.g. tata_approximation).
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Expected at MVP: 'tata_approximation'
+        on every call; 'pre_ixbrl_manual_extraction' for Enron / WorldCom;
+        missing-component explanations when flag=indeterminate.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    components: >-
+      every non-null component must have at least one Citation record for
+      each underlying canonical line item — DSRI: 4, GMI: 4, AQI: 6, SGI: 2,
+      DEPI: 4, SGAI: 4, LVGI: 6, TATA: 5. Citations are attached at the
+      top-level 'citations' array.
+    m_score: >-
+      when m_score is non-null, at minimum revenue_t, revenue_{t-1}, and
+      total_assets_t must be cited.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<statement_role>::<canonical_line_item_name>"
+
+confidence:
+  computed_from:
+    - "pre_ixbrl_manual_extraction_line_items (−0.1 each, clamped at 0)"
+    - "tata_approximation (−0.15 fixed)"
+    - "extreme_component_magnitudes (post-MVP; currently not applied)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills:
+    - skill_id: extract_canonical_statements
+      min_version: 0.1.0
+  lib:
+    - mvp.standardize.statements
+    - mvp.lib.citation
+    - mvp.ingestion.filings_ingest
+  rules:
+    - rules/templates/m_score_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/beneish/
+  eval_metrics:
+    - name: m_score_within_0_10
+      target: ">= 4/5 cases"
+    - name: flag_match_rate
+      target: ">= 4/5 cases"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The paper's estimation sample is 1982–1992 pre-ASC-606 US GAAP;
+    coefficients may not generalize to post-ASC-606 filings. Use as
+    screening, not verdict.
+  - >-
+    Service-economy firms with low PP&E produce noisy DEPI; the paper's
+    own DEPI coefficient (0.115, t=0.70) is insignificant.
+  - >-
+    WorldCom's manipulation was capitalization of line costs as capex —
+    a pattern that shows weakly in the Beneish ratios (WorldCom's M
+    tends to land near -1.5 to -1.3, barely over the threshold).
+  - >-
+    TATA uses the 16-canonical approximation; the exact paper
+    definition requires ΔCurrent Maturities of LTD and ΔIncome Tax
+    Payable which are not broken out at MVP.
+  - >-
+    LLM-refined natural-language interpretation is post-MVP; the
+    interpret_m_score_components skill provides deterministic,
+    template-substituted per-component interpretations.
+
+examples:
+  - name: "Enron FY2000 — canonical positive case"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    expected_flag: "manipulator_likely"
+    expected_m_score_range: [-1.0, 2.5]
+    notes: >-
+      Beneish and follow-up papers report Enron flagged on this filing.
+      Exact M depends on TATA treatment (the paper's full definition vs
+      our approximation); a range is used in the gold file.
+  - name: "Apple FY2023 — negative control"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    expected_flag: "manipulator_unlikely"
+    expected_m_score_range: [-3.5, -2.0]
+    notes: >-
+      Apple's M-score is expected well below −1.78; a steady large-cap
+      in the control-sample band.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 120

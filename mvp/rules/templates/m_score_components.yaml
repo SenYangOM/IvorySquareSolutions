@@ -1,0 +1,918 @@
+# mvp/rules/templates/m_score_components.yaml
+#
+# Per-component interpretation rules for the eight Beneish (1999) ratios
+# used by the compute_beneish_m_score skill. Authored by the
+# accounting_expert persona (Phase 3). Consumed by mvp/engine/rule_executor.py
+# (Phase 4) and by the L2 interpret_m_score_components skill.
+#
+# Numeric thresholds are sourced from Beneish (1999), "The Detection of
+# Earnings Manipulation," Financial Analysts Journal 55(5), Table 2
+# (estimation-sample descriptive statistics). Table 2 reports, for each
+# of the eight variables, the mean and median for (50 pre-1989
+# manipulators) and (1708 industry-matched non-manipulator controls).
+# Pdftotext line numbers referenced here come from the calctopia mirror
+# ingested in Phase 1; sha256 78b2f0143770c9c06871ba8e8d8fb764fc95a4dd379ae37e1c301d16c42faffe.
+#
+# Authoring note on threshold sources. For each of the eight
+# components, Beneish reports:
+#   - manipulator_mean  — Table 2, first numeric column, row corresponding
+#     to this variable.
+#   - manipulator_median — Table 2, second numeric column, same row.
+#   - control_mean  — Table 2, third numeric column.
+#   - control_median — Table 2, fourth numeric column.
+# The per-component high-severity threshold in this file is the
+# manipulator mean where that value exceeds the control mean by a
+# meaningful margin (i.e., where the Wilcoxon or median test reports
+# p < 0.10 in the paper). Where the paper reports no discriminating
+# separation (DEPI, SGAI, LVGI) the high-severity threshold is taken as
+# the 90th percentile of the overall-sample distribution implied by the
+# reported mean and standard deviation; this is an extrapolation beyond
+# the paper's own discriminating claim and is noted explicitly in the
+# corresponding contextual_caveats block.
+#
+# Canonical line-item names cited in citations_required MUST match
+# mvp/standardize/mappings.py exactly. The citations the skill ships
+# are keyed to these names.
+
+template_version: "0.1.0"
+paper: "Beneish (1999), The Detection of Earnings Manipulation, Financial Analysts Journal 55(5)."
+paper_pdf_sha256: "78b2f0143770c9c06871ba8e8d8fb764fc95a4dd379ae37e1c301d16c42faffe"
+
+# -----------------------------------------------------------------------------
+# 1. DSRI — Days Sales in Receivables Index
+# -----------------------------------------------------------------------------
+components:
+
+  - component: DSRI
+    full_name: "Days Sales in Receivables Index"
+    description: >-
+      Ratio of (trade receivables / revenue) in year t to the same ratio
+      in year t-1. Measures whether receivables and revenues are in
+      balance across two consecutive years. Beneish's first-named
+      variable: "disproportionate increases in receivables relative to
+      sales may also be suggestive of revenue inflation" (1999, p. 10).
+    formula: "(trade_receivables_net_t / revenue_t) / (trade_receivables_net_{t-1} / revenue_{t-1})"
+    canonical_inputs:
+      - "trade_receivables_net (period=t)"
+      - "trade_receivables_net (period=t-1)"
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 1 (variable definition), Table 2 (estimation-sample descriptive statistics)"
+      page: "Definition on p. 10-11; Table 2 reports manipulator mean 1.465, manipulator median 1.281; control mean 1.031, control median 0.996."
+    interpretation_rules:
+      - condition: "value > 1.465"
+        interpretation: |
+          Trade receivables grew materially faster than sales over the
+          comparison window. A reading at or above 1.465 is at the
+          manipulator-sample mean reported in Beneish's 1999 Table 2 —
+          i.e., the top of the distribution Beneish built his model on.
+          Usual drivers are (1) channel stuffing at fiscal-year-end,
+          (2) relaxed credit terms pulling future quarters' revenue
+          forward, (3) a genuine collection problem the firm has not
+          yet fully provisioned, or (4) a step-up in non-ordinary-course
+          receivables (energy-trading mark-to-market, service-contract
+          receivables). Reading this alone does not accuse; it obliges
+          a specific inquiry into which of these drives the change.
+        severity: "high"
+        follow_up_questions:
+          - "Did the company disclose a change in credit terms or customer-mix shift in the MD&A or the revenue-recognition footnote?"
+          - "Is the year-over-year change concentrated in one large customer, or broadly diffused across the receivables aging?"
+          - "How did the allowance for doubtful accounts move relative to gross receivables, and does the motion match the composition change?"
+        citations_required:
+          - "trade_receivables_net (period=t)"
+          - "trade_receivables_net (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "1.1 < value <= 1.465"
+        interpretation: |
+          Receivables are growing somewhat faster than sales — above the
+          control-sample mean of 1.031 but below the manipulator mean.
+          A real reviewer would note this and read on. In practice this
+          band captures (a) firms in a growth phase legitimately
+          extending terms to land larger customers, (b) mix shifts
+          toward enterprise / government customers with longer DSO, or
+          (c) the normal jitter of a working-capital year-end cut-off.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the customer base concentrating toward slower-paying segments (enterprise, government, international)?"
+          - "Did DSO change consistently across the last three years, or only in the current year?"
+        citations_required:
+          - "trade_receivables_net (period=t)"
+          - "trade_receivables_net (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "0.9 <= value <= 1.1"
+        interpretation: |
+          Receivables grew roughly in line with sales — the value sits
+          within the center of the control-sample distribution (control
+          median 0.996). No signal; the component is neutral. The
+          accompanying components will carry most of the weight for
+          this filing.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "trade_receivables_net (period=t)"
+          - "trade_receivables_net (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "value < 0.9"
+        interpretation: |
+          Receivables shrank relative to sales. In the Beneish framework
+          this tail is benign — the paper's eight-variable model loads
+          positively on DSRI, so low values do not flag. In practice
+          the driver is usually (a) an improvement in collections or
+          factoring of receivables, (b) a customer-mix shift toward
+          shorter-paying segments (consumer, point-of-sale), or (c) a
+          material one-time receipt right before fiscal year-end. None
+          of these is a manipulation signal.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "trade_receivables_net (period=t)"
+          - "trade_receivables_net (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+    contextual_caveats:
+      - "A large acquisition closing in year t will add the acquired entity's receivables to the numerator without a full year of corresponding revenue in the denominator; compute the index on organic-only balances where the acquisition is disclosed."
+      - "A business model that mixes product sales with long-duration service contracts (energy trading, construction) can produce DSRI above 1.465 for entirely legitimate reasons; consult the revenue-recognition footnote."
+      - "The < 0.9 lower bound is an accountant-authored extrapolation beyond what Beneish (1999) reports — the paper treats DSRI as one-sided and does not discuss the low tail. We include the band only so the rule set partitions the real line with no gaps."
+      - "For filers on an Article 5 of Regulation S-X (banks, insurance) or otherwise without a conventional trade-receivables concept, DSRI is not meaningful and the skill returns null."
+
+# -----------------------------------------------------------------------------
+# 2. GMI — Gross Margin Index
+# -----------------------------------------------------------------------------
+
+  - component: GMI
+    full_name: "Gross Margin Index"
+    description: >-
+      Ratio of the prior year's gross margin to the current year's gross
+      margin. GMI > 1 means the gross margin has deteriorated.
+      Beneish: "Lev and Thiagarajan (1993) suggest that gross margin
+      deterioration is a negative signal about firms' prospects" (1999,
+      p. 11); poor-prospect firms have greater incentives to manipulate.
+    formula: "((revenue_{t-1} - cost_of_goods_sold_{t-1}) / revenue_{t-1}) / ((revenue_t - cost_of_goods_sold_t) / revenue_t)"
+    canonical_inputs:
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+      - "cost_of_goods_sold (period=t)"
+      - "cost_of_goods_sold (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11; Table 2 reports manipulator mean 1.193, median 1.036; control mean 1.014, median 1.001. Wilcoxon p = 0.006, median-test p = 0.007 — significant at the 1% level in both."
+    interpretation_rules:
+      - condition: "value > 1.193"
+        interpretation: |
+          Gross margin deteriorated materially year-over-year — the
+          current-period gross margin is at most 84% of the prior
+          period's. A reading at or above 1.193 matches the mean GMI
+          among Beneish's AAER-identified manipulators and is in the
+          right tail of the overall distribution. Typical drivers are
+          (1) deteriorating pricing power against competitors, (2) an
+          input-cost squeeze the firm is not yet passing through, (3)
+          a customer-mix shift into lower-margin accounts, or (4)
+          early-stage product transitions that raise unit cost before
+          volume catches up. Poor prospects of this kind are what
+          Beneish's model treats as a manipulation-incentive channel.
+        severity: "high"
+        follow_up_questions:
+          - "What does the MD&A identify as the driver — price, mix, input cost, volume deleverage — and is the explanation quantitatively consistent with the reported margin change?"
+          - "Has the firm launched a new product line, entered a new geography, or acquired a lower-margin business in the period?"
+          - "Did the cost-of-goods-sold line absorb any one-time charges (inventory write-down, supplier-contract loss) that should be broken out before interpreting the trend?"
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+          - "cost_of_goods_sold (period=t)"
+          - "cost_of_goods_sold (period=t-1)"
+
+      - condition: "1.04 < value <= 1.193"
+        interpretation: |
+          Gross margin weakened modestly, above the control mean of
+          1.014 but below the manipulator mean. Common drivers in this
+          band are cyclical — commodity prices, FX translation, or a
+          single large contract carrying a lower-than-portfolio margin.
+          A real reviewer would ask whether the deterioration continues
+          into the next period and whether management has flagged it.
+        severity: "medium"
+        follow_up_questions:
+          - "Has the firm disclosed a specific input-cost headwind in the MD&A (fuel, materials, wages, tariffs)?"
+          - "Is the lower current-period margin consistent with a mix shift the firm has explicitly called out, or unexplained?"
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+          - "cost_of_goods_sold (period=t)"
+          - "cost_of_goods_sold (period=t-1)"
+
+      - condition: "0.95 <= value <= 1.04"
+        interpretation: |
+          Gross margin is approximately stable year-over-year — the
+          control-sample band. No signal from this component. The
+          result is consistent with a steady competitive environment
+          and no material change in product or customer mix.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+          - "cost_of_goods_sold (period=t)"
+          - "cost_of_goods_sold (period=t-1)"
+
+      - condition: "value < 0.95"
+        interpretation: |
+          Gross margin improved year-over-year — the inverse of the
+          manipulation-incentive tail. In the Beneish framework GMI is
+          one-sided and the low tail is not treated as informative. In
+          practice margin expansion of this magnitude typically follows
+          successful pricing action, operational leverage on higher
+          volume, or a one-time cost benefit; the appropriate next
+          question is sustainability, not manipulation.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+          - "cost_of_goods_sold (period=t)"
+          - "cost_of_goods_sold (period=t-1)"
+
+    contextual_caveats:
+      - "For services-heavy filers where 'cost of goods sold' does not exist as a line and the standardizer maps cost_of_revenue or cost_of_services in its place, GMI remains interpretable but the 'gross margin' concept is not directly comparable to a manufacturing peer's."
+      - "WorldCom's manipulation — capitalizing line costs as capex rather than expensing them — depresses cost_of_goods_sold directly and therefore inflates gross margin; WorldCom's GMI in the manipulation year came in below 1.0, which is why Beneish's reported M-score for WorldCom is famously marginal and the component for this type of fraud misleads."
+      - "The < 0.95 and 0.95–1.04 bands are chosen to straddle the control-sample mean of 1.014 with roughly symmetric width; they are accountant-authored and not reported in Beneish (1999)."
+
+# -----------------------------------------------------------------------------
+# 3. AQI — Asset Quality Index
+# -----------------------------------------------------------------------------
+
+  - component: AQI
+    full_name: "Asset Quality Index"
+    description: >-
+      Ratio of (1 - (current_assets + PP&E_net) / total_assets) in year t
+      to the same ratio in year t-1. I.e., the year-over-year growth in
+      the share of total assets made up of items other than current
+      assets and PP&E — intangibles, deferred charges, goodwill, equity-
+      method investments, and long-lived "other." AQI > 1 indicates the
+      firm has increased its involvement in cost deferral (Beneish 1999
+      p. 11).
+    formula: "(1 - (current_assets_t + property_plant_equipment_net_t) / total_assets_t) / (1 - (current_assets_{t-1} + property_plant_equipment_net_{t-1}) / total_assets_{t-1})"
+    canonical_inputs:
+      - "current_assets (period=t)"
+      - "current_assets (period=t-1)"
+      - "property_plant_equipment_net (period=t)"
+      - "property_plant_equipment_net (period=t-1)"
+      - "total_assets (period=t)"
+      - "total_assets (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11; Table 2 reports manipulator mean 1.254, median 1.000; control mean 1.039, median 1.000. Wilcoxon p = 0.096, median-test p = 0.246 — only weakly significant, so the high band is a tail-of-distribution claim, not a median-difference one."
+    interpretation_rules:
+      - condition: "value > 1.254"
+        interpretation: |
+          The non-current, non-PP&E share of the balance sheet grew
+          materially — typically this is goodwill from an acquisition,
+          capitalized software, deferred contract-acquisition costs, or
+          "other long-term assets." A reading at or above 1.254 is at
+          the manipulator-sample mean. Beneish interprets the tail as
+          evidence of increased cost-deferral activity: expenses that
+          have been capitalized onto the balance sheet rather than
+          flowed through the income statement. Before accepting the
+          signal, rule out the benign driver (a large acquisition).
+        severity: "high"
+        follow_up_questions:
+          - "Did the firm close a material acquisition in the period, and does the goodwill addition on the balance sheet match the purchase-accounting disclosures?"
+          - "What specific 'other non-current asset' line items changed most, and how are they described in the footnotes?"
+          - "Has the firm changed an accounting policy to capitalize previously-expensed development or implementation costs?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "1.04 < value <= 1.254"
+        interpretation: |
+          A modest increase in the non-current, non-PP&E share of
+          assets. Benign drivers in this band dominate: a small
+          acquisition, an increase in operating lease right-of-use
+          assets under ASC 842, or growth in deferred tax assets. Still
+          worth a read-through of the "other assets" footnote.
+        severity: "medium"
+        follow_up_questions:
+          - "Which 'other non-current asset' subcomponent grew the most, and what does the footnote attribute it to?"
+          - "Has the firm adopted a new accounting standard in the period (e.g., ASC 842) that mechanically shifts the composition?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "0.95 <= value <= 1.04"
+        interpretation: |
+          Asset composition is approximately stable — the balance
+          between current assets, PP&E, and long-lived "other" items is
+          the same as last year. No signal. Beneish treats a value of
+          exactly 1.0 as the neutral reference (p. 12 of the paper:
+          when the denominator was zero in Compustat he set AQI to
+          one).
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "value < 0.95"
+        interpretation: |
+          The non-current non-PP&E share of assets shrank — usually
+          because of an impairment charge writing off intangibles, a
+          divestiture, or a deliberate balance-sheet cleanup. Not a
+          Beneish manipulation signal (the component is one-sided), but
+          the driver is worth naming in the interpretation because
+          impairments often accompany an earnings-quality deterioration
+          elsewhere in the filing.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+    contextual_caveats:
+      - "An acquisition accounted for with purchase-method goodwill will always show AQI > 1 in the year of close — this is a mechanical effect, not a quality signal. Cross-check the goodwill roll-forward in the footnotes before accepting the flag."
+      - "For filers adopting ASC 842 (leases) in the comparison window, the mechanical addition of a right-of-use asset can push AQI above 1 without any substantive deferral. The standard-adoption year is a caveat year."
+      - "The denominator of the inner ratio (total_assets) zeroes the inner ratio if total_assets is zero; for all MVP filings this is never the case, but the engine should treat total_assets == 0 as indeterminate rather than dividing."
+
+# -----------------------------------------------------------------------------
+# 4. SGI — Sales Growth Index
+# -----------------------------------------------------------------------------
+
+  - component: SGI
+    full_name: "Sales Growth Index"
+    description: >-
+      Ratio of sales in year t to sales in year t-1. SGI > 1 indicates
+      growth. Beneish: "growth does not imply manipulation, but growth
+      firms are viewed by professionals as more likely to commit
+      financial statement fraud because their financial position and
+      capital needs put pressure on managers to achieve earnings
+      targets" (1999, p. 11).
+    formula: "revenue_t / revenue_{t-1}"
+    canonical_inputs:
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11; Table 2 reports manipulator mean 1.607, median 1.411; control mean 1.134, median 1.106. Wilcoxon and median tests both p = 0.000."
+    interpretation_rules:
+      - condition: "value > 1.607"
+        interpretation: |
+          Extremely high year-over-year sales growth — at or above the
+          manipulator-sample mean of 1.607 (i.e., 60.7% growth). A
+          reading here is squarely in the zone where, as Beneish notes
+          (p. 11), the combination of capital-market pressure and
+          internal-controls-lagging-operations creates the strongest
+          manipulation incentive. Growth this fast is not itself a fraud
+          signal — the paper is emphatic on this — but is a condition
+          under which the other Beneish components deserve more weight,
+          especially DSRI and TATA.
+        severity: "high"
+        follow_up_questions:
+          - "Is the growth organic, acquired, or FX-driven, and can the firm's disclosures decompose it cleanly?"
+          - "Is revenue backlog (remaining performance obligations under ASC 606) consistent with the reported growth, or is current-period revenue running ahead of future obligations?"
+          - "Do the other Beneish components (DSRI, TATA especially) agree with the growth-accompanies-manipulation hypothesis in this specific filing?"
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "1.134 < value <= 1.607"
+        interpretation: |
+          Healthy growth, above the control-sample mean of 1.134 but
+          below the manipulator mean. A real reviewer treats this band
+          as normal for a growing firm in a growing industry and reads
+          the other components on their merits rather than pre-weighing
+          this filing toward a manipulation conclusion.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the growth rate consistent with the firm's stated industry-end-market dynamics?"
+          - "How does the growth compare to peer-median and to management's prior-period guidance?"
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "0.95 <= value <= 1.134"
+        interpretation: |
+          Low-single-digit to modest growth — within the control-sample
+          band. No signal from SGI alone; the manipulation-incentive
+          channel Beneish describes is not active in this filing.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "value < 0.95"
+        interpretation: |
+          Sales contracted year-over-year. Beneish's SGI loads positively
+          on manipulation probability, so decline is the opposite tail
+          from what the model flags. In practice a real reviewer reads
+          a revenue decline with the opposite concern — whether the
+          firm has avoided impairments, restructurings, or revenue
+          pull-forwards that would have smoothed the contraction —
+          and that concern is handled by other components (AQI, TATA).
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+    contextual_caveats:
+      - "M&A activity materially distorts SGI; for a close review, compute organic SGI (excluding the acquired entity's stub-period revenue) from the acquisition footnote."
+      - "Currency translation can add or subtract several percentage points of SGI for internationally-diversified firms; MD&A constant-currency disclosures should be consulted before flagging."
+      - "Recent ASC 606 adopters may show a one-time SGI distortion in the adoption year from over-time vs. point-in-time revenue reclassifications — note the adoption date before interpreting."
+
+# -----------------------------------------------------------------------------
+# 5. DEPI — Depreciation Index
+# -----------------------------------------------------------------------------
+
+  - component: DEPI
+    full_name: "Depreciation Index"
+    description: >-
+      Ratio of the depreciation rate in year t-1 to the depreciation rate
+      in year t, where depreciation rate = depreciation / (depreciation +
+      net PP&E). DEPI > 1 means the rate at which assets are depreciated
+      has slowed — possibly because the firm revised useful-life
+      estimates upward or adopted an income-increasing method (Beneish
+      1999 p. 11).
+    formula: "(depreciation_and_amortization_{t-1} / (depreciation_and_amortization_{t-1} + property_plant_equipment_net_{t-1})) / (depreciation_and_amortization_t / (depreciation_and_amortization_t + property_plant_equipment_net_t))"
+    canonical_inputs:
+      - "depreciation_and_amortization (period=t)"
+      - "depreciation_and_amortization (period=t-1)"
+      - "property_plant_equipment_net (period=t)"
+      - "property_plant_equipment_net (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11 with footnote 10; Table 2 reports manipulator mean 1.077, median 0.966; control mean 1.001, median 0.974. Wilcoxon p = 0.307, median-test p = 0.774 — the paper does NOT report a statistically significant separation between manipulators and controls on this variable. The model's estimated coefficient is also insignificant (t = 0.70 in Table 3)."
+    interpretation_rules:
+      - condition: "value > 1.10"
+        interpretation: |
+          The depreciation rate slowed meaningfully. Common drivers are
+          (1) a disclosed change in useful-life estimates extending the
+          period over which PP&E is depreciated, (2) a shift from
+          accelerated to straight-line depreciation, (3) a large recent
+          capital addition whose depreciation has not yet built up, or
+          (4) an impairment in year t-1 that deflated the prior-year
+          denominator. A real reviewer reads the depreciation footnote
+          and the PP&E roll-forward before concluding anything.
+          Beneish's own Table 3 coefficient on this variable is
+          insignificant (t = 0.70), so treat even a high reading as
+          corroborating evidence at best, not a standalone flag.
+        severity: "high"
+        follow_up_questions:
+          - "Has the firm disclosed a change in useful-life assumptions or depreciation method in the accounting-policies footnote?"
+          - "What is the gross PP&E addition in year t (capex less disposals), and does it explain the denominator change without a policy change?"
+          - "Was there a year-t-1 impairment that mechanically deflated the prior denominator and thus inflates DEPI mechanically?"
+        citations_required:
+          - "depreciation_and_amortization (period=t)"
+          - "depreciation_and_amortization (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+
+      - condition: "1.02 < value <= 1.10"
+        interpretation: |
+          Mild slowing of depreciation — typically within-range for a
+          firm that has added PP&E during the year (new plant,
+          equipment purchases) whose full-year depreciation has not yet
+          flowed through. No policy-change inference warranted without
+          further disclosure.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the capex run-rate in the period materially higher than in prior years?"
+          - "Does the accounting-policies footnote discuss any useful-life reassessment?"
+        citations_required:
+          - "depreciation_and_amortization (period=t)"
+          - "depreciation_and_amortization (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+
+      - condition: "0.92 <= value <= 1.02"
+        interpretation: |
+          Depreciation rate approximately stable. No signal. Sitting
+          close to the control-sample median of 0.974 and the
+          manipulator median of 0.966 — i.e., the two distributions
+          overlap heavily at this point and DEPI is not discriminating.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "depreciation_and_amortization (period=t)"
+          - "depreciation_and_amortization (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+
+      - condition: "value < 0.92"
+        interpretation: |
+          Depreciation rate accelerated — the opposite tail from the
+          Beneish hypothesis. Drivers are typically the reverse of the
+          high-tail drivers (shorter useful lives, accelerated methods,
+          a recent impairment increasing the depreciable base's
+          effective rate). Not a manipulation signal in the Beneish
+          framework.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "depreciation_and_amortization (period=t)"
+          - "depreciation_and_amortization (period=t-1)"
+          - "property_plant_equipment_net (period=t)"
+          - "property_plant_equipment_net (period=t-1)"
+
+    contextual_caveats:
+      - "The paper's own Table 3 reports an insignificant coefficient on DEPI (0.115, t = 0.70). Treating a high DEPI reading as a strong red flag in isolation overstates what the paper supports."
+      - "Beneish (1999 footnote on p. 12) notes that when Amortization of Intangibles (Compustat #65) was not available, DEPI was set to 1 — our implementation treats null D&A analogously, noted in implementation_decisions."
+      - "For filers whose D&A line commingles substantial amortization of intangibles (goodwill impairment eras, capitalized-software amortization heavy), the 'depreciation' denominator is not pure PP&E depreciation and the Beneish interpretation is looser."
+      - "The >1.10, 1.02–1.10, 0.92–1.02, <0.92 band boundaries are accountant-authored to span the center of the combined distribution — they are not reported in the paper, which provides only mean/median summary statistics for DEPI."
+
+# -----------------------------------------------------------------------------
+# 6. SGAI — SG&A Index
+# -----------------------------------------------------------------------------
+
+  - component: SGAI
+    full_name: "Sales, General and Administrative Expenses Index"
+    description: >-
+      Ratio of (SG&A / revenue) in year t to the same ratio in year t-1.
+      SGAI > 1 indicates SG&A is becoming a larger fraction of revenue —
+      "analysts would interpret a disproportionate increase in [SG&A as
+      a proportion of] sales as a negative signal about firms' future
+      prospects" (Beneish 1999 p. 11, citing Lev and Thiagarajan 1993).
+    formula: "(selling_general_admin_expense_t / revenue_t) / (selling_general_admin_expense_{t-1} / revenue_{t-1})"
+    canonical_inputs:
+      - "selling_general_admin_expense (period=t)"
+      - "selling_general_admin_expense (period=t-1)"
+      - "revenue (period=t)"
+      - "revenue (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11; Table 2 reports manipulator mean 1.041, median 0.960; control mean 1.054, median 1.010. Wilcoxon p = 0.271, median-test p = 0.389 — controls actually have a slightly higher SGAI than manipulators on these summary measures, and the Table 3 coefficient is insignificant and wrong-signed (-0.172, t = -0.71)."
+    interpretation_rules:
+      - condition: "value > 1.10"
+        interpretation: |
+          SG&A grew disproportionately to revenue. Beneish (p. 11)
+          positions this as a future-prospects signal — the firm is
+          spending relatively more on overhead to produce the same
+          revenue. In practice the drivers split: (1) investment mode
+          (hiring ahead of revenue, larger sales force for a new
+          product) — a forward-looking positive; (2) deleverage on a
+          revenue decline — a backward-looking negative; (3) one-time
+          costs (restructuring charges sitting in SG&A, litigation
+          accruals, stock-based compensation spikes) — neither. The
+          interpretation depends entirely on which of these drives the
+          current-period reading.
+        severity: "high"
+        follow_up_questions:
+          - "Does the MD&A decompose the SG&A increase into expanded headcount, marketing investment, or one-time items?"
+          - "Is there a restructuring or litigation charge this period sitting inside SG&A that would not repeat?"
+          - "How does the SG&A-to-revenue ratio compare to the firm's stated long-term target operating model?"
+        citations_required:
+          - "selling_general_admin_expense (period=t)"
+          - "selling_general_admin_expense (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "1.02 < value <= 1.10"
+        interpretation: |
+          SG&A rose modestly relative to revenue. Typical drivers at
+          this level include ordinary-course wage inflation outrunning
+          price increases, growth-phase investment, or a small one-time
+          item. The signal is weak and does not materially alter the
+          overall reading of this filing.
+        severity: "medium"
+        follow_up_questions:
+          - "Does the firm disclose a specific investment-phase narrative (new go-to-market, geographic expansion)?"
+          - "Are there one-time items within SG&A that should be normalized out?"
+        citations_required:
+          - "selling_general_admin_expense (period=t)"
+          - "selling_general_admin_expense (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "0.90 <= value <= 1.02"
+        interpretation: |
+          SG&A ratio approximately stable. No signal from this
+          component. Sits near both the control median 1.010 and the
+          manipulator median 0.960 — overlap territory.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "selling_general_admin_expense (period=t)"
+          - "selling_general_admin_expense (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+      - condition: "value < 0.90"
+        interpretation: |
+          SG&A-to-revenue fell — the firm gained operating leverage on
+          overhead. Not a Beneish manipulation signal (the coefficient
+          on SGAI is insignificant and wrong-signed in the paper).
+          Drivers are typically volume leverage, cost-reduction
+          programs, or reclassification of overhead costs into cost of
+          goods sold.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "selling_general_admin_expense (period=t)"
+          - "selling_general_admin_expense (period=t-1)"
+          - "revenue (period=t)"
+          - "revenue (period=t-1)"
+
+    contextual_caveats:
+      - "Beneish's Table 3 coefficient on SGAI is insignificant and wrong-signed (-0.172, t = -0.71). Treat a high reading as one small input among eight, never as a standalone indicator."
+      - "For filers whose income statement uses a single 'Operating Expenses' line that bundles SG&A with cost of revenue (Enron FY2000/FY1999 is the MVP example), the standardizer maps this line to selling_general_admin_expense with a note; SGAI interpretation is compromised for such filers and should be flagged in the run-time warning."
+      - "Stock-based compensation concentrated in SG&A can produce large year-over-year swings unrelated to operating performance; consult the stock-compensation footnote."
+      - "The >1.10 and <0.90 band boundaries are accountant-authored, not reported in the paper."
+
+# -----------------------------------------------------------------------------
+# 7. LVGI — Leverage Index
+# -----------------------------------------------------------------------------
+
+  - component: LVGI
+    full_name: "Leverage Index"
+    description: >-
+      Ratio of ((long-term debt + current liabilities) / total assets) in
+      year t to the same ratio in year t-1. LVGI > 1 indicates rising
+      leverage. Included to capture debt-covenant incentives for earnings
+      manipulation (Beneish 1999 p. 12).
+    formula: "((long_term_debt_t + current_liabilities_t) / total_assets_t) / ((long_term_debt_{t-1} + current_liabilities_{t-1}) / total_assets_{t-1})"
+    canonical_inputs:
+      - "long_term_debt (period=t)"
+      - "long_term_debt (period=t-1)"
+      - "current_liabilities (period=t)"
+      - "current_liabilities (period=t-1)"
+      - "total_assets (period=t)"
+      - "total_assets (period=t-1)"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 2"
+      page: "Definition on p. 11-12; Table 2 reports manipulator mean 1.111, median 1.030; control mean 1.037, median 1.000. Wilcoxon p = 0.394, median-test p = 0.077 — marginal separation. Table 3 coefficient -0.327, t = -1.22 — insignificant and wrong-signed relative to the paper's ex-ante prediction."
+    interpretation_rules:
+      - condition: "value > 1.15"
+        interpretation: |
+          Leverage rose materially — (long-term debt + current
+          liabilities) / total assets grew by more than 15% of its
+          prior-year level. Drivers in this band include a debt-funded
+          acquisition, a debt-funded share buyback, a working-capital
+          build financed with payables or short-term debt, or a
+          pension-accounting remeasurement that inflated non-current
+          liabilities. Beneish's theoretical channel — covenant
+          pressure motivating manipulation — is live here. Real-world
+          relevance of the channel is modest: the paper's own
+          coefficient on LVGI is insignificant.
+        severity: "high"
+        follow_up_questions:
+          - "Does the firm disclose any covenant ratios in its debt footnotes, and if so what is the current cushion?"
+          - "Is the leverage increase driven by a specific identifiable transaction (acquisition, buyback, debt-funded dividend) or a broader balance-sheet movement?"
+          - "Are there material off-balance-sheet obligations (operating-lease commitments, guarantees, purchase obligations) whose change would push actual leverage higher?"
+        citations_required:
+          - "long_term_debt (period=t)"
+          - "long_term_debt (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "1.03 < value <= 1.15"
+        interpretation: |
+          Leverage rose modestly. Typical drivers include ordinary-
+          course borrowings to fund growth capex or working capital,
+          with no material change in risk profile. A real reviewer
+          checks the debt maturity schedule and the covenant footnotes
+          but does not flag this as a standalone concern.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the debt maturity wall within the next 12-24 months manageable at current refinancing rates?"
+          - "Have covenant ratios been disclosed and are they comfortably clear?"
+        citations_required:
+          - "long_term_debt (period=t)"
+          - "long_term_debt (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "0.95 <= value <= 1.03"
+        interpretation: |
+          Leverage approximately stable. Right around both the control
+          median (1.000) and the manipulator median (1.030) —
+          non-discriminating territory.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "long_term_debt (period=t)"
+          - "long_term_debt (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+      - condition: "value < 0.95"
+        interpretation: |
+          Leverage fell. Typical drivers are a debt paydown, an equity
+          issuance, or a total-assets denominator that grew faster than
+          liabilities (often from a retained-earnings build in a high-
+          profit year). Not a Beneish manipulation signal — the model's
+          coefficient on LVGI is negative and insignificant, so low
+          values do not flag.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "long_term_debt (period=t)"
+          - "long_term_debt (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "total_assets (period=t)"
+          - "total_assets (period=t-1)"
+
+    contextual_caveats:
+      - "LVGI in the Beneish model mixes long-term debt with the entirety of current liabilities — so a working-capital buildup (trade payables growth funding inventory) is counted as 'leverage' increasing. This is a feature of the paper's definition, not a bug; but a reviewer interpreting LVGI for a specific filing should know it."
+      - "ASC 842 lease-standard adoption adds right-of-use lease liabilities to the balance sheet and mechanically inflates LVGI in the adoption year; this is a one-time composition effect, not a covenant pressure signal."
+      - "The paper's Table 3 coefficient on LVGI is -0.327 with t = -1.22 — insignificant and wrong-signed. The paper treats this variable as a theoretical control rather than a strong discriminator."
+      - "The >1.15 and <0.95 band boundaries are accountant-authored, not reported in the paper."
+
+# -----------------------------------------------------------------------------
+# 8. TATA — Total Accruals to Total Assets
+# -----------------------------------------------------------------------------
+
+  - component: TATA
+    full_name: "Total Accruals to Total Assets"
+    description: >-
+      Total accruals divided by total assets, where total accruals are
+      computed as (ΔCurrent Assets - ΔCash) - (ΔCurrent Liabilities -
+      ΔCurrent Maturities of LTD - ΔIncome Tax Payable) - Depreciation
+      and Amortization (Beneish 1999 Table 1 note). TATA proxies for the
+      share of reported earnings driven by non-cash accruals — higher
+      values mean less cash underlies reported earnings.
+    formula: "((current_assets_t - current_assets_{t-1}) - (delta_cash) - ((current_liabilities_t - current_liabilities_{t-1}) - (delta_current_maturities_ltd) - (delta_income_tax_payable)) - depreciation_and_amortization_t) / total_assets_t"
+    canonical_inputs:
+      - "current_assets (period=t)"
+      - "current_assets (period=t-1)"
+      - "current_liabilities (period=t)"
+      - "current_liabilities (period=t-1)"
+      - "depreciation_and_amortization (period=t)"
+      - "total_assets (period=t)"
+      - "cash_flow_from_operating_activities (period=t)  # used only as a sanity cross-check, not in the formula itself"
+    paper_reference:
+      source: "Beneish (1999)"
+      table: "Table 1 (definition), Table 2 (descriptive statistics), Table 3 Panel A (coefficient)"
+      page: "Definition on p. 12; Table 2 reports manipulator mean 0.031, median 0.034; control mean 0.018, median 0.013. Wilcoxon p = 0.000, median-test p = 0.002. Table 3 coefficient 4.679, t = 3.73 — statistically significant and by far the largest single coefficient in the model."
+    interpretation_rules:
+      - condition: "value > 0.031"
+        interpretation: |
+          Accruals are funding a large share of reported earnings. TATA
+          at or above 0.031 matches the manipulator-sample mean — the
+          tail of the distribution where Beneish's Table 3 shows the
+          model's strongest discrimination (coefficient 4.679, the
+          largest in absolute terms). Typical drivers are (1) aggressive
+          revenue recognition that builds receivables faster than
+          cash, (2) inventory build not yet reversed through cost of
+          goods sold, (3) deferral of payables, (4) capitalization of
+          costs that reduce current-period expenses, or (5) changes in
+          working-capital accruals not backed by operations. A real
+          reviewer cross-checks by comparing net income to operating
+          cash flow — if they have diverged, TATA is the symptom.
+        severity: "high"
+        follow_up_questions:
+          - "How do net income and cash flow from operations compare year-over-year, and is the divergence consistent with disclosed working-capital movements?"
+          - "Which of the working-capital accounts (receivables, inventory, payables, accrued expenses) changed most materially, and what does the MD&A attribute the change to?"
+          - "Has the firm changed revenue-recognition estimates (returns reserve, warranty accrual, variable consideration) in the period?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "depreciation_and_amortization (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "0.018 < value <= 0.031"
+        interpretation: |
+          Accruals are elevated but not in the manipulator-mean tail.
+          In practice this band is ordinary for high-growth firms whose
+          working capital legitimately scales with revenue. The
+          component is directional rather than a strong standalone
+          signal at this level.
+        severity: "medium"
+        follow_up_questions:
+          - "Is the working-capital build consistent with the revenue growth this period?"
+          - "Does the cash-flow statement's working-capital reconciliation line up with the balance-sheet movements?"
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "depreciation_and_amortization (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "-0.02 <= value <= 0.018"
+        interpretation: |
+          Accruals are modest — earnings are largely cash-backed. This
+          is the zone where most non-manipulators in Beneish's sample
+          live (control mean 0.018, control median 0.013). No signal.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "depreciation_and_amortization (period=t)"
+          - "total_assets (period=t)"
+
+      - condition: "value < -0.02"
+        interpretation: |
+          Accruals are materially negative — operating cash flow
+          exceeds reported net income by a comfortable margin. In the
+          Beneish framework this tail is benign; it is often the
+          signature of a mature firm collecting down receivables,
+          working down inventory, or taking large depreciation charges
+          that the income statement has already reflected. Not a
+          manipulation signal.
+        severity: "low"
+        follow_up_questions: []
+        citations_required:
+          - "current_assets (period=t)"
+          - "current_assets (period=t-1)"
+          - "current_liabilities (period=t)"
+          - "current_liabilities (period=t-1)"
+          - "depreciation_and_amortization (period=t)"
+          - "total_assets (period=t)"
+
+    contextual_caveats:
+      - "Beneish's TATA definition uses the balance-sheet construction — it does NOT use cash_flow_from_operating_activities directly. The CFO line is available as a sanity cross-check: if (net income - CFO) / total_assets diverges materially from TATA, the engine should log a warning because one of the two constructions is being misled by classification differences (e.g., changes in restricted cash under ASU 2016-18)."
+      - "The paper's Table 1 note also subtracts ΔCurrent Maturities of LTD (Compustat #44) and ΔIncome Tax Payable (Compustat #71) inside the working-capital delta; these subtractions are small for the MVP's 5 filings but must be implemented faithfully for fidelity. The Phase 4 skill implementation tracks this as an implementation_decision — where the canonical statement does not break out these two line items, the skill estimates them and flags a warning."
+      - "TATA can be rendered uninterpretable by a large one-time balance-sheet restatement or by a business combination that changes the working-capital base between year t-1 and year t; in such periods the skill should return null with reason=\"balance_sheet_discontinuity\"."
+      - "The <-0.02 lower bound is accountant-authored; the paper's reported 1st-percentile-winsorized minimum on TATA isn't printed in Table 2, and we treat readings in the deeply-negative tail as benign in the Beneish framework only."
+
+# -----------------------------------------------------------------------------
+# Composite M-score threshold and flag logic
+# -----------------------------------------------------------------------------
+
+m_score_threshold:
+  value: -1.78
+  source: >-
+    Beneish (1999), "The Detection of Earnings Manipulation," Financial
+    Analysts Journal 55(5), p. 16 (paragraph beginning "I compute the
+    probability cut-offs"), direct quote: "at relative error costs of
+    20:1 or 30:1, the model classifies firms as manipulators when the
+    estimated probabilities exceed .0376 (a score greater than -1.78);
+    it misclassifies 26% of the manipulators and 13.8% of the
+    non-manipulators." 20:1-30:1 is the range Beneish recommends for
+    investors on p. 15-16 of the paper.
+  notes: >-
+    The -2.22 threshold sometimes cited (including in the project's
+    original scope doc, mvp_build_goal.md §3 and §6, pre-Phase-1
+    correction) is from Beneish, Lee & Nichols (2013) "Earnings
+    Manipulation and Expected Returns," a later paper with a different
+    estimation sample. This project uses the 1999 value (-1.78) to
+    keep "paper-derived" faithful. The Phase 4 skill manifest's
+    implementation_decisions block records the divergence and cites
+    BUILD_REFS.md §4.2.
+  coefficient_table:
+    intercept: -4.840
+    DSRI: 0.920
+    GMI: 0.528
+    AQI: 0.404
+    SGI: 0.892
+    DEPI: 0.115
+    SGAI: -0.172
+    TATA: 4.679
+    LVGI: -0.327
+    t_statistics:
+      intercept: -11.01
+      DSRI: 6.02
+      GMI: 2.20
+      AQI: 3.20
+      SGI: 5.39
+      DEPI: 0.70
+      SGAI: -0.71
+      TATA: 3.73
+      LVGI: -1.22
+    pseudo_r_squared: 0.371
+    chi_square: 129.20
+    source: "Beneish (1999) Table 3, Panel A, right column (Unweighted Probit). Same values as BUILD_REFS.md §4.1 and mvp_build_goal.md §6."
+  flag_logic:
+    - "if M > -1.78: flag = manipulator_likely"
+    - "if M <= -1.78: flag = manipulator_unlikely"
+    - "if any component input is null or TATA cannot be computed (e.g., balance_sheet_discontinuity): flag = indeterminate, M = null"

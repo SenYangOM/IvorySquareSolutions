@@ -1,0 +1,134 @@
+# Gold-standard case — compute_altman_z_score for Microsoft Corp. FY2023 (CIK 0000789019).
+#
+# Authored by the evaluation_agent persona. Microsoft is the clean-safe sibling
+# to Apple — similar mega-cap profile, more conservative capital structure,
+# retained earnings intact (no multi-decade buyback grinding it to zero).
+
+case_id: microsoft_2023_altman
+skill_id: compute_altman_z_score
+skill_version: "0.1.0"
+
+issuer:
+  name: "Microsoft Corporation"
+  cik: "0000789019"
+  ticker: "MSFT"
+
+filing:
+  accession: "0000950170-23-035122"
+  filing_type: "10-K"
+  fiscal_period_end: "2023-06-30"
+
+inputs:
+  cik: "0000789019"
+  fiscal_year_end: "2023-06-30"
+
+expected:
+  z_score:
+    value: 9.239
+    tolerance: 0.10
+    source_of_truth: live_implementation
+    rationale: |
+      Phase 4 live run: Z = 9.238967, flag = safe. BUILD_REFS.md §5.4
+      expected "4-6 range (safe)"; live 9.24 materially ABOVE that
+      band. The driver is X4 = 12.30 (MSFT market cap $2.53T vs
+      liabilities $205.8B — ratio 12.3x), vs the expected-band author's
+      likely assumption of an X4 closer to 6-8. This is a real feature
+      of 2023 tech valuations, not a skill defect — modern big-tech
+      firms have MVE/liability ratios the 1968 sample never saw.
+      Range preserves ±0.10 tolerance; gold flags the broader-band
+      divergence in notes.
+  flag:
+    value: safe
+    rationale: >-
+      Z = 9.24 >> 2.99. Deep safe zone.
+  components:
+    X1:
+      range: [0.18, 0.22]
+      point_estimate: 0.194
+      rationale: |
+        Working capital substantially positive: (184.257B CA −
+        104.149B CL) / 411.976B TA = 0.194. Unlike Apple, Microsoft
+        holds a large positive working-capital cushion — clean sign
+        of operational and financial health.
+    X2:
+      range: [0.26, 0.32]
+      point_estimate: 0.288
+      rationale: |
+        Retained earnings / total assets = 118.848B / 411.976B =
+        0.288. Microsoft has not engaged in Apple-scale buybacks and
+        retains substantial cumulative earnings on the balance sheet
+        — the healthy X2 Altman's model was built for.
+    X3:
+      range: [0.18, 0.23]
+      point_estimate: 0.215
+      rationale: |
+        EBIT / total assets = 88.523B / 411.976B = 0.215. Very strong
+        operating productivity, enabled by Azure's accelerating
+        margin profile and productivity-software's structural
+        pricing power.
+    X4:
+      range: [11.70, 12.80]
+      point_estimate: 12.30
+      rationale: |
+        Market value of equity / total liabilities = $2,530.3B /
+        $205.8B = 12.30. Microsoft's market cap is ~12x book
+        liabilities. This single component drives ~7.4 of the 9.24
+        composite Z. X4's band_matched in rules template is "very
+        high" severity — the rule template correctly handles this
+        case (condition: value > 2.0 → low severity narrative).
+    X5:
+      range: [0.48, 0.55]
+      point_estimate: 0.514
+      rationale: |
+        Revenue / total assets = 211.915B / 411.976B = 0.514. Lower
+        asset turnover than Apple — reflecting Microsoft's services
+        mix (long-duration customer contracts, lower book-to-revenue
+        velocity). Practitioner-typical for enterprise software.
+  citation_expectations:
+    min_count: 8
+    must_resolve: true
+    must_cite:
+      - "revenue (period=t)"
+      - "total_assets (period=t)"
+      - "current_assets (period=t)"
+      - "current_liabilities (period=t)"
+      - "retained_earnings (period=t)"
+      - "ebit (period=t)"
+      - "total_liabilities (period=t)"
+      - "market_value_of_equity (fixture)"
+  confidence:
+    min: 0.90
+    max: 1.00
+    rationale: |
+      Full iXBRL; clean market-cap sourcing (Yahoo Finance + cover
+      page). Live value 1.0.
+  warnings_must_include: []
+
+external_references:
+  - source: "Altman, E. I. (1968). Financial Ratios, Discriminant Analysis and the Prediction of Corporate Bankruptcy. Journal of Finance, 23(4), 589-609."
+  - source: "BUILD_REFS.md §5.4"
+    note: "Microsoft 2023: Z expected in the 4-6 range; live 9.24 is higher, driven by X4 = 12.3x."
+  - source: "Yahoo Finance chart API — MSFT close 2023-06-30 = $340.54."
+  - source: "Microsoft FY2023 10-K cover page — 7,429,763,722 shares outstanding as of 2023-07-24."
+
+caveats:
+  - "Live Z of 9.24 is above BUILD_REFS.md §5.4's quoted 4-6 band. The cause is modern tech market-cap multiples: MSFT's MVE/liability ratio of 12.3x has no 1968-sample precedent."
+  - "Altman 1968 sample manufacturing-era; Microsoft is services-heavy software — known extrapolation."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (Phase 4 run). Divergence from
+    BUILD_REFS.md §5.4's 4-6 range is explained by modern tech
+    valuation multiples — the band author likely applied
+    pre-2020s-bull-market expectations.
+  data_quality_caveats:
+    - "Microsoft's cover-page share count is 24 days post-FYE; sub-0.1% drift."
+    - "Microsoft FY2023 ends June 30 (not December 31 like Enron/WorldCom/Carvana)."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, Phase 5 gold authoring"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

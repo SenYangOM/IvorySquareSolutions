@@ -1,0 +1,166 @@
+# Manifest for the extract_canonical_statements skill.
+# L1 fundamental — maps an issuer + fiscal year to the three canonical
+# financial statements (income, balance sheet, cash flow). Thin wrapper
+# around mvp.standardize.build_canonical_statements; the skill boundary
+# adds structured errors + manifest-governed schema validation.
+
+skill_id: extract_canonical_statements
+version: 0.1.0
+layer: fundamental
+status: alpha
+maintainer_persona: accounting_expert
+description_for_llm: >-
+  Return the three canonical financial statements (income statement, balance
+  sheet, cash flow statement) for a US public company's annual 10-K filing,
+  with per-line-item citations back to the source XBRL facts or SGML
+  extraction. Use this when an agent needs structured, standardized
+  financial-statement data for an issuer at a specific fiscal-year-end;
+  the output line items are named consistently across issuers and years.
+  Do NOT call this to retrieve arbitrary 10-K narrative sections — use
+  extract_mdna for that.
+
+provenance:
+  source_papers: []
+  # The "provenance" for a fundamental skill is the XBRL taxonomy +
+  # the SEC filing; both are tracked as artifact metadata on each
+  # returned line item rather than as a paper.
+
+implementation_decisions:
+  - decision: >-
+      For pre-iXBRL SGML filings (Enron FY1999/FY2000, WorldCom FY2000/FY2001)
+      the skill reads hand-authored canonical values from
+      data/manual_extractions/<cik>/<accession>.yaml rather than XBRL facts.
+    rationale: >-
+      iXBRL did not exist when those filings were made; hand-authored YAML
+      is the only faithful path. Every manually-extracted line item carries
+      an excerpt_hash tied to the verbatim SGML passage so the citation
+      auditor can round-trip back to source.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Values in the output preserve the filing's reported unit (whole USD),
+      using Decimal arithmetic. Missing line items are returned as null
+      rather than imputed to zero.
+    rationale: >-
+      Zero-imputing an unreported concept would silently corrupt downstream
+      paper-derived skills (M-Score / Altman Z) that treat null as
+      indeterminate. This is Operating Principle P2 applied to the data
+      layer.
+    reviewer_persona: accounting_expert
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC Central Index Key for the issuer
+        (e.g. '0001024401' for Enron). Use str(cik).zfill(10) to format.
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd
+        (e.g. '2000-12-31' for calendar-year filers; '2023-09-30' for Apple).
+        Must match a filing in the MVP's 10-filing sample set exactly.
+    statement_role:
+      type: string
+      enum: [income_statement, balance_sheet, cash_flow_statement, all]
+      description: >-
+        Optional filter: return only one of the three statements, or all
+        three when 'all' or omitted. Default 'all'.
+
+outputs:
+  type: object
+  required: [statements, citations, warnings]
+  additionalProperties: true
+  properties:
+    statements:
+      type: array
+      description: >-
+        List of canonical statement objects (up to three — IS, BS, CF) in
+        the canonical order. Each object carries filing_id, statement_role,
+        fiscal_period_end, data_quality_flag, and a line_items array with
+        per-item value, unit, period dates, and a citation record.
+      items:
+        type: object
+        description: One canonical statement (IS / BS / CF).
+    citations:
+      type: array
+      description: >-
+        Flat deduplicated list of all Citation records attached to the
+        statements' line items — provided as a convenience for citation
+        auditing and MCP clients that prefer a single-list view.
+      items:
+        type: object
+        description: One Citation record (doc_id + locator + excerpt_hash + value).
+    warnings:
+      type: array
+      description: >-
+        Zero or more free-form warning strings. Populated when the input
+        parameters match no known filing, or when the underlying filings
+        store raises a recoverable concern (none at MVP).
+      items:
+        type: string
+        description: One human-readable warning.
+
+citation_contract:
+  required_per_field:
+    statements: >-
+      every returned statement contains line_items each carrying a Citation
+      record with a resolvable (doc_id, locator, excerpt_hash) triple.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<statement_role>::<canonical_line_item_name>"
+
+confidence:
+  computed_from:
+    - pre_ixbrl_vs_ixbrl_provenance
+    - missing_line_item_count
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills: []
+  lib:
+    - mvp.standardize.statements
+    - mvp.store.doc_store
+    - mvp.ingestion.filings_ingest
+  rules: []
+
+evaluation:
+  gold_standard_path: eval/gold/fundamental/extract_canonical_statements/
+  eval_metrics:
+    - name: line_items_populated
+      target: ">= 14/16 on iXBRL filings"
+    - name: line_items_populated_pre_ixbrl
+      target: ">= 15/16 on manual_extraction filings"
+
+limitations:
+  - >-
+    Supports only the 5 MVP issuers × 2 fiscal years each (10 filings) —
+    any other (cik, fiscal_year_end) returns an unknown_filing error.
+    Expansion to a larger universe is a post-MVP concern.
+  - >-
+    Does not parse the free-text sections of the filing (MD&A, risk
+    factors, footnotes) — those come through extract_mdna and future
+    L1 skills.
+  - >-
+    The mapping from XBRL concept to canonical line item is governed by
+    mvp.standardize.mappings.CONCEPT_MAPPINGS — see mvp/rules/README.md
+    for the decision log.
+
+examples:
+  - name: "Enron FY2000 all statements"
+    input:
+      cik: "0001024401"
+      fiscal_year_end: "2000-12-31"
+    notes: >-
+      Returns three canonical statements with 16 line items populated
+      from the pre-iXBRL manual-extraction fixture. Each line item
+      carries a hand-authored excerpt_hash pointing back to the SGML
+      filing's own numeric table.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 150

@@ -1,0 +1,117 @@
+# Gold-standard case — compute_nonanswer_hedging_density for Carvana Co.
+# FY2022 (CIK 0001690820, accession 0001690820-23-000013).
+#
+# Authored by the evaluation_agent persona (post-MVP, paper-onboarding
+# iteration 4 for paper_examples/ssrn-4429658.pdf). Carvana's FY2022
+# MD&A is a ~65 KB iXBRL section that tokenises into ~375 valid
+# sentences. The choice of Carvana is deliberate: (1) the MD&A is
+# long and modern (clean iXBRL), so the density measure has a large
+# enough denominator to be stable; (2) Carvana's FY2022 filing
+# includes substantial going-concern / liquidity / restructuring
+# language, which legitimately fires the non-answer keyword filter —
+# this is exactly the firm-year shape where the skill should produce
+# a meaningful (non-boilerplate) density; (3) Carvana is one of the
+# three modern iXBRL issuers in the MVP sample, so the pre-iXBRL
+# penalty does NOT apply and confidence lands at 0.70 exactly —
+# anchoring the confidence band.
+
+case_id: carvana_2022_nonanswer_hedging_density
+skill_id: compute_nonanswer_hedging_density
+skill_version: "0.1.0"
+
+issuer:
+  name: "Carvana Co."
+  cik: "0001690820"
+  ticker: "CVNA"
+
+filing:
+  accession: "0001690820-23-000013"
+  filing_type: "10-K"
+  fiscal_period_end: "2022-12-31"
+
+inputs:
+  cik: "0001690820"
+  fiscal_year_end: "2022-12-31"
+
+expected:
+  hedging_density:
+    value: 0.16
+    tolerance: 0.05
+    source_of_truth: live_implementation
+    rationale: |
+      Live run of compute_nonanswer_hedging_density at paper-onboarding
+      time (Paper 4, 2026-04-17): density=0.160000, sentence_count=375,
+      hedging_sentence_count=60. Carvana's FY2022 MD&A has 9 bigram
+      hits and 51 unigram hits — consistent with substantial safe-
+      harbor / forward-looking language plus liquidity hedging. A
+      typical_hedging flag is the expected outcome. Tolerance ±0.05
+      is generous for paragraph-splitter drift without expanding into
+      "any value passes." The lower edge (0.11) would drop into
+      low_hedging and the upper edge (0.21) would keep typical_hedging
+      — acceptable to both flag-boundary conditions.
+  flag:
+    value: typical_hedging
+    rationale: >-
+      Density 0.16 is in the typical_hedging band (0.15 ≤ density <
+      0.35). Carvana's FY2022 has liquidity risk language that
+      legitimately fires the filter; this is NOT a red-flag verdict on
+      Carvana's disclosure quality. The rule template's
+      typical_hedging contextual_caveats explain the mix (here all
+      bigram + unigram, no trigram hits — boilerplate-heavy rather
+      than explicit non-answer phrasing).
+  components:
+    matches_per_1000_words:
+      range: [4.0, 15.0]
+      point_estimate: 6.9
+      rationale: |
+        Length-normalised firing rate. Carvana's FY2022 MD&A is
+        roughly 8.7k words; 60 firing sentences → ~6.9 matches per
+        1,000 words. Band [4.0, 15.0] accepts modest MD&A-size drift.
+    hits_by_category:
+      rationale: |
+        Expected {trigrams: 0, bigrams: ~9, unigrams: ~51}. No trigram
+        hits in the live run — Carvana's MD&A doesn't use the "don t
+        know" / "at this time" multi-word hedging phrases. Mostly
+        firing on boilerplate unigrams (forward, forecast, disclose,
+        guidance) and bigrams (will not, are not, right now).
+  citation_expectations:
+    min_count: 1
+    must_resolve: true
+    must_cite:
+      - "item_7"
+  confidence:
+    min: 0.65
+    max: 0.75
+    rationale: |
+      Modern iXBRL filing (no pre_ixbrl penalty), substrate-port cap
+      at 0.7 — 0.70 expected. Band ±0.05 allows for future confidence-
+      model refinements.
+  warnings_must_include:
+    - "substrate_port_mdna_vs_earnings_call"
+
+external_references:
+  - source: "de Kok, T. (June 2024). ChatGPT for Textual Analysis? How to use Generative LLMs in Accounting Research. University of Washington working paper, SSRN 4429658."
+    note: "Online Appendix OA 3 p. ix Step 1 — the 78-token keyword list (7 trigrams + 23 bigrams + 48 unigrams) reproduced verbatim in the skill module."
+  - source: "workshop/paper_to_skill/notes/dekok_2024_gllm_nonanswers.md §e"
+    note: "Explains the substrate-port approximation (MD&A vs earnings-call Q&A) and the expected flag band for Carvana."
+
+caveats:
+  - "The keyword filter was designed for earnings-call Q&A pairs, not MD&A. Hedging density on MD&A has a different base rate than on conference-call responses (boilerplate safe-harbor fires the filter regularly). Treat the density as a textual-hedging screen, not a reproduction of the paper's classifier."
+  - "Density is sensitive to extract_mdna's HTML-strip behaviour (which in turn depends on the iXBRL filing's specific formatting). Tolerance ±0.05 is generous for that drift."
+  - "Carvana's FY2022 filing includes substantial going-concern language that legitimately fires the filter; the typical_hedging flag is the CORRECT output, not a red flag on the firm's disclosure quality."
+
+known_deviation_explanation: null
+
+notes:
+  source_of_expected: >-
+    Live implementation (paper-onboarding iteration 4, 2026-04-17).
+    Re-run produced density=0.160000 / flag=typical_hedging /
+    confidence=0.7.
+  data_quality_caveats:
+    - "extract_mdna's Item-7 finder relies on Item 7. / Item 7A. / Item 8. heading markers; Carvana's FY2022 iXBRL is clean on that score."
+  last_reviewed_at: 2026-04-17
+  last_reviewed_by: "evaluation_agent persona, paper-onboarding iteration 4"
+
+authored_by_persona: evaluation_agent
+authored_at: 2026-04-17
+gold_version: "0.1.0"

@@ -1,0 +1,27 @@
+{
+  "filing_id": "0000723527/0000912057-01-505916",
+  "cik": "0000723527",
+  "accession": "0000912057-01-505916",
+  "statement_role": "cash_flow_statement",
+  "fiscal_period_end": "2000-12-31",
+  "data_quality_flag": "pre_ixbrl_sgml_manual_extraction",
+  "line_items": [
+    {
+      "name": "cash_flow_from_operating_activities",
+      "value_usd": "7666000000",
+      "unit": "USD",
+      "period_start": "2000-01-01",
+      "period_end": "2000-12-31",
+      "citation": {
+        "doc_id": "0000723527/0000912057-01-505916",
+        "statement_role": "cash_flow_statement",
+        "locator": "0000723527/0000912057-01-505916::cash_flow_statement::cash_flow_from_operating_activities",
+        "excerpt_hash": "77526944fbec2f1afa62a0d0bfdc9f17db87d323e0791b973bea98f6360cdd79",
+        "value": 7666000000.0,
+        "retrieved_at": "2026-04-18T09:12:15.569535Z"
+      },
+      "source_concept": null,
+      "notes": null
+    }
+  ]
+}

@@ -1,0 +1,509 @@
+# Manifest for compute_context_importance_signals — Kim & Nikolaev
+# (2024) "Context-Based Interpretation of Financial Information"
+# (J. Accounting Research) §5.4 Table 7 Panel A partition signals,
+# bundled into a single firm-year score.
+#
+# Authored by the quant_finance_methodologist persona during paper-2
+# onboarding (post-MVP paper_examples/ workstream). The paper's
+# headline contextuality measure is a BERT + ANN accuracy delta the
+# authors did not release; the workshop playbook callout
+# ("when the unreleased ML model has NO honest proxy: drop the model-
+# based skill and look elsewhere in the paper") sent us to §5.4 for a
+# deterministically-computable construct that captures the paper's
+# *economic question* — "for THIS firm, do we expect narrative context
+# to matter?" — without requiring the model itself.
+#
+# See workshop/paper_to_skill/notes/kim_2024_context_based_interpretation.md
+# for the full skill-scope decision.
+
+skill_id: compute_context_importance_signals
+version: 0.1.0
+layer: paper_derived
+status: alpha
+maintainer_persona: quant_finance_methodologist
+description_for_llm: >-
+  Compute Kim & Nikolaev (2024) §5.4 firm-year context-importance
+  signals for a US public company's 10-K filing. Returns a composite
+  context_importance score in [0, 1] (≈0 for steady-state,
+  numerically-easy-to-interpret firms; ≈1 for distressed, volatile,
+  extreme-valuation firms whose numeric disclosures benefit most from
+  narrative context), a categorical flag (context_critical |
+  context_helpful | context_marginal | indeterminate) computed from
+  the paper-derived weights in Table 7 Panel A, four per-signal
+  diagnostics (loss indicator, earnings volatility proxy, accruals
+  magnitude, market-to-book extremity), and citations back to the
+  source line items + market-data fixture. Use this as a meta-signal
+  BEFORE deciding how much weight to put on a filing's MD&A: a
+  context_critical flag means the paper predicts the narrative WOULD
+  be especially informative for this firm, not that the firm's
+  disclosure actually delivers. Pair with compute_mdna_upfrontedness
+  for the structure-of-narrative axis.
+
+provenance:
+  source_papers:
+    - citation: "Kim, A. G., & Nikolaev, V. V. (2024). Context-Based Interpretation of Financial Information. Journal of Accounting Research, accepted 31 October 2024. DOI: 10.1111/1475-679X.12593."
+      doi_or_url: "https://doi.org/10.1111/1475-679X.12593"
+      local_pdf: "data/papers/kim_2024_context_based_interpretation.pdf"
+      pdf_sha256: "013d9bbcd45ec4636dc3427561770c6489a29aa92e1b116281206344b442f533"
+  study_scope:
+    asset_class: "US public equities, universe of machine-readable 10-K MD&As on SEC EDGAR"
+    time_period_in_paper: "1995-2021 (main sample); 1999-2020 test set; §5.4 partitions are computed within-year on the same panel"
+    sample_size_in_paper: "138,129 MD&As / 87,201 firm-years with valid earnings + 4-year lags / 62,287 firm-years with stock-return data"
+  problem:
+    one_line: "When does narrative MD&A context matter most for interpreting reported numbers?"
+    long_form: >-
+      Section 5.4 of the paper partitions the sample on five
+      economically-grounded signals (loss indicator, earnings
+      volatility, extreme accruals, market-to-book ratio, firm-level
+      political risk) and shows in Table 7 Panel A that the paper's
+      headline contextuality measure (the BERT+ANN fully-vs-partially-
+      connected accuracy delta) is materially higher for firms whose
+      numeric disclosures are harder to value on their own. Our skill
+      ports four of those five signals (drops political risk —
+      Hassan-et-al-2019 data is not in our store) and bundles them
+      into a single per-firm-year context_importance score using
+      weights derived from Table 7 Panel A's reported earnings-target
+      contextuality differences. Output: scalar score, three-band
+      flag, per-signal trace.
+  methodology:
+    summary: >-
+      Read canonical statements for year t and year t-1 via
+      build_canonical_statements. Read market value of equity and
+      total liabilities from the existing equity_values.yaml + line
+      items. Compute four binary signals against fixed paper-derived
+      thresholds: (i) loss = 1 if EBIT_t < 0 (operating-loss proxy
+      for the paper's net-income-based Hayn 1995 indicator); (ii)
+      high earnings volatility = 1 if |EBIT_t/TA_t − EBIT_{t−1}/TA_{t−1}|
+      ≥ 0.05 (a 2-period EBIT-ROA proxy for the paper's multi-year
+      Dichev-Tang volatility); (iii) extreme accruals = 1 if
+      |EBIT_t − CFO_t|/TA_t ≥ 0.10 (Sloan 1996 shape, using the
+      reported cash_flow_from_operating_activities canonical line
+      item); (iv) extreme MTB = 1 if MTB ≥ 5.0 OR MTB ≤ 0.8.
+      Weighted sum with weights normalised from Table 7 Panel A
+      column "Earnings" Diff statistics (loss=0.3884, volatility=0.2365,
+      accruals=0.1770, mtb=0.1982). Score is in [0, 1]; bands at
+      0.30 and 0.60 (a presentation convention, not paper-published).
+      Indeterminate when both volatility AND MTB cannot be computed.
+    formulas_extracted_from_paper:
+      loss_indicator_paper: "Loss_it = 1 if NetIncome_it < 0 else 0  # Hayn 1995"
+      loss_indicator_proxy: "Loss_it = 1 if EBIT_it < 0 else 0  # operating-loss proxy at MVP (net income not in 16 canonical line items)"
+      earnings_volatility_paper: "Earnings volatility per Dichev-Tang (2009) = std(ROA) over rolling window"
+      earnings_volatility_proxy: "EarningsVolatility_it = |EBIT_it/Assets_it − EBIT_{t-1}/Assets_{t-1}|  # 2-period EBIT-ROA proxy at MVP"
+      accruals: "Accrual_it = |EBIT_it − CFO_it| / TotalAssets_it  # Sloan 1996, using reported cash_flow_from_operating_activities"
+      mtb: "MTB_it = MarketValueOfEquity_it / (TotalAssets_it − TotalLiabilities_it)  # Beaver-Ryan 2005"
+      composite: "context_importance = w_loss · I[loss] + w_vol · I[high vol] + w_accr · I[extreme accr] + w_mtb · I[extreme MTB], weights normalised from Table 7 Panel A 'Earnings' Diff statistics"
+    threshold: "context_critical when score ≥ 0.60; context_helpful when 0.30 ≤ score < 0.60; context_marginal when score < 0.30; indeterminate when prior-year and market-data both missing."
+  expected_results:
+    metric_kind: "scalar context_importance in [0, 1] + 4-category flag + per-signal trace"
+    interpretation_guide: >-
+      The paper's Table 7 Panel A reports per-signal contextuality
+      differences for the earnings target: Loss=2.94, Earnings
+      Volatility=1.79, Accruals=1.34, MTB=1.50 (in percentage
+      points of fully-vs-partially-connected accuracy). These are the
+      paper's own evidence that each signal predicts when context
+      matters more. We adopt those magnitudes as the relative weights
+      of each signal in our composite (re-normalized to sum to 1.0
+      across the four kept signals). A high-scoring firm matches
+      multiple of the paper's "context-matters-more" cells; a
+      low-scoring firm matches none. The score is NOT the paper's
+      ANN accuracy delta — the paper's ANN is an unreleased model and
+      its delta is not reproducible without GPU-scale training. Read
+      our score as a paper-grounded firm-year proxy for "does this
+      paper's evidence say context should help here?" rather than
+      "how much actual lift does context provide?"
+  takeaways:
+    - "Context importance is a meta-signal — it predicts WHEN context matters, not how well a filing's MD&A delivers."
+    - "Per-signal weights are paper-anchored (Table 7 Panel A) but composite bands are a presentation convention, not paper-published."
+    - "Loss indicator uses EBIT < 0 as a documented proxy for the paper's net-income-loss (net_income is not in the 16 canonical line items at MVP)."
+    - "Two-period EBIT-volatility (|ΔEBIT/TA|) is a documented proxy for the paper's Dichev-Tang multi-year std(ROA) — coarser and noisier."
+    - "Accruals uses the reported cash_flow_from_operating_activities canonical line item, Sloan-1996 shape: |EBIT − CFO| / TotalAssets."
+    - "Pre-iXBRL filings (Enron, WorldCom) carry the standard pre_ixbrl_manual_extraction confidence penalty (−0.15)."
+  use_cases:
+    - "Triage step before deep MD&A reading — high context_importance means the paper predicts narrative context should be especially valuable for this firm."
+    - "Pair with compute_mdna_upfrontedness: high context_importance + low Upfrontedness is a sharper red flag than either alone (the firm where context should help is also burying the context)."
+    - "Cross-sectional comparison: rank a peer set on context_importance to find the firms whose numeric disclosures are hardest to interpret on their own."
+
+implementation_decisions:
+  - decision: >-
+      The paper's headline ANN-based contextuality measure is NOT
+      implemented. The trained weights, hyperparameter seeds, and
+      GPU-cluster setup needed to reproduce it (5× Tesla V100 32GB,
+      138,129 BERT-encoded MD&As, 30 random restarts × 22 yearly
+      windows × 4 targets × 2 model variants) are not released.
+      The skill ships the four §5.4 partition signals (Table 7 Panel A)
+      as the closest deterministically-computable proxy for "when does
+      context matter?" An attention-model-backed variant is post-MVP
+      future work tracked in workshop/paper_to_skill/notes/kim_2024_context_based_interpretation.md
+      §"Candidates for future papers".
+    rationale: >-
+      Same situation as paper 1 (unreleased ML model), but more severe:
+      paper 1's Equation 9 had a defensible length-share proxy that
+      preserved the economic signal. An ANN's accuracy delta has no
+      analogous closed-form approximation. The new playbook callout
+      "When the unreleased ML model has NO honest proxy: drop the
+      model-based skill and look elsewhere in the paper" applies. The
+      §5.4 partition signals are the paper's own evidence for WHEN
+      context matters, and they are deterministic — so we ship those.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Operating-loss proxy for the paper's net-income-based loss
+      indicator. The paper's Hayn (1995) loss indicator uses
+      bottom-line net income; net_income is NOT one of the 16
+      canonical line items at MVP (the catalogue stops at EBIT and
+      goes straight to balance sheet + CFO). We substitute
+      I[EBIT_t < 0] as the operating-loss proxy. Drift is one-sided:
+      EBIT-loss is a strict subset of net-income-loss, so firms with
+      positive operating income but negative net income (large
+      non-operating losses, write-downs, tax expense) are missed.
+      Warning loss_indicator_uses_ebit_proxy on every non-null call.
+    rationale: >-
+      Net-income-loss and EBIT-loss agree for the great majority of
+      US public firms at MVP scope (operating losses dominate;
+      non-operating swings on a profitable operation are the rarer
+      case). For the 5 MVP issuers the disagreement is empirically
+      zero — Apple/Microsoft/Enron 2000/WorldCom 2001 all have
+      positive EBIT and positive NI; Carvana 2022 has both negative.
+      Adding a 17th canonical line item for net income is filed as a
+      future canonical-data expansion alongside CFO-style additions
+      that other paper-derived skills are accumulating demand for.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Two-period EBIT-volatility proxy for the paper's multi-year
+      Dichev-Tang volatility. The paper uses std(ROA) over a rolling
+      5-year window with NetIncome in the numerator. We use
+      |EBIT_t/TA_t − EBIT_{t-1}/TA_{t-1}| as a 2-period proxy
+      (MVP has only 2 years of canonical statements per filing).
+      Returns null when t-1 unavailable. Warning
+      volatility_two_period_proxy on every non-null call.
+    rationale: >-
+      A 2-period EBIT-ROA delta is a coarse proxy for the paper's
+      construct on two axes: window length (2 vs 5 years) and ROA
+      numerator (EBIT vs NetIncome). It systematically under-reports
+      volatility for firms whose ROA happens to be similar in t and
+      t-1 but variable over a longer horizon. Documented; future
+      expansion to a 5-year-rolling NetIncome-ROA implementation is
+      filed alongside the net_income canonical-line-item expansion.
+      The 0.05 (5pp YoY ROA swing) threshold is a practitioner
+      cutoff that approximates the paper's within-year
+      80th-percentile partition.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Accruals uses the reported cash_flow_from_operating_activities
+      canonical line item (NOT an indirect-method reconstruction).
+      Sloan-1996 shape: |EBIT_t − CFO_t| / TotalAssets_t.
+    rationale: >-
+      cash_flow_from_operating_activities IS a canonical line item
+      in the MVP's 16-line set (the cash_flow_statement role has it
+      as its sole line item). Using the reported value is paper-
+      faithful — Sloan (1996) defines accruals as the difference
+      between earnings and cash from operations. EBIT is the closest
+      canonical line item to "operating earnings" and is what
+      compute_altman_z_score also consumes for its X3. Threshold
+      0.10 (10% of assets) follows Sloan-1996-style decile cutoffs
+      for "extreme" accruals.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Political risk signal (Hassan et al. 2019) is dropped from the
+      composite. The underlying data set is not in our store and is
+      not reproducible from 10-K text alone. The other four signals
+      are re-normalized to sum to 1.0.
+    rationale: >-
+      The paper's Table 7 Panel A reports earnings-target Diff = 2.08
+      for political risk — comparable to MTB and higher than vol /
+      accruals. Dropping it shifts the four kept signals' weights
+      slightly upward (the loss weight goes from
+      2.94/(2.94+1.79+1.34+1.50+2.08) = 0.302 in the 5-signal version
+      to 2.94/(2.94+1.79+1.34+1.50) = 0.388 in our 4-signal version).
+      Documented explicitly so a future expansion knows where the
+      political-risk weight should fit.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Per-signal binary thresholds (volatility ≥ 0.05, |accruals| ≥
+      0.10, MTB extremity at 5.0 / 0.8) are practitioner-derived
+      defaults, not paper-published. The paper computes within-year
+      80th/20th-percentile partitions on the panel, which is not
+      meaningful on a 5-firm sample. The defaults are documented in
+      the rule template (mvp/rules/templates/context_importance_signals_components.yaml)
+      so an accounting expert can edit without touching code.
+    rationale: >-
+      The paper's partitions depend on the panel; we don't have a
+      panel. Using fixed practitioner thresholds is the simplest
+      faithful alternative. Each threshold is sourced to a literature
+      convention: volatility 5pp YoY ROA from common practitioner use,
+      accruals 10% of assets from Sloan (1996) decile cutoffs, MTB 5.0
+      / 0.8 from Beaver-Ryan (2005) growth/value conventions. A future
+      population-anchored variant would re-derive these from a wider
+      issuer set.
+    reviewer_persona: accounting_expert
+  - decision: >-
+      Indeterminate when BOTH volatility AND MTB cannot be computed
+      (no prior-year data AND no market-data fixture entry). If only
+      one is missing, the score still publishes — the missing signal
+      is treated as "off" (a conservative under-count of context
+      importance). Surfaced via the missing-signal warning; the
+      caller sees both the score AND which signals were
+      not-evaluable.
+    rationale: >-
+      Two-of-four signals (loss, accruals) require only year-t data,
+      so they are computable for every filing. Returning indeterminate
+      when only volatility OR only MTB is missing would mean Apple's
+      2-year-history filing produces no score — overly strict. The
+      conservative under-count keeps the score directionally right
+      (high score still means "many signals fired") and surfaces the
+      ambiguity to the caller. Symmetric flag-elevation
+      (treating missing as "on") would be the wrong direction —
+      it would silently inflate scores.
+    reviewer_persona: quant_finance_methodologist
+  - decision: >-
+      Composes via canonical statements + market_data fixture; does
+      NOT delegate to extract_mdna or any other narrative-layer
+      sub-skill. The §5.4 signals are purely numeric.
+    rationale: >-
+      Required by mvp_build_goal.md §5 modularity: skills compose
+      sub-skills only when they need their output. None of the four
+      §5.4 signals need narrative content. Pairs with
+      compute_mdna_upfrontedness in a future composite that combines
+      "should context help?" (this skill) with "is the narrative
+      front-loaded?" (Upfrontedness).
+    reviewer_persona: quant_finance_methodologist
+
+inputs:
+  type: object
+  required: [cik, fiscal_year_end]
+  additionalProperties: false
+  properties:
+    cik:
+      type: string
+      pattern: "^[0-9]{10}$"
+      description: >-
+        10-digit zero-padded SEC CIK for the issuer
+        (e.g. '0000320193' for Apple Inc.).
+    fiscal_year_end:
+      type: string
+      description: >-
+        Fiscal year end of the 10-K filing, ISO yyyy-mm-dd.
+        Must match an ingested filing under data/filings/.
+
+outputs:
+  type: object
+  required: [context_importance_score, flag, signals, components, weights, citations, confidence, warnings]
+  additionalProperties: true
+  properties:
+    context_importance_score:
+      type: ["number", "null"]
+      description: >-
+        Composite weighted score in [0, 1]. Higher means more of the
+        paper's §5.4 signals predict that narrative context should be
+        especially informative for this firm. Null when flag is
+        indeterminate.
+    flag:
+      type: string
+      enum: [context_critical, context_helpful, context_marginal, indeterminate]
+      description: >-
+        Categorical flag derived from the composite score:
+        'context_critical' when score ≥ 0.60 (multiple signals fired);
+        'context_helpful' when 0.30 ≤ score < 0.60 (one or two
+        signals); 'context_marginal' when score < 0.30 (no signal or
+        a single weakly-weighted one); 'indeterminate' when neither
+        volatility nor MTB could be computed (both prior-year and
+        market-data missing).
+    signals:
+      type: object
+      description: >-
+        Per-signal raw values. `loss` is binary (1 if net income < 0);
+        `earnings_volatility` is the absolute YoY ROA delta;
+        `abs_accruals_to_assets` is |ΔWC| / assets; `mtb` is market
+        value of equity / book equity. Any of the four can be null
+        when the underlying inputs are missing.
+      additionalProperties: true
+      properties:
+        loss:
+          type: ["integer", "null"]
+          description: 1 if reported net income < 0; 0 otherwise; null when net income unavailable.
+        earnings_volatility:
+          type: ["number", "null"]
+          description: "Absolute value |ROA_t − ROA_{t-1}|. Null when prior-year net income or assets unavailable."
+        abs_accruals_to_assets:
+          type: ["number", "null"]
+          description: "Absolute working-capital delta |ΔWC_t| / total_assets_t. Null when current_assets or current_liabilities prior-year deltas unavailable."
+        mtb:
+          type: ["number", "null"]
+          description: market_value_of_equity / (total_assets − total_liabilities). Null when fixture entry or book-equity inputs unavailable.
+    components:
+      type: object
+      description: >-
+        Per-signal "fired" indicators (1 if signal exceeds its
+        threshold, 0 otherwise, null when raw value is null). These
+        are the I[·] terms in the composite.
+      additionalProperties: true
+      properties:
+        loss_fired:
+          type: ["integer", "null"]
+          description: I[loss=1]; null when loss raw value is null.
+        volatility_fired:
+          type: ["integer", "null"]
+          description: I[earnings_volatility ≥ 0.05]; null when vol raw is null.
+        accruals_fired:
+          type: ["integer", "null"]
+          description: I[|abs_accruals_to_assets| ≥ 0.10]; null when accruals raw is null.
+        mtb_fired:
+          type: ["integer", "null"]
+          description: I[MTB ≥ 5.0 OR MTB ≤ 0.8]; null when MTB raw is null.
+    weights:
+      type: object
+      description: >-
+        Fixed paper-derived weights. Exposed in output (not just
+        provenance) because the score is a weighted sum and a caller
+        may want to reproduce the arithmetic.
+      additionalProperties: true
+      properties:
+        loss:
+          type: number
+          description: Weight on loss_fired (0.388, normalized from Table 7 Panel A Earnings Diff = 2.94).
+        volatility:
+          type: number
+          description: Weight on volatility_fired (0.236, normalized from Diff = 1.79).
+        accruals:
+          type: number
+          description: Weight on accruals_fired (0.177, normalized from Diff = 1.34).
+        mtb:
+          type: number
+          description: Weight on mtb_fired (0.198, normalized from Diff = 1.50).
+    citations:
+      type: array
+      description: >-
+        Citations back to the canonical line items + market-data
+        fixture entry consumed by the score. One per concrete
+        upstream value (net_income, total_assets, current_assets,
+        current_liabilities, total_liabilities, ebit, market value
+        of equity).
+      items:
+        type: object
+        description: One Citation record (mvp.lib.citation.Citation shape).
+    confidence:
+      type: number
+      description: >-
+        Numeric confidence score in [0, 1]. Starts at 0.7 (the
+        2-period volatility proxy + indirect-method CFO proxy are
+        always active, capping confidence below 1.0). −0.15 when
+        the filing is pre-iXBRL SGML manual extraction. 0.0 when
+        the flag is indeterminate.
+    warnings:
+      type: array
+      description: >-
+        Zero or more warning strings. Always includes
+        'loss_indicator_uses_ebit_proxy' when loss is non-null;
+        always includes 'volatility_two_period_proxy' when volatility
+        is non-null; adds 'pre_ixbrl_manual_extraction' for SGML-era
+        filings; adds 'missing_prior_year' when t-1 unavailable;
+        adds 'missing_market_data' when fixture entry not found;
+        adds 'mtb_negative_book_equity' when MVE is in the fixture
+        but book equity is non-positive.
+      items:
+        type: string
+        description: One warning string.
+
+citation_contract:
+  required_per_field:
+    context_importance_score: >-
+      when context_importance_score is non-null, the citations array
+      must include the canonical line items consumed (a subset of:
+      ebit, total_assets, total_liabilities,
+      cash_flow_from_operating_activities) and, when MTB is computable,
+      the market_data::market_value_of_equity_<cik>_<fye> citation.
+  hash_algorithm: sha256
+  locator_format: "<cik>/<accession>::<role>::<line_item> | market_data::market_value_of_equity_<cik>_<fye>"
+
+confidence:
+  computed_from:
+    - "two_proxy_penalty (fixed -0.3 from 1.0 to 0.7; active on every non-null call because the loss-indicator EBIT proxy and the volatility 2-period proxy are always in use)"
+    - "pre_ixbrl_manual_extraction (-0.15 when at least one consumed line item is from a manual_extraction fixture)"
+    - "indeterminate_zero_out (clamped to 0.0 when flag is indeterminate)"
+  calibration_status: uncalibrated_at_mvp
+
+dependencies:
+  skills: []
+  lib:
+    - mvp.lib.citation
+    - mvp.standardize.statements
+    - mvp.ingestion.filings_ingest
+    - mvp.ingestion.market_data_loader
+    - mvp.engine.rule_executor
+  rules:
+    - rules/templates/context_importance_signals_components.yaml
+
+evaluation:
+  gold_standard_path: eval/gold/context_importance_signals/
+  eval_metrics:
+    - name: signals_resolve_for_populated_filings
+      target: ">= 4/5 cases produce non-null context_importance_score"
+    - name: flag_directionally_consistent_with_filing_distress
+      target: ">= 4/5 cases produce flag matching the gold's directional band (loss-firms → critical/helpful; profitable large-caps → marginal)"
+    - name: citation_resolves
+      target: "= 1.00"
+
+limitations:
+  - >-
+    The paper's headline contextuality measure (BERT + ANN accuracy
+    delta) is NOT implemented. The four §5.4 partition signals are
+    paper-grounded but are NOT the same construct — they tell you
+    WHEN context tends to matter, not how much it actually adds for
+    this specific filing.
+  - >-
+    Operating-loss indicator uses EBIT < 0 as the proxy for the
+    paper's NetIncome < 0; firms with positive operating income but
+    negative net income (large non-operating losses, write-downs,
+    high tax expense) are missed. Drift is one-sided.
+  - >-
+    Two-period EBIT-volatility (|ΔEBIT/TotalAssets|) is a coarse
+    proxy for the paper's multi-year Dichev-Tang NetIncome-based
+    std(ROA). Systematically under-reports volatility for firms whose
+    ROA happens to be similar in t and t-1 but variable over a longer
+    horizon, and uses EBIT not NetIncome in the numerator.
+  - >-
+    Per-signal thresholds (vol ≥ 0.05, |accruals| ≥ 0.10, MTB
+    extremity at 5.0 / 0.8) are practitioner-derived defaults, not
+    paper-published. The paper computes within-year 80th/20th
+    percentile partitions on the full panel, which is not meaningful
+    on our 5-firm MVP sample. Editable in the rule template.
+  - >-
+    Pre-iXBRL filings (Enron, WorldCom) carry the standard
+    pre_ixbrl_manual_extraction confidence penalty (−0.15).
+  - >-
+    Not a context-quality verdict. A context_critical flag means the
+    paper predicts the narrative WOULD be especially informative for
+    this firm, not that the firm's actual MD&A delivers. Pair with
+    compute_mdna_upfrontedness for the structure-of-narrative axis.
+  - >-
+    Political risk signal (Hassan-et-al-2019) is dropped — the
+    underlying data is not in our store and not reproducible from
+    10-K text. Documented in implementation_decisions[3].
+
+examples:
+  - name: "Apple FY2023 — profitable large-cap"
+    input:
+      cik: "0000320193"
+      fiscal_year_end: "2023-09-30"
+    notes: >-
+      Profitable + steady ROA + low MTB-extremity on book equity
+      basis (Apple has high MVE but also a substantial book base).
+      Expect context_marginal flag with score < 0.30. Composes with
+      Apple's Upfrontedness 'typical' / 'forthcoming' to confirm
+      the firm's narrative is unlikely to carry decisive incremental
+      signal.
+  - name: "WorldCom FY2001 — distressed services issuer"
+    input:
+      cik: "0000723527"
+      fiscal_year_end: "2001-12-31"
+    notes: >-
+      Loss reported, large accruals (the line-cost-capitalization
+      fraud), thin book equity making MTB extreme. Expect at least
+      loss + accruals to fire; flag context_critical or
+      context_helpful. The paper's evidence says context should
+      especially help here — paired with WorldCom's actual MD&A
+      structure, this is a sharp red-flag-screen anchor.
+
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 250

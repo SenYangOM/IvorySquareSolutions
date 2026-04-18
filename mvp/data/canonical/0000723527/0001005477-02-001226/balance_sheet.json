@@ -1,0 +1,163 @@
+{
+  "filing_id": "0000723527/0001005477-02-001226",
+  "cik": "0000723527",
+  "accession": "0001005477-02-001226",
+  "statement_role": "balance_sheet",
+  "fiscal_period_end": "2001-12-31",
+  "data_quality_flag": "pre_ixbrl_sgml_manual_extraction",
+  "line_items": [
+    {
+      "name": "trade_receivables_net",
+      "value_usd": "5308000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::trade_receivables_net",
+        "excerpt_hash": "51be304c4725db454df04590d8549ab9729894a1f2a85787707f81e184532917",
+        "value": 5308000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932297Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "inventory",
+      "value_usd": null,
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::inventory",
+        "excerpt_hash": "8be507acfd659a652d3311e264de9a835eb98314281dd445b1fc99dacc6822bd",
+        "value": null,
+        "retrieved_at": "2026-04-18T09:12:17.932329Z"
+      },
+      "source_concept": null,
+      "notes": "No fact found for any of the candidate concepts: inventory, InventoryNet, Inventory"
+    },
+    {
+      "name": "property_plant_equipment_net",
+      "value_usd": "38809000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::property_plant_equipment_net",
+        "excerpt_hash": "dccc81321859d2c90f41e7d2d39370217e635b1751fd4f12b533bf3cbeaec655",
+        "value": 38809000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932388Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "total_assets",
+      "value_usd": "103914000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::total_assets",
+        "excerpt_hash": "751eca3e9ec37267ad5a6b29325a3a52ef6662c3bf4cb8f47ce237469ff5fd65",
+        "value": 103914000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932422Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "current_assets",
+      "value_usd": "9205000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::current_assets",
+        "excerpt_hash": "05c33e85f1469c0ac965148a43e152deff5a661729d552bf5e5ebaa203a21b1a",
+        "value": 9205000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932454Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "current_liabilities",
+      "value_usd": "9210000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::current_liabilities",
+        "excerpt_hash": "58bb3c29668350b56fb76941a856e359d130e2ef964eb575b8669cd7608b6258",
+        "value": 9210000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932486Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "long_term_debt",
+      "value_usd": "30038000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::long_term_debt",
+        "excerpt_hash": "62b9dbce77685be5331fcef2a230e5652ca5336397aa6931b69ec770f7f96950",
+        "value": 30038000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932517Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "total_liabilities",
+      "value_usd": "43890000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::total_liabilities",
+        "excerpt_hash": "f80c7f9cf368acea5fe58e5d3034bc53540c8aadb44a94b03a4f474170f32e34",
+        "value": 43890000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932547Z"
+      },
+      "source_concept": null,
+      "notes": null
+    },
+    {
+      "name": "retained_earnings",
+      "value_usd": "4400000000",
+      "unit": "USD",
+      "period_start": null,
+      "period_end": "2001-12-31",
+      "citation": {
+        "doc_id": "0000723527/0001005477-02-001226",
+        "statement_role": "balance_sheet",
+        "locator": "0000723527/0001005477-02-001226::balance_sheet::retained_earnings",
+        "excerpt_hash": "98a5bcecd2083579cf3c4a938e3b3c42b98f3ae5949fdd56254de7754a6fc5c0",
+        "value": 4400000000.0,
+        "retrieved_at": "2026-04-18T09:12:17.932579Z"
+      },
+      "source_concept": null,
+      "notes": null
+    }
+  ]
+}

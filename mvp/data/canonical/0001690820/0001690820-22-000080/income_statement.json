@@ -1,0 +1,112 @@
+{
+  "filing_id": "0001690820/0001690820-22-000080",
+  "cik": "0001690820",
+  "accession": "0001690820-22-000080",
+  "statement_role": "income_statement",
+  "fiscal_period_end": "2021-12-31",
+  "data_quality_flag": "ixbrl_companyfacts",
+  "line_items": [
+    {
+      "name": "revenue",
+      "value_usd": "12814000000",
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::revenue",
+        "excerpt_hash": "56d8b69504d4bf8a8e2c3b14792e140fc1fc2d67da9ce346e16a572e6ab4dc13",
+        "value": 12814000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.711246Z"
+      },
+      "source_concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+      "notes": null
+    },
+    {
+      "name": "cost_of_goods_sold",
+      "value_usd": "10885000000",
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::cost_of_goods_sold",
+        "excerpt_hash": "021c64484bf1558545e3665bcbcad1c675978d9edd48b63e8ce4263297b45c19",
+        "value": 10885000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.711385Z"
+      },
+      "source_concept": "CostOfGoodsAndServicesSold",
+      "notes": null
+    },
+    {
+      "name": "gross_profit",
+      "value_usd": "1929000000",
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::gross_profit",
+        "excerpt_hash": "06ed0072710e596f04c80f53a1ab966adc476d1394703541f8b6b0db6e004359",
+        "value": 1929000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.711432Z"
+      },
+      "source_concept": "GrossProfit",
+      "notes": null
+    },
+    {
+      "name": "selling_general_admin_expense",
+      "value_usd": "2033000000",
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::selling_general_admin_expense",
+        "excerpt_hash": "4afc16a3025a664df2e83d12bef7aab440646c13938449e24987179ff5af5d5e",
+        "value": 2033000000.0,
+        "retrieved_at": "2026-04-18T09:12:16.711472Z"
+      },
+      "source_concept": "SellingGeneralAndAdministrativeExpense",
+      "notes": null
+    },
+    {
+      "name": "depreciation_and_amortization",
+      "value_usd": null,
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::depreciation_and_amortization",
+        "excerpt_hash": "00fe9621477c8e08567de87785f75ec629535238a8c46f8b1c2b702fbdc07844",
+        "value": null,
+        "retrieved_at": "2026-04-18T09:12:16.711510Z"
+      },
+      "source_concept": null,
+      "notes": "No fact found for any of the candidate concepts: DepreciationDepletionAndAmortization, DepreciationAndAmortization, Depreciation, DepreciationAmortizationAndAccretionNet"
+    },
+    {
+      "name": "ebit",
+      "value_usd": null,
+      "unit": "USD",
+      "period_start": "2021-01-01",
+      "period_end": "2021-12-31",
+      "citation": {
+        "doc_id": "0001690820/0001690820-22-000080",
+        "statement_role": "income_statement",
+        "locator": "0001690820/0001690820-22-000080::income_statement::ebit",
+        "excerpt_hash": "b7e92e58fb00e4d67f9ac1fa23a4978b313abc44af13cf3246991fac183c7e65",
+        "value": null,
+        "retrieved_at": "2026-04-18T09:12:16.711576Z"
+      },
+      "source_concept": null,
+      "notes": "No fact found for any of the candidate concepts: OperatingIncomeLoss, IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest, IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments"
+    }
+  ]
+}
