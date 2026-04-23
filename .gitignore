@@ -27,6 +27,9 @@ Thumbs.db
 # Empty scaffold dir
 harvey/
 
+# Build / distribution artefacts
+dist/
+
 # Copyrighted / bulky research corpora — re-fetch locally, do not commit
 paper_examples/
 

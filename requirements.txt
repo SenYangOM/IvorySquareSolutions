@@ -1,0 +1,31 @@
+# IvorySquare — pinned-floor runtime + test dependencies.
+#
+# Python: 3.11.x required (see mvp/pyproject.toml `requires-python`).
+#
+# Install:
+#     python3.11 -m venv .venv
+#     .venv/bin/pip install -r requirements.txt
+#     .venv/bin/pip install -e ./mvp          # register the `mvp` package
+#
+# Verify:
+#     cd mvp && ../.venv/bin/pytest -q         # expect "341 passed, 39 skipped"
+#                                              # on a fresh clone (no data yet)
+#
+# Note: no imports from sibling repos (FinceptTerminal-main, PDFMathTranslate-main).
+# `pdf2zh` is an optional layout-aware PDF parser; install separately if needed:
+#     pip install pdf2zh
+
+# --- runtime ---
+anthropic>=0.40
+httpx>=0.27
+pymupdf>=1.24
+pydantic>=2.6
+pyyaml>=6
+fastapi>=0.110
+uvicorn>=0.29
+python-dateutil
+jsonschema>=4
+
+# --- test harness (380 tests under mvp/tests + workshop/tests) ---
+pytest>=8
+pytest-asyncio
