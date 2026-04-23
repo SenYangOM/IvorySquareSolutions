@@ -69,8 +69,8 @@ A direction that motivates the framework is the use of **academic citation netwo
 
 ## Authors and collaborators
 
-- [**Sen Yang**](https://senyangom.github.io/) — lead author and maintainer. Ph.D. candidate, Operations Management, NYU Stern.
-- **Han Yan** — collaborator.
+- [**Sen Yang**](https://senyangom.github.io/) — lead author and maintainer. Ph.D. in Operations Management, NYU Stern.
+- **Han Yan** — collaborator. Assistant Professor, Accounting Department, UBC; Ph.D. in Accounting, NYU Stern.
 
 ## Contact
 
