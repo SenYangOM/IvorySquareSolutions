@@ -1,0 +1,1 @@
+"""Profitability ratio reference implementation."""

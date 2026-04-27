@@ -1,0 +1,91 @@
+questions:
+- id: q1
+  prompt: 'In a defined benefit pension plan, what term describes the actuarial present
+    value of benefits earned by employees for services rendered in all prior periods,
+    based on current salary levels?
+
+    '
+  expected: projected benefit obligation
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'What component of defined benefit pension expense represents the increase
+    in the projected benefit obligation due to the passage of time?
+
+    '
+  expected: interest cost
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A company''s projected benefit obligation (PBO) at the beginning of the
+    year is $500,000. The discount rate is 6%. Assuming no other changes, what is
+    the interest cost component of pension expense for the year? Return only the number.
+
+    '
+  expected: 30000
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'What pension component represents the actuarial present value of benefits
+    earned based solely on employees'' current period of service?
+
+    '
+  expected: service cost
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'A pension plan has a projected benefit obligation of $800,000 and plan
+    assets with a fair value of $600,000. What is the funded status of the plan, and
+    how should it appear on the balance sheet? Return only the number representing
+    the net pension liability.
+
+    '
+  expected: 200000
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'Under U.S. GAAP (ASC 715), where are actuarial gains and losses that are
+    not immediately recognized in net periodic pension cost initially recorded?
+
+    '
+  expected: other comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'A company''s plan assets earn an actual return of $45,000, but the expected
+    return on plan assets used in computing pension expense is $38,000. What amount
+    reduces net periodic pension cost as the expected return component? Return only
+    the number.
+
+    '
+  expected: 38000
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'What term describes the amortization of prior service cost or credit that
+    arises when a company retroactively grants additional benefits for prior employee
+    service due to a plan amendment?
+
+    '
+  expected: prior service cost amortization
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A defined benefit plan has the following data for the year: service cost
+    $60,000; interest cost $30,000; expected return on plan assets $25,000; amortization
+    of prior service cost $5,000. What is the net periodic pension cost? Return only
+    the number.
+
+    '
+  expected: 70000
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'Under ASC 715, what is the term for the actuarial present value of vested
+    benefits to which employees are entitled regardless of future employment, representing
+    the minimum obligation the employer must disclose?
+
+    '
+  expected: accumulated benefit obligation
+  kind: conceptual
+  answer_match: substring

@@ -1,0 +1,83 @@
+questions:
+- id: q1
+  prompt: 'Free cash flow to the firm (FCFF) represents cash flow available to which
+    group of capital providers?
+
+    '
+  expected: all capital providers, both debt and equity holders
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Free cash flow to equity (FCFE) represents cash flow available to whom
+    after all obligations have been met?
+
+    '
+  expected: common equity shareholders
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A firm reports net income of $500, depreciation of $80, capital expenditures
+    of $120, and an increase in net working capital of $30. Using the net-income-based
+    formula, calculate FCFF assuming no net borrowing and a tax rate of 30% with interest
+    expense of $50. Return only the number.
+
+    '
+  expected: 479.0
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Starting from FCFF, which two items must be subtracted (or added) to arrive
+    at FCFE?
+
+    '
+  expected: after-tax interest expense subtracted and net borrowing added
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'A company has FCFF of $600, interest expense of $100, a tax rate of 25%,
+    and net borrowing of $40. Calculate FCFE. Return only the number.
+
+    '
+  expected: 565.0
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: "In the FCFF formula starting from net income, the term Int \xD7 (1 \u2212\
+    \ Tax rate) is added back. Why is interest expense added back on an after-tax\
+    \ basis?\n"
+  expected: interest is a payment to debt holders and is tax-deductible
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'A firm has EBIT of $400, a tax rate of 30%, depreciation of $60, capital
+    expenditures of $90, and an increase in net working capital of $20. Calculate
+    FCFF using the EBIT-based formula. Return only the number.
+
+    '
+  expected: 230.0
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'What does a negative FCFF typically indicate about a firm''s investment
+    and operating activities?
+
+    '
+  expected: the firm is consuming more cash than it generates from operations
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A firm reports cash flow from operations (CFO) of $350 and capital expenditures
+    of $80. Calculate FCFF assuming interest expense of $40 and a tax rate of 25%.
+    Return only the number.
+
+    '
+  expected: 300.0
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'How does an increase in net working capital affect FCFF, and why?
+
+    '
+  expected: it decreases FCFF because cash is used to fund working capital
+  kind: conceptual
+  answer_match: substring

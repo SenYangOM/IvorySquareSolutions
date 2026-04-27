@@ -1,0 +1,83 @@
+questions:
+- id: q1
+  prompt: 'Under the FASB Accounting Standards Codification (ASC), what is the single
+    authoritative source of U.S. GAAP for nongovernmental entities?
+
+    '
+  expected: FASB Accounting Standards Codification
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'The ASC is organized into a hierarchical structure. List the four levels
+    of the codification structure in order from broadest to most specific.
+
+    '
+  expected: Area, Topic, Subtopic, Section
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'In the ASC reference format XXX-YY-ZZ-P, what does the three-digit component
+    "XXX" represent?
+
+    '
+  expected: Topic
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'In the ASC reference format XXX-YY-ZZ-P, what does the two-digit component
+    "YY" represent?
+
+    '
+  expected: Subtopic
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'In the ASC reference format XXX-YY-ZZ-P, what does the two-digit component
+    "ZZ" represent?
+
+    '
+  expected: Section
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'Which ASC Section number is universally used across all Topics and Subtopics
+    to contain the "Recognition" guidance? Return only the number.
+
+    '
+  expected: 25
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'Which ASC Section number is universally used across all Topics and Subtopics
+    to contain the "Disclosure" guidance? Return only the number.
+
+    '
+  expected: 50
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'For guidance NOT included in the ASC, what is the appropriate term used
+    to describe such literature under the GAAP hierarchy?
+
+    '
+  expected: non-authoritative
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'When the FASB issues new accounting guidance after the codification was
+    established, through what type of document is the ASC updated?
+
+    '
+  expected: Accounting Standards Update
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'Under the ASC GAAP hierarchy, if a transaction or event is not explicitly
+    addressed by the codification, an entity should first look to guidance for similar
+    transactions within the ASC and then consider what type of literature as a secondary
+    source?
+
+    '
+  expected: non-authoritative guidance
+  kind: conceptual
+  answer_match: substring

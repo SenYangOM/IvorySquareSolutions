@@ -1,0 +1,4 @@
+node_id: foundational/finance/cfa_l1_equity/ch03__02__fcfe_fcff_basics
+prereqs:
+- fnd_finance_cfa_l1_corp_ch02_01_fcfe_fcff_definition
+- fnd_finance_cfa_l1_equity_ch03_01_gordon_growth_model

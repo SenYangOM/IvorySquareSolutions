@@ -1,0 +1,85 @@
+questions:
+- id: q1
+  prompt: 'What is the term for the total change in equity during a period from transactions
+    and other events, excluding changes from owner investments and distributions?
+
+    '
+  expected: comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Which financial statement component includes net income plus other comprehensive
+    income (OCI)?
+
+    '
+  expected: comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'Name four items that are typically classified as other comprehensive income
+    (OCI) under U.S. GAAP.
+
+    '
+  expected: unrealized gains/losses on available-for-sale securities, foreign currency
+    translation adjustments, pension adjustments, cash flow hedge gains/losses
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A company reports net income of $120,000 and other comprehensive income
+    of $15,000 for the year. What is total comprehensive income? Return only the number.
+
+    '
+  expected: 135000
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: "Unrealized holding gains and losses on available-for-sale debt securities\
+    \ are reported in which section of comprehensive income \u2014 net income or other\
+    \ comprehensive income?\n"
+  expected: other comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A company has the following items: net income $200,000; unrealized loss
+    on available-for-sale securities $8,000; foreign currency translation gain $5,000.
+    What is total comprehensive income? Return only the number.
+
+    '
+  expected: 197000
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'What is the term for the cumulative balance of other comprehensive income
+    items that is reported as a separate component of stockholders'' equity on the
+    balance sheet?
+
+    '
+  expected: accumulated other comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'Under U.S. GAAP, are foreign currency translation adjustments reported
+    in net income or in other comprehensive income?
+
+    '
+  expected: other comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A company reports the following: net income $50,000; pension liability
+    adjustment (loss) $12,000; unrealized gain on cash flow hedge $3,000. What is
+    total comprehensive income? Return only the number.
+
+    '
+  expected: 41000
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'When an OCI item is subsequently recognized in net income (e.g., a realized
+    gain on a previously unrealized position), what is the process of transferring
+    it from OCI to net income called?
+
+    '
+  expected: reclassification adjustment
+  kind: conceptual
+  answer_match: substring

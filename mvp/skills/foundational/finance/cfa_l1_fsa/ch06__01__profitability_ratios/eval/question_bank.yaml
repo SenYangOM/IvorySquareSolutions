@@ -1,0 +1,54 @@
+questions:
+- id: q1
+  prompt: Define gross margin in terms of revenue and COGS.
+  expected: (revenue - COGS) / revenue
+  kind: computational
+  answer_match: substring
+- id: q2
+  prompt: Compute gross margin when revenue is 1000 and COGS is 600. Return only the
+    decimal (e.g., 0.40).
+  expected: 0.4
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: Compute operating margin when operating income is 150 and revenue is 1000.
+  expected: 0.15
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: Compute net margin when net income is 90 and revenue is 1000.
+  expected: 0.09
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: Compute EBITDA margin when operating income is 150, D&A is 50, and revenue
+    is 1000.
+  expected: 0.2
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: Order the four margins (gross, operating, EBITDA, net) typically from largest
+    to smallest.
+  expected: gross, EBITDA, operating, net
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Compute gross margin with revenue 500 and COGS 350.
+  expected: 0.3
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: Compute net margin when revenue is 800 and net income is -40.
+  expected: -0.05
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: Why does the EBITDA margin exceed the operating margin?
+  expected: EBITDA adds back depreciation and amortization
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: Compute operating margin with revenue 2000, COGS 1200, SG&A 400, D&A 100.
+  expected: 0.15
+  kind: computational
+  answer_match: numeric

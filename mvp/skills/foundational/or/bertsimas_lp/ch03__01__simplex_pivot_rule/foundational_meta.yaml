@@ -1,0 +1,19 @@
+branch: or
+book_id: bertsimas_lp
+chapter: 3
+section: 1
+subsection: simplex_pivot_rule
+title: Simplex pivot and reduced cost
+prereqs:
+- fnd_or_bertsimas_lp_ch02_02_feasibility_unboundedness
+code_artifacts:
+- __init__.py
+- simplex_step.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 18
+  partial_correct: 0
+  qualitative_correct: 6
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.8

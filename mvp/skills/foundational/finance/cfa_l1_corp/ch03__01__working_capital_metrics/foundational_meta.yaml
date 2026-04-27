@@ -1,0 +1,19 @@
+branch: finance
+book_id: cfa_l1_corp
+chapter: 3
+section: 1
+subsection: working_capital_metrics
+title: Cash conversion cycle
+prereqs:
+- fnd_finance_cfa_l1_corp_ch02_02_mm_propositions
+code_artifacts:
+- __init__.py
+- working_capital_metrics.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 9
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.7

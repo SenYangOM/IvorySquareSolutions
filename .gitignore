@@ -40,3 +40,14 @@ mvp/data/companyfacts/
 mvp/data/demo/
 mvp/data/demo_outputs/
 mvp/data/standardize_mapping_log.jsonl
+
+# Runtime / audit artifacts from deep-pipeline runs
+mvp/agents/audit_log/
+mvp/agents/cost_log/
+mvp/agents/phase3_filter/
+
+# Eval run reports — green/red snapshots, regenerable via `mvp eval`
+mvp/eval/reports/
+
+# Transitional curriculum drafts — final skills live under mvp/skills/foundational/
+mvp/curriculum/drafts/

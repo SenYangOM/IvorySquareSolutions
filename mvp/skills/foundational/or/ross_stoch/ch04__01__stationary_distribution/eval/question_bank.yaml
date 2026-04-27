@@ -1,0 +1,60 @@
+questions:
+- id: q1
+  prompt: Define a stationary distribution pi of a Markov chain with transition matrix
+    P.
+  expected: probability vector satisfying pi P = pi
+  kind: computational
+  answer_match: substring
+- id: q2
+  prompt: Compute pi_0 for a 2-state chain with transition probabilities p (0->1)
+    = 0.1 and q (1->0) = 0.5. Return only the number rounded to 3 decimals.
+  expected: 0.833
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: What property guarantees a unique stationary distribution for a finite Markov
+    chain?
+  expected: irreducibility and aperiodicity (ergodicity)
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: What does 'aperiodic' mean for a Markov chain?
+  expected: GCD of return times is 1
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: Compute pi_1 for a 2-state chain with p (0->1) = 0.3 and q (1->0) = 0.7.
+    Return only the number rounded to 3 decimals.
+  expected: 0.3
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: Does every finite Markov chain have a stationary distribution? Yes or No.
+  expected: 'yes'
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: What is the limiting (n -> infinity) probability of being in state 0 for
+    a 2-state ergodic chain with p=0.2, q=0.4? Return only the number rounded to 3
+    decimals.
+  expected: 0.667
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: Why may a periodic chain not have a limiting (n -> infinity) distribution
+    despite having a unique stationary distribution?
+  expected: the n-step matrix oscillates
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Compute pi for a 2-state chain with p (0->1) = 0.5 and q (1->0) = 0.5. Return
+    pi_0 only.
+  expected: 0.5
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: What system of equations characterizes a stationary distribution? List two
+    key constraints.
+  expected: pi P = pi and pi sums to 1
+  kind: conceptual
+  answer_match: substring

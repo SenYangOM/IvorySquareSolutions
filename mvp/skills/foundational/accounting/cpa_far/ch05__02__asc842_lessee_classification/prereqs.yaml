@@ -1,0 +1,4 @@
+node_id: foundational/accounting/cpa_far/ch05__02__asc842_lessee_classification
+prereqs:
+- fnd_accounting_cpa_far_ch05_01_asc606_five_step
+- fnd_finance_cfa_l1_fsa_ch03_01_balance_sheet_structure

@@ -1,0 +1,3 @@
+node_id: foundational/or/boyd_cvx/ch05__02__kkt_conditions
+prereqs:
+- fnd_or_boyd_cvx_ch05_01_strong_duality_slater

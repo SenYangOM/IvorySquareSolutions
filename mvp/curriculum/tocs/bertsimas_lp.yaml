@@ -1,0 +1,147 @@
+book_id: bertsimas_lp
+branch: or
+title: "Introduction to Linear Optimization"
+authors: "Bertsimas & Tsitsiklis (1997)"
+license_note: >-
+  TOC structure only; verbatim textbook content is deliberately excluded.
+  Subsection summaries below are IvorySquare-authored paraphrases used
+  to drive the curriculum graph and the bare-LLM filter.
+
+chapters:
+  - number: 1
+    title: "Introduction"
+    sections:
+      - number: 1
+        title: "Linear programming"
+        subsections:
+          - id: lp_canonical_form
+            title: "Linear program canonical form"
+            summary: >-
+              A linear program in canonical form minimizes a linear objective
+              subject to linear inequality constraints over nonnegative
+              decision variables.
+            tags: [conceptual, definitional, foundational_to_or]
+          - id: standard_form_conversion
+            title: "Standard form and slack variables"
+            summary: >-
+              Standard form rewrites every inequality as an equality by adding
+              nonnegative slack variables, exposing the basis structure used
+              by simplex.
+            tags: [computational, closed_form_candidate]
+      - number: 2
+        title: "Examples of LP applications"
+        subsections:
+          - id: diet_problem
+            title: "The diet problem and basic modeling"
+            summary: >-
+              Classical LP formulation that minimizes food cost subject to
+              nutritional requirements; serves as the canonical small
+              modeling example.
+            tags: [conceptual, modeling]
+          - id: production_planning
+            title: "Production-planning LPs"
+            summary: >-
+              Multi-period production-planning LPs minimize cost subject to
+              demand, capacity, and inventory-balance constraints.
+            tags: [conceptual, modeling]
+  - number: 2
+    title: "The geometry of linear programming"
+    sections:
+      - number: 1
+        title: "Polyhedra and convex sets"
+        subsections:
+          - id: polyhedron_definition
+            title: "Polyhedron and basic feasible solutions"
+            summary: >-
+              A polyhedron is the intersection of a finite set of halfspaces
+              described by linear inequalities; vertices correspond to basic
+              feasible solutions.
+            tags: [conceptual, geometric]
+          - id: extreme_points_optimality
+            title: "Extreme points and LP optimality"
+            summary: >-
+              When an LP attains a finite optimum, at least one vertex of the
+              feasible polyhedron is optimal — the simplex algorithm's
+              correctness rests on this property.
+            tags: [conceptual, theorem]
+      - number: 2
+        title: "Existence of optimal solutions"
+        subsections:
+          - id: feasibility_unboundedness
+            title: "Feasibility, unboundedness, and the fundamental theorem"
+            summary: >-
+              An LP is either infeasible, unbounded, or has a finite optimum
+              attained at a vertex; the fundamental theorem of LP partitions
+              the space of outcomes.
+            tags: [conceptual, theorem]
+  - number: 3
+    title: "The simplex method"
+    sections:
+      - number: 1
+        title: "Algebraic simplex"
+        subsections:
+          - id: simplex_pivot_rule
+            title: "Simplex pivot and reduced cost"
+            summary: >-
+              At each step the simplex method swaps one nonbasic variable for
+              one basic variable, picking entering variables with negative
+              reduced cost and leaving variables by the minimum-ratio test.
+            tags: [computational, closed_form_candidate, algorithmic]
+          - id: degeneracy_cycling
+            title: "Degeneracy, cycling, and Bland's rule"
+            summary: >-
+              Degenerate basic solutions can cause cycling; deterministic
+              pivot rules such as Bland's rule guarantee termination.
+            tags: [conceptual, edge_case]
+      - number: 2
+        title: "Tableau form"
+        subsections:
+          - id: tableau_iteration
+            title: "Simplex tableau update"
+            summary: >-
+              The simplex tableau organizes basis-inverse-times-A and the
+              reduced-cost row; each pivot is a row reduction that maintains
+              feasibility.
+            tags: [computational, closed_form_candidate]
+  - number: 4
+    title: "Duality theory"
+    sections:
+      - number: 1
+        title: "The dual problem"
+        subsections:
+          - id: dual_construction
+            title: "Constructing the dual of an LP"
+            summary: >-
+              The dual swaps the role of constraints and variables; primal
+              minimization with inequality constraints maps to a dual
+              maximization with sign-constrained variables.
+            tags: [conceptual, structural]
+          - id: weak_strong_duality
+            title: "Weak and strong duality"
+            summary: >-
+              Weak duality bounds the primal by the dual; strong duality
+              equates them whenever both are feasible.
+            tags: [conceptual, theorem]
+      - number: 2
+        title: "Complementary slackness"
+        subsections:
+          - id: complementary_slackness
+            title: "Complementary slackness conditions"
+            summary: >-
+              At an optimal pair of LP solutions, primal and dual constraints
+              cannot be simultaneously slack on the same row — a structural
+              optimality certificate.
+            tags: [conceptual, theorem, computational]
+  - number: 5
+    title: "Sensitivity analysis"
+    sections:
+      - number: 1
+        title: "Right-hand-side and cost perturbation"
+        subsections:
+          - id: rhs_sensitivity
+            title: "Right-hand-side sensitivity"
+            summary: >-
+              Sensitivity analysis measures how the optimal objective shifts
+              with right-hand-side perturbations, captured by the dual prices
+              for each constraint.
+            tags: [computational, closed_form_candidate]

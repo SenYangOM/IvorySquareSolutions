@@ -1,0 +1,16 @@
+branch: or
+book_id: boyd_cvx
+chapter: 2
+section: 1
+subsection: convex_sets_definition
+title: Convex set definition
+prereqs: []
+code_artifacts: []
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 10
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.9

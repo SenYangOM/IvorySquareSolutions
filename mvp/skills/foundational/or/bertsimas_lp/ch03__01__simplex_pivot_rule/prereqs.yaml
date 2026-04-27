@@ -1,0 +1,3 @@
+node_id: foundational/or/bertsimas_lp/ch03__01__simplex_pivot_rule
+prereqs:
+- fnd_or_bertsimas_lp_ch02_02_feasibility_unboundedness

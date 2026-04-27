@@ -1,0 +1,59 @@
+questions:
+- id: q1
+  prompt: Define the variance of a random variable X in terms of its mean.
+  expected: expected value of (X - mu)^2
+  kind: computational
+  answer_match: substring
+- id: q2
+  prompt: Compute the variance of a discrete random variable taking values 1, 2, 3,
+    4 each with probability 1/4. Return only the number rounded to 2 decimals.
+  expected: 1.25
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: What is the relationship between variance and standard deviation?
+  expected: standard deviation is the square root of variance
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: Compute Var(X) given E[X]=3 and E[X^2]=13.
+  expected: 4
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: What does Bessel's correction do to the sample variance estimator?
+  expected: divides by n-1 instead of n to make the estimator unbiased
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: Compute the sample variance (Bessel-corrected) of the sample {2, 4, 4, 4,
+    5, 5, 7, 9}. Return only the number rounded to 2 decimals.
+  expected: 4.57
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: If Var(X) = 4, what is Var(2X + 5)?
+  expected: 16
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: If X and Y are independent with Var(X)=3, Var(Y)=5, what is Var(X+Y)?
+  expected: 8
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: Compute the standard deviation of a sample {1, 2, 3, 4, 5} using Bessel's
+    correction. Return only the number rounded to 2 decimals.
+  expected: 1.58
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: Variance is always nonnegative. Under what condition is it exactly zero?
+  expected: X is almost surely constant
+  kind: conceptual
+  answer_match: substring
+- id: q11
+  prompt: Why is Var(X+Y) not equal to Var(X)+Var(Y) in general?
+  expected: covariance term
+  kind: conceptual
+  answer_match: substring

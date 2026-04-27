@@ -1,0 +1,16 @@
+branch: finance
+book_id: cfa_l1_corp
+chapter: 1
+section: 1
+subsection: wacc_components
+title: Weighted average cost of capital
+prereqs: []
+code_artifacts: []
+filter_failure_modes:
+  computational_off_by_arithmetic: 6
+  partial_correct: 2
+  qualitative_correct: 13
+  structural_misunderstanding: 3
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.2

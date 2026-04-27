@@ -1,0 +1,59 @@
+questions:
+- id: q1
+  prompt: Compute the annual straight-line depreciation for cost 10000, salvage 1000,
+    useful life 5 years.
+  expected: 1800
+  kind: computational
+  answer_match: numeric
+- id: q2
+  prompt: What is the DDB rate for a 5-year asset?
+  expected: 0.4
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: Compute year 1 DDB depreciation for cost 10000, salvage 1000, life 5.
+  expected: 4000
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: Compute year 2 DDB depreciation for cost 10000, salvage 1000, life 5.
+  expected: 2400
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: What is the SYD denominator for a 5-year life?
+  expected: 15
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: Compute year 1 SYD depreciation for cost 10000, salvage 1000, life 5.
+  expected: 3000
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: Compute year 3 SYD depreciation for cost 10000, salvage 1000, life 5.
+  expected: 1800
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: What is the total accumulated depreciation over the asset's life equal to?
+  expected: depreciable base (cost minus salvage)
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Why do book and tax depreciation produce a deferred tax balance?
+  expected: different methods produce timing differences
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: Compute year 1 straight-line depreciation for cost 50000, salvage 5000,
+    life 10 years.
+  expected: 4500
+  kind: computational
+  answer_match: numeric
+- id: q11
+  prompt: Compute the units-of-production depreciation for a year that consumed 200
+    units of a 1000-unit total life, with cost 10000 and salvage 0.
+  expected: 2000
+  kind: computational
+  answer_match: numeric

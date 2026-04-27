@@ -80,6 +80,20 @@ class PersonaProvenance(BaseModel):
     version: str = Field(pattern=r"^\d+\.\d+\.\d+$")
 
 
+class ExtendedThinkingConfig(BaseModel):
+    """Optional extended-thinking configuration for a persona.
+
+    When ``enabled=True`` the LLM client wrapper passes
+    ``thinking={"type": "enabled", "budget_tokens": <budget>}`` to
+    ``messages.create``. Default budget is 5000 tokens.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    enabled: bool = True
+    budget_tokens: int = Field(default=5000, ge=1024)
+
+
 class Persona(BaseModel):
     """A declarative persona configuration.
 
@@ -93,6 +107,7 @@ class Persona(BaseModel):
     id: str = Field(pattern=r"^[a-z][a-z0-9_]*$", min_length=3, max_length=64)
     role_description: str = Field(min_length=20)
     model: str = Field(min_length=3)
+    extended_thinking: ExtendedThinkingConfig | None = None
     system_prompt: str = Field(min_length=200)
     input_contract_description: str = Field(min_length=50)
     output_contract_description: str = Field(min_length=50)
@@ -255,7 +270,7 @@ class PersonaRuntime:
         *,
         cache_dir: Path | None = None,
         temperature: float = 0.0,
-        max_tokens: int = 4000,
+        max_tokens: int = 12000,
     ) -> PersonaResponse:
         """Invoke the named persona with ``user_message``.
 
@@ -283,15 +298,33 @@ class PersonaRuntime:
         persona = self._load(persona_id)
 
         effective_cache_dir = Path(cache_dir) if cache_dir is not None else self._llm_cache_dir
-        client = LlmClient(model=persona.model, cache_dir=effective_cache_dir)
+        # When the persona's YAML enables extended thinking, thread the
+        # budget through to the LlmClient. Default to 5000 tokens when
+        # the YAML enables thinking but does not specify a budget — this
+        # matches the Workstream A persona-call pattern.
+        thinking_budget: int | None = None
+        if persona.extended_thinking is not None and persona.extended_thinking.enabled:
+            thinking_budget = persona.extended_thinking.budget_tokens or 5000
+        client = LlmClient(
+            model=persona.model,
+            cache_dir=effective_cache_dir,
+            thinking_budget_tokens=thinking_budget,
+        )
 
+        # Extended thinking requires max_tokens > budget_tokens (the
+        # budget is allocated against the same ceiling as visible
+        # output). Bump the effective ceiling so the visible-text
+        # portion of the response is not starved.
+        effective_max_tokens = max_tokens
+        if thinking_budget is not None:
+            effective_max_tokens = max(max_tokens, thinking_budget + max_tokens)
         messages = [{"role": "user", "content": user_message}]
         try:
             resp = client.call(
                 system=persona.system_prompt,
                 messages=messages,
                 temperature=temperature,
-                max_tokens=max_tokens,
+                max_tokens=effective_max_tokens,
             )
         except MissingApiKey as exc:
             raise PersonaCallError(

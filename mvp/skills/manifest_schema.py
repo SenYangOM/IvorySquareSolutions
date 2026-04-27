@@ -31,8 +31,19 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
-SkillLayer = Literal["fundamental", "interpretation", "paper_derived", "composite"]
+SkillLayer = Literal[
+    "fundamental",
+    "interpretation",
+    "paper_derived",
+    "composite",
+    "foundational",
+]
 SkillStatus = Literal["alpha", "beta", "ga", "deprecated"]
+MaterializationReason = Literal[
+    "llm_fails",
+    "closed_form_determinism",
+    "conceptual_high_value",
+]
 MaintainerPersona = Literal[
     "accounting_expert",
     "quant_finance_methodologist",
@@ -287,6 +298,11 @@ class SkillManifest(BaseModel):
     status: SkillStatus
     maintainer_persona: MaintainerPersona
     description_for_llm: str = Field(min_length=80, max_length=2000)
+    # Optional: foundational-layer-only — surfaces *why* the bare-LLM filter
+    # decided this subsection earned a materialized skill. One of
+    # llm_fails | closed_form_determinism | conceptual_high_value. Other
+    # layers must leave this null.
+    materialization_reason: MaterializationReason | None = None
 
     provenance: Provenance = Field(default_factory=lambda: Provenance())
     implementation_decisions: list[ImplementationDecision] = Field(default_factory=list)
@@ -355,6 +371,19 @@ class SkillManifest(BaseModel):
         if self.status == "ga" and self.confidence.calibration_status != "calibrated":
             raise ValueError(
                 f"skill {self.skill_id!r} has status=ga but confidence is not calibrated"
+            )
+        # Foundational layer must declare a materialization_reason; all other
+        # layers must leave it null so the field's meaning is preserved.
+        if self.layer == "foundational" and self.materialization_reason is None:
+            raise ValueError(
+                f"foundational skill {self.skill_id!r} must set "
+                "materialization_reason (llm_fails | closed_form_determinism "
+                "| conceptual_high_value)"
+            )
+        if self.layer != "foundational" and self.materialization_reason is not None:
+            raise ValueError(
+                f"skill {self.skill_id!r} has layer={self.layer!r} but sets "
+                "materialization_reason; that field is foundational-only"
             )
         return self
 

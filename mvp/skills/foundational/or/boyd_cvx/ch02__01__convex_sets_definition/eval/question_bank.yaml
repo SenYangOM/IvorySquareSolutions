@@ -1,0 +1,51 @@
+questions:
+- id: q1
+  prompt: Define a convex set in plain language.
+  expected: set that contains every line segment between any two of its points
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: Is a halfspace convex? Yes or No.
+  expected: 'yes'
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: Is the union of two disjoint balls convex? Yes or No.
+  expected: 'no'
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: Are intersections of convex sets always convex? Yes or No.
+  expected: 'yes'
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: Are unions of convex sets always convex? Yes or No.
+  expected: 'no'
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: What is a convex combination of points x and y?
+  expected: theta x + (1 - theta) y for some theta in [0,1]
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Is the probability simplex convex? Yes or No.
+  expected: 'yes'
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: Is an annulus (donut) convex? Yes or No.
+  expected: 'no'
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Are affine images of convex sets convex? Yes or No.
+  expected: 'yes'
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: Why does convexity matter for optimization?
+  expected: every local minimum is a global minimum
+  kind: conceptual
+  answer_match: substring

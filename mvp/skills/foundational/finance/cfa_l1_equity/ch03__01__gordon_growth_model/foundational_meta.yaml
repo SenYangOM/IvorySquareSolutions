@@ -1,0 +1,19 @@
+branch: finance
+book_id: cfa_l1_equity
+chapter: 3
+section: 1
+subsection: gordon_growth_model
+title: Gordon growth (constant-growth) model
+prereqs:
+- fnd_finance_cfa_l1_equity_ch03_01_ddm_basics
+code_artifacts:
+- __init__.py
+- gordon.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 21
+  partial_correct: 0
+  qualitative_correct: 3
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.76

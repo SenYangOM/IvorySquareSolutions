@@ -1,0 +1,90 @@
+book_id: cfa_l1_corp
+branch: finance
+title: "CFA Level 1 — Corporate Issuers"
+authors: "CFA Institute curriculum (outline only)"
+license_note: >-
+  CFA outline structure only; subsection summaries are
+  IvorySquare-authored paraphrases.
+
+chapters:
+  - number: 1
+    title: "Cost of capital"
+    sections:
+      - number: 1
+        title: "Components"
+        subsections:
+          - id: wacc_components
+            title: "Weighted average cost of capital"
+            summary: >-
+              WACC weights the after-tax cost of debt and cost of equity by
+              market-value capital structure shares to give the firm-level
+              required return for marginal projects.
+            tags: [computational, closed_form_candidate]
+          - id: cost_of_capital
+            title: "Components of cost of capital"
+            summary: >-
+              Cost of capital decomposes into cost of equity (CAPM, build-up
+              models), cost of debt (yield to maturity adjusted for tax),
+              and cost of preferred equity.
+            tags: [conceptual, computational]
+      - number: 2
+        title: "CAPM and beta"
+        subsections:
+          - id: capm_definition
+            title: "Capital Asset Pricing Model"
+            summary: >-
+              CAPM expresses the required return as risk-free rate plus beta
+              times the equity risk premium, assuming markets price only
+              systematic risk.
+            tags: [computational, closed_form_candidate]
+  - number: 2
+    title: "Capital budgeting"
+    sections:
+      - number: 1
+        title: "NPV and IRR"
+        subsections:
+          - id: npv_definition
+            title: "Net present value"
+            summary: >-
+              Net present value discounts a project's incremental cash
+              flows at the required rate of return; positive NPV signals
+              value creation.
+            tags: [computational, closed_form_candidate]
+          - id: irr_pitfalls
+            title: "Internal rate of return and pitfalls"
+            summary: >-
+              Internal rate of return is the discount rate that zeros NPV;
+              non-conventional cash flows can produce multiple IRRs and
+              mislead the unwary.
+            tags: [computational, closed_form_candidate, edge_case]
+          - id: fcfe_fcff_definition
+            title: "Project free cash flow definitions"
+            summary: >-
+              Project free cash flows exclude financing costs and add back
+              non-cash charges to isolate the marginal cash impact of an
+              investment decision.
+            tags: [conceptual, computational]
+      - number: 2
+        title: "Capital structure"
+        subsections:
+          - id: mm_propositions
+            title: "Modigliani-Miller propositions"
+            summary: >-
+              Modigliani-Miller's irrelevance result states firm value is
+              independent of capital structure under perfect-market
+              assumptions; departures motivate trade-off and pecking-order
+              theories.
+            tags: [conceptual, theorem]
+  - number: 3
+    title: "Working capital and short-term financing"
+    sections:
+      - number: 1
+        title: "Working capital metrics"
+        subsections:
+          - id: working_capital_metrics
+            title: "Cash conversion cycle"
+            summary: >-
+              The cash conversion cycle equals days inventory plus days
+              receivables minus days payables, summarising the liquidity
+              demand of operating working capital.
+            tags: [computational, closed_form_candidate]

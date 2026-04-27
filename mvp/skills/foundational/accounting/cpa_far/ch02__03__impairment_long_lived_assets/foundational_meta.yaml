@@ -1,0 +1,17 @@
+branch: accounting
+book_id: cpa_far
+chapter: 2
+section: 3
+subsection: impairment_long_lived_assets
+title: Impairment of long-lived assets
+prereqs:
+- fnd_accounting_cpa_far_ch02_03_depreciation_methods
+code_artifacts: []
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 15
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 6
+filter_mode: live
+filter_pass_rate: 0.3

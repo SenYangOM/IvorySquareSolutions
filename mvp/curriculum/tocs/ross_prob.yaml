@@ -1,0 +1,125 @@
+book_id: ross_prob
+branch: or
+title: "A First Course in Probability"
+authors: "Sheldon Ross"
+license_note: >-
+  TOC structure only. Subsection summaries below are IvorySquare-authored
+  paraphrases used for the curriculum graph and the bare-LLM filter.
+
+chapters:
+  - number: 2
+    title: "Axioms of probability"
+    sections:
+      - number: 1
+        title: "Sample space and events"
+        subsections:
+          - id: sample_space_axioms
+            title: "Sample spaces and probability axioms"
+            summary: >-
+              The probability axioms (nonnegativity, normalization, countable
+              additivity) define probability measures on a sample space.
+            tags: [conceptual, definitional]
+          - id: events_combinations
+            title: "Combinatorial probability of events"
+            summary: >-
+              Counting techniques (permutations, combinations,
+              inclusion-exclusion) compute event probabilities on finite
+              sample spaces with equally likely outcomes.
+            tags: [computational, closed_form_candidate]
+  - number: 3
+    title: "Conditional probability and independence"
+    sections:
+      - number: 1
+        title: "Conditional probability"
+        subsections:
+          - id: conditional_definition
+            title: "Definition of conditional probability"
+            summary: >-
+              The conditional probability of A given B equals P(A intersect B)
+              divided by P(B), assuming P(B) is positive.
+            tags: [conceptual, definitional, computational]
+          - id: bayes_rule
+            title: "Bayes' rule"
+            summary: >-
+              Bayes' rule inverts a conditional probability using the prior
+              and the likelihood, producing the posterior probability.
+            tags: [computational, closed_form_candidate]
+      - number: 2
+        title: "Independence"
+        subsections:
+          - id: independence_definition
+            title: "Independence of events"
+            summary: >-
+              Events A and B are independent iff P(A intersect B) =
+              P(A)*P(B); equivalently, conditioning on one does not change
+              the probability of the other.
+            tags: [conceptual, definitional]
+  - number: 4
+    title: "Random variables"
+    sections:
+      - number: 1
+        title: "Distributions"
+        subsections:
+          - id: pmf_pdf_definition
+            title: "PMFs, PDFs, and CDFs"
+            summary: >-
+              Discrete random variables have probability mass functions;
+              continuous random variables have probability density functions;
+              both share a cumulative distribution function.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Expectation"
+        subsections:
+          - id: expectation_definition
+            title: "Expectation of a random variable"
+            summary: >-
+              Expectation is the probability-weighted average; for a
+              discrete variable it is a sum, for a continuous variable it is
+              an integral.
+            tags: [conceptual, computational]
+          - id: variance_definition
+            title: "Variance and standard deviation"
+            summary: >-
+              Variance is the expected squared deviation from the mean;
+              standard deviation is its positive square root and shares the
+              variable's units.
+            tags: [conceptual, computational, closed_form_candidate]
+  - number: 5
+    title: "Continuous distributions"
+    sections:
+      - number: 1
+        title: "Common continuous laws"
+        subsections:
+          - id: normal_distribution
+            title: "Normal distribution"
+            summary: >-
+              The normal distribution is parameterized by mean and variance;
+              its PDF is the bell curve and the central limit theorem makes
+              it ubiquitous.
+            tags: [conceptual, definitional, closed_form_candidate]
+          - id: exponential_distribution
+            title: "Exponential distribution"
+            summary: >-
+              The exponential distribution models memoryless waiting times
+              with rate parameter lambda; mean equals 1/lambda.
+            tags: [conceptual, computational]
+  - number: 7
+    title: "Properties of expectation"
+    sections:
+      - number: 1
+        title: "Linearity and joint moments"
+        subsections:
+          - id: expectation_linearity
+            title: "Linearity of expectation"
+            summary: >-
+              Expectation is linear regardless of dependence; covariance
+              captures the second-order interaction between random
+              variables.
+            tags: [conceptual, theorem]
+          - id: covariance_correlation
+            title: "Covariance and correlation"
+            summary: >-
+              Covariance measures co-movement; correlation normalizes
+              covariance into [-1, 1] and is invariant under positive
+              linear scaling.
+            tags: [computational, closed_form_candidate]

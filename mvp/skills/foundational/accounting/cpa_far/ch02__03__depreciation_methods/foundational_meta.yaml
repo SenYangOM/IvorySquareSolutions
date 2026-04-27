@@ -1,0 +1,19 @@
+branch: accounting
+book_id: cpa_far
+chapter: 2
+section: 3
+subsection: depreciation_methods
+title: Depreciation methods
+prereqs:
+- fnd_accounting_cpa_far_ch02_02_cfs_categorization
+code_artifacts:
+- __init__.py
+- depreciation.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 27
+  partial_correct: 0
+  qualitative_correct: 2
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.7363636363636363

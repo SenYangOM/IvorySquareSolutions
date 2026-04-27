@@ -1,0 +1,1 @@
+"""NPV reference implementation."""

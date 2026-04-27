@@ -1,0 +1,19 @@
+branch: finance
+book_id: cfa_l1_equity
+chapter: 3
+section: 1
+subsection: ddm_basics
+title: Multistage dividend discount model
+prereqs:
+- fnd_finance_cfa_l1_equity_ch02_02_required_rate_of_return
+code_artifacts:
+- __init__.py
+- ddm_basics.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 9
+  partial_correct: 3
+  qualitative_correct: 9
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.3

@@ -1,0 +1,19 @@
+branch: or
+book_id: ross_stoch
+chapter: 4
+section: 1
+subsection: stationary_distribution
+title: Stationary distributions
+prereqs:
+- fnd_or_ross_stoch_ch04_01_chapman_kolmogorov
+code_artifacts:
+- __init__.py
+- stationary.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 15
+  partial_correct: 0
+  qualitative_correct: 5
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.8

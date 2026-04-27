@@ -1,0 +1,19 @@
+branch: finance
+book_id: cfa_l1_corp
+chapter: 2
+section: 1
+subsection: fcfe_fcff_definition
+title: Project free cash flow definitions
+prereqs:
+- fnd_finance_cfa_l1_corp_ch02_01_irr_pitfalls
+code_artifacts:
+- __init__.py
+- fcfe_fcff_definition.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 3
+  partial_correct: 3
+  qualitative_correct: 15
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.3

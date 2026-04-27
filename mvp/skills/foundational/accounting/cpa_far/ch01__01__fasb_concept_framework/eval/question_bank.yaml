@@ -1,0 +1,91 @@
+questions:
+- id: q1
+  prompt: 'According to the FASB Conceptual Framework, what is the primary objective
+    of general-purpose financial reporting?
+
+    '
+  expected: provide useful financial information to existing and potential investors,
+    lenders, and creditors
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'The FASB Conceptual Framework identifies two fundamental qualitative characteristics
+    of useful financial information. Name both of them.
+
+    '
+  expected: relevance and faithful representation
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'Under the FASB Conceptual Framework, which enhancing qualitative characteristic
+    means that different knowledgeable and independent observers can reach consensus
+    that a depiction is faithfully represented?
+
+    '
+  expected: verifiability
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A piece of financial information is considered material if omitting or
+    misstating it could influence decisions of users. Materiality is a company-specific
+    aspect of which fundamental qualitative characteristic?
+
+    '
+  expected: relevance
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'The FASB Conceptual Framework lists four enhancing qualitative characteristics.
+    Which one requires that financial information be available to decision-makers
+    before it loses its capacity to influence decisions?
+
+    '
+  expected: timeliness
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'Under the FASB Conceptual Framework, which element of financial statements
+    represents the residual interest in the assets of an entity after deducting its
+    liabilities?
+
+    '
+  expected: equity
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'The FASB Conceptual Framework defines ''comprehensive income'' as the change
+    in equity of a business enterprise during a period from transactions and other
+    events, excluding changes resulting from which two sources? Name both.
+
+    '
+  expected: investments by owners and distributions to owners
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'A company reports total assets of $500,000 and total liabilities of $320,000.
+    Using the basic accounting equation from the FASB Conceptual Framework, calculate
+    the equity. Return only the number.
+
+    '
+  expected: 180000
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'Under the FASB Conceptual Framework, faithful representation requires information
+    to have three characteristics. Which characteristic means the information is free
+    from error and bias in the description of a phenomenon?
+
+    '
+  expected: neutral
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'The FASB Conceptual Framework identifies ''comparability'' as an enhancing
+    qualitative characteristic. A specific subset of comparability that refers to
+    using the same accounting methods from period to period within the same entity
+    is called what?
+
+    '
+  expected: consistency
+  kind: conceptual
+  answer_match: substring

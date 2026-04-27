@@ -18,6 +18,8 @@ Subcommands:
 - ``mvp skills show <skill_id>`` — full manifest YAML (Phase 6).
 - ``mvp skills mcp`` — MCP tool catalog as JSON (Phase 6).
 - ``mvp skills openai`` — OpenAI tool-use catalog as JSON (Phase 6).
+- ``mvp skills cost <skill_id>`` — aggregate cost-log entries for the
+  named skill across all runs (post-MVP Workstream A).
 - ``mvp resolve-citation <doc_id> <locator>`` — resolve a citation via
   the engine's citation validator (Phase 6).
 
@@ -552,6 +554,106 @@ def _cmd_skills_openai(_args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_skills_cost(args: argparse.Namespace) -> int:
+    """Aggregate cost-log entries across all deep-pipeline runs for a skill.
+
+    Walks ``mvp/agents/cost_log/<run_id>.jsonl`` and surfaces the runs
+    whose ``paper_id`` (after deriving the skill_id from the paper-to-
+    skill mapping) matches ``args.skill_id``. Output: JSON shape with
+    per-stage totals across the matching runs.
+    """
+    from mvp.lib.cost_tracking import (
+        DEFAULT_COST_LOG_ROOT,
+        STAGE_IDS,
+        summarize,
+    )
+
+    cost_root = (
+        Path(args.cost_log_root)
+        if getattr(args, "cost_log_root", None)
+        else DEFAULT_COST_LOG_ROOT
+    )
+
+    if not cost_root.is_dir():
+        _print_envelope(
+            error_code="cost_log_root_missing",
+            error_category="input_validation",
+            human_message=f"cost-log directory does not exist at {cost_root}",
+            retry_safe=False,
+            suggested_remediation=(
+                "Run a deep-pipeline orchestrator invocation first; "
+                "the cost log is created on the first record."
+            ),
+        )
+        return 1
+
+    matched_runs: list[dict[str, Any]] = []
+    aggregate_per_stage: dict[str, dict[str, int]] = {
+        s: {
+            "n_calls": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_tokens": 0,
+            "cache_creation_tokens": 0,
+            "tokens_total": 0,
+        }
+        for s in STAGE_IDS
+    }
+    aggregate_n_calls = 0
+    aggregate_tokens_total = 0
+
+    for jsonl in sorted(cost_root.glob("*.jsonl")):
+        run_id = jsonl.stem
+        try:
+            run_summary = summarize(run_id, cost_log_root=cost_root)
+        except FileNotFoundError:
+            continue
+        # Match the run to the requested skill via the paper_id field.
+        paper_ids = run_summary.get("paper_ids") or []
+        match = False
+        for pid in paper_ids:
+            if pid == args.skill_id:
+                match = True
+                break
+            # Allow loose matching where the skill_id starts with
+            # 'compute_' and the paper_id is a prefix of the skill_id
+            # (the typical convention) — this covers the
+            # paper_id="beneish_1999" → skill_id="compute_beneish_m_score"
+            # mapping.
+            if args.skill_id.endswith(pid) or pid in args.skill_id:
+                match = True
+                break
+        if not match:
+            continue
+        matched_runs.append(
+            {"run_id": run_id, "summary": run_summary}
+        )
+        aggregate_n_calls += run_summary["n_calls"]
+        aggregate_tokens_total += run_summary["totals"]["tokens_total"]
+        for stage_id, bucket in run_summary["by_stage"].items():
+            if stage_id not in aggregate_per_stage:
+                continue
+            target = aggregate_per_stage[stage_id]
+            target["n_calls"] += bucket["n_calls"]
+            target["input_tokens"] += bucket["input_tokens"]
+            target["output_tokens"] += bucket["output_tokens"]
+            target["cache_read_tokens"] += bucket["cache_read_tokens"]
+            target["cache_creation_tokens"] += bucket["cache_creation_tokens"]
+            target["tokens_total"] += bucket["tokens_total"]
+
+    out = {
+        "skill_id": args.skill_id,
+        "matched_run_count": len(matched_runs),
+        "aggregate_n_calls": aggregate_n_calls,
+        "aggregate_tokens_total": aggregate_tokens_total,
+        "by_stage": aggregate_per_stage,
+        "runs": [r["run_id"] for r in matched_runs],
+    }
+    json.dump(out, sys.stdout, indent=2, ensure_ascii=False)
+    sys.stdout.write("\n")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # resolve-citation subcommand (Phase 6).
 # ---------------------------------------------------------------------------
@@ -588,6 +690,214 @@ def _cmd_resolve_citation(args: argparse.Namespace) -> int:
     json.dump(resolved, sys.stdout, indent=2, ensure_ascii=False)
     sys.stdout.write("\n")
     return 0 if resolved.get("resolved") else 1
+
+
+# ---------------------------------------------------------------------------
+# curriculum subcommands (foundational layer).
+# ---------------------------------------------------------------------------
+
+
+def _cmd_curriculum_ingest(args: argparse.Namespace) -> int:
+    from mvp.curriculum.toc_ingest import ingest_toc
+
+    if not args.toc_path.is_file():
+        _print_envelope(
+            error_code="input_validation",
+            error_category="input_validation",
+            human_message=f"TOC YAML not found at {args.toc_path}",
+            retry_safe=False,
+            suggested_remediation=(
+                "Pass an existing path. TOC YAMLs live under "
+                "mvp/curriculum/tocs/<book_id>.yaml."
+            ),
+        )
+        return 1
+    try:
+        result = ingest_toc(args.toc_path)
+    except (ValueError, FileNotFoundError) as exc:
+        _print_envelope(
+            error_code="input_validation",
+            error_category="input_validation",
+            human_message=str(exc),
+            retry_safe=False,
+            suggested_remediation=(
+                "Check that the TOC YAML matches the documented schema "
+                "(book_id, branch, chapters[].sections[].subsections[])."
+            ),
+        )
+        return 1
+    if result.book_id != args.book_id:
+        sys.stdout.write(
+            f"# warning: TOC book_id={result.book_id!r} differs from CLI "
+            f"argument {args.book_id!r}\n"
+        )
+    payload = {
+        "book_id": result.book_id,
+        "branch": result.branch,
+        "nodes_added": result.nodes_added,
+        "nodes_skipped": result.nodes_skipped,
+        "edges_added": result.edges_added,
+    }
+    json.dump(payload, sys.stdout, indent=2, ensure_ascii=False)
+    sys.stdout.write("\n")
+    return 0
+
+
+def _cmd_curriculum_filter(args: argparse.Namespace) -> int:
+    from dataclasses import asdict
+
+    from mvp.curriculum.graph import load_default
+    from mvp.curriculum.llm_baseline import (
+        decide_materialization,
+        load_question_bank,
+        run_baseline,
+    )
+
+    graph = load_default()
+    if args.node_id not in graph.nodes:
+        _print_envelope(
+            error_code="unknown_node",
+            error_category="input_validation",
+            human_message=f"node {args.node_id!r} is not in the curriculum graph",
+            retry_safe=False,
+            suggested_remediation=(
+                "Run 'mvp curriculum ingest' first, or check the node id with "
+                "'mvp curriculum graph'."
+            ),
+        )
+        return 1
+
+    qb_path = args.question_bank
+    if qb_path is None:
+        # Default location: under the foundational draft directory keyed by node id.
+        qb_path = _resolve_default_question_bank(args.node_id)
+    if qb_path is None or not qb_path.is_file():
+        _print_envelope(
+            error_code="missing_question_bank",
+            error_category="input_validation",
+            human_message=(
+                f"no question bank found for {args.node_id!r}; "
+                f"pass --question-bank or place at {qb_path}"
+            ),
+            retry_safe=False,
+            suggested_remediation=(
+                "Author a question_bank.yaml with 10-25 textbook-style "
+                "questions and expected answers."
+            ),
+        )
+        return 1
+    bank = load_question_bank(qb_path)
+    run = run_baseline(
+        node_id=args.node_id,
+        question_bank=bank,
+        n_trials=args.n_trials,
+    )
+    decision = decide_materialization(
+        run,
+        is_closed_form=args.closed_form,
+        is_conceptual=args.conceptual,
+    )
+    payload = {"decision": asdict(decision), "baseline": run.to_jsonable()}
+    json.dump(payload, sys.stdout, indent=2, ensure_ascii=False, default=str)
+    sys.stdout.write("\n")
+    return 0
+
+
+def _cmd_curriculum_materialize(args: argparse.Namespace) -> int:
+    from mvp.curriculum.graph import load_default
+    from mvp.curriculum.materialize import materialize_node
+
+    graph = load_default()
+    if args.node_id not in graph.nodes:
+        _print_envelope(
+            error_code="unknown_node",
+            error_category="input_validation",
+            human_message=f"node {args.node_id!r} is not in the curriculum graph",
+            retry_safe=False,
+            suggested_remediation=(
+                "Run 'mvp curriculum ingest' first, or check the node id with "
+                "'mvp curriculum graph'."
+            ),
+        )
+        return 1
+    try:
+        result = materialize_node(args.node_id, graph=graph, draft_root=args.draft_root)
+    except (FileNotFoundError, ValueError) as exc:
+        _print_envelope(
+            error_code="materialization_failed",
+            error_category="input_validation",
+            human_message=str(exc),
+            retry_safe=False,
+            suggested_remediation=(
+                "Run 'mvp curriculum filter <node_id>' first, then place "
+                "concept.md, question_bank.yaml, and decision.json under the "
+                "expected draft directory."
+            ),
+        )
+        return 1
+    json.dump(result, sys.stdout, indent=2, ensure_ascii=False)
+    sys.stdout.write("\n")
+    return 0
+
+
+def _cmd_curriculum_graph(args: argparse.Namespace) -> int:
+    import shutil
+    import subprocess
+
+    from mvp.curriculum.graph import load_default
+
+    graph = load_default()
+    dot_text = graph.render_dot()
+
+    if args.svg:
+        if shutil.which("dot") is None:
+            _print_envelope(
+                error_code="missing_binary",
+                error_category="io",
+                human_message="--svg requires the 'dot' binary (Graphviz) on PATH",
+                retry_safe=False,
+                suggested_remediation=(
+                    "Install Graphviz, or omit --svg to print the DOT source instead."
+                ),
+            )
+            return 1
+        try:
+            proc = subprocess.run(
+                ["dot", "-Tsvg"],
+                input=dot_text,
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            _print_envelope(
+                error_code="dot_failed",
+                error_category="io",
+                human_message=f"dot exited {exc.returncode}: {exc.stderr.strip()}",
+                retry_safe=True,
+                suggested_remediation="Inspect the DOT output without --svg for hints.",
+            )
+            return 1
+        out = proc.stdout
+    else:
+        out = dot_text
+
+    if args.output is None:
+        sys.stdout.write(out)
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(out, encoding="utf-8")
+        sys.stdout.write(f"# wrote {len(out)} bytes to {args.output}\n")
+    return 0
+
+
+def _resolve_default_question_bank(node_id: str) -> Path | None:
+    """Map a curriculum node id to the canonical foundational-skill draft path."""
+    mvp_root = Path(__file__).resolve().parent.parent
+    if not node_id.startswith("foundational/"):
+        return None
+    rel = node_id[len("foundational/") :]
+    return mvp_root / "skills" / "foundational" / rel / "eval" / "question_bank.yaml"
 
 
 # ---------------------------------------------------------------------------
@@ -724,6 +1034,24 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     p_skills_openai.set_defaults(func=_cmd_skills_openai)
 
+    p_skills_cost = skills_sub.add_parser(
+        "cost",
+        help=(
+            "Aggregate deep-pipeline cost-log entries for one skill across "
+            "every recorded run (post-MVP Workstream A)."
+        ),
+    )
+    p_skills_cost.add_argument(
+        "skill_id",
+        help="Either the skill_id or the paper_id used by the deep pipeline.",
+    )
+    p_skills_cost.add_argument(
+        "--cost-log-root",
+        default=None,
+        help="Override the cost-log root (defaults to mvp/agents/cost_log).",
+    )
+    p_skills_cost.set_defaults(func=_cmd_skills_cost)
+
     # ---- resolve-citation -----------------------------------------------
     p_rc = sub.add_parser(
         "resolve-citation",
@@ -733,6 +1061,90 @@ def _build_parser() -> argparse.ArgumentParser:
     p_rc.add_argument("locator")
     p_rc.add_argument("--excerpt-hash", default=None)
     p_rc.set_defaults(func=_cmd_resolve_citation)
+
+    # ---- curriculum -----------------------------------------------------
+    p_curr = sub.add_parser(
+        "curriculum",
+        help="Manage the foundational-layer curriculum DAG, filter, and materialization.",
+    )
+    curr_sub = p_curr.add_subparsers(dest="curriculum_subcommand")
+
+    p_curr_ingest = curr_sub.add_parser(
+        "ingest",
+        help="Ingest a TOC YAML and add subsection nodes to the curriculum graph.",
+    )
+    p_curr_ingest.add_argument(
+        "book_id",
+        help="Book identifier (must match the TOC YAML's book_id field).",
+    )
+    p_curr_ingest.add_argument(
+        "toc_path",
+        type=Path,
+        help="Path to the TOC YAML.",
+    )
+    p_curr_ingest.set_defaults(func=_cmd_curriculum_ingest)
+
+    p_curr_filter = curr_sub.add_parser(
+        "filter",
+        help="Run the bare-LLM filter on a candidate node and print decision + reasoning.",
+    )
+    p_curr_filter.add_argument("node_id", help="Curriculum node id.")
+    p_curr_filter.add_argument(
+        "--question-bank",
+        type=Path,
+        default=None,
+        help=(
+            "Path to question_bank.yaml (defaults to the candidate skill's "
+            "draft path under mvp/skills/foundational/...)."
+        ),
+    )
+    p_curr_filter.add_argument(
+        "--n-trials", type=int, default=10, help="Trials per question (default 10)."
+    )
+    p_curr_filter.add_argument(
+        "--closed-form",
+        action="store_true",
+        help="Force the closed-form-determinism override.",
+    )
+    p_curr_filter.add_argument(
+        "--conceptual",
+        action="store_true",
+        help="Tag the subsection as conceptual (allows the markdown-only path).",
+    )
+    p_curr_filter.set_defaults(func=_cmd_curriculum_filter)
+
+    p_curr_mat = curr_sub.add_parser(
+        "materialize",
+        help="Apply a recorded filter decision and create the foundational skill files.",
+    )
+    p_curr_mat.add_argument("node_id", help="Curriculum node id.")
+    p_curr_mat.add_argument(
+        "--draft-root",
+        type=Path,
+        default=None,
+        help=(
+            "Optional override for the draft directory containing "
+            "concept.md / question_bank.yaml / decision.json."
+        ),
+    )
+    p_curr_mat.set_defaults(func=_cmd_curriculum_materialize)
+
+    p_curr_graph = curr_sub.add_parser(
+        "graph",
+        help="Render the curriculum DAG to Graphviz DOT (or SVG with --svg).",
+    )
+    p_curr_graph.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="Output path. Defaults to stdout (DOT).",
+    )
+    p_curr_graph.add_argument(
+        "--svg",
+        action="store_true",
+        help="Convert DOT to SVG via the system 'dot' binary.",
+    )
+    p_curr_graph.set_defaults(func=_cmd_curriculum_graph)
 
     return parser
 

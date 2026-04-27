@@ -1,0 +1,69 @@
+questions:
+- id: q1
+  prompt: Define net present value (NPV).
+  expected: present value of cash flows discounted at the required rate of return
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: Compute NPV with cash flows [-100, 50, 50, 50] and r=10%. Return only the
+    number rounded to 2 decimals.
+  expected: 24.34
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: Under what NPV condition should a project be accepted?
+  expected: NPV > 0
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: If NPV is negative at r=10%, what does that imply about IRR for an ordinary
+    cash flow stream?
+  expected: IRR is less than 10%
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: Compute NPV with cash flows [-200, 80, 80, 80, 80] and r=8%. Return only
+    the number rounded to 2 decimals.
+  expected: 64.97
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: What happens to NPV as the discount rate r increases (for ordinary cash
+    flow patterns)?
+  expected: NPV decreases
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Compute NPV with cash flows [-50, 25, 25] and r=5%. Return only the number
+    rounded to 2 decimals.
+  expected: -3.51
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: When two projects are mutually exclusive, which one should be accepted?
+  expected: the one with the higher NPV
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Compute the present value of a single cash flow of 1000 received in 5 years
+    at r=6%. Return only the number rounded to 2 decimals.
+  expected: 747.26
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: What discount rate makes NPV equal to zero?
+  expected: internal rate of return
+  kind: conceptual
+  answer_match: substring
+- id: q11
+  prompt: Compute NPV of a perpetuity paying 100 per year, with first payment at t=1,
+    at r=10%. Return only the number.
+  expected: 1000
+  kind: computational
+  answer_match: numeric
+- id: q12
+  prompt: Compute NPV with cash flows [-1000, 600, 600] and r=15%. Return only the
+    number rounded to 2 decimals.
+  expected: -24.57
+  kind: computational
+  answer_match: numeric

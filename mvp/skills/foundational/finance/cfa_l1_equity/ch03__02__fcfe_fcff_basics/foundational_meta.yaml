@@ -1,0 +1,20 @@
+branch: finance
+book_id: cfa_l1_equity
+chapter: 3
+section: 2
+subsection: fcfe_fcff_basics
+title: Free cash flow to firm and to equity
+prereqs:
+- fnd_finance_cfa_l1_corp_ch02_01_fcfe_fcff_definition
+- fnd_finance_cfa_l1_equity_ch03_01_gordon_growth_model
+code_artifacts:
+- __init__.py
+- fcfe_fcff_basics.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 15
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.5

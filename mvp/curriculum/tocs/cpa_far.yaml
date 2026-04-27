@@ -1,0 +1,152 @@
+book_id: cpa_far
+branch: accounting
+title: "CPA Exam — Financial Accounting and Reporting (FAR) review outline"
+authors: "AICPA / Becker / Wiley CPA review (outline only)"
+license_note: >-
+  CPA Exam blueprint structure only. Subsection summaries are
+  IvorySquare-authored paraphrases, focused on US GAAP.
+
+chapters:
+  - number: 1
+    title: "Conceptual framework and standard-setting"
+    sections:
+      - number: 1
+        title: "FASB conceptual framework"
+        subsections:
+          - id: fasb_concept_framework
+            title: "Objectives, qualitative characteristics, and elements"
+            summary: >-
+              FASB's conceptual framework establishes the objectives of
+              general-purpose financial reporting, the qualitative
+              characteristics (relevance, faithful representation), and the
+              ten elements of financial statements.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "GAAP hierarchy"
+        subsections:
+          - id: gaap_hierarchy
+            title: "ASC codification structure"
+            summary: >-
+              The FASB Accounting Standards Codification organizes US GAAP
+              into Areas, Topics, Subtopics, Sections, and Paragraphs;
+              codification reference style is ASC XXX-YY-ZZ.
+            tags: [conceptual, definitional]
+  - number: 2
+    title: "Financial statements"
+    sections:
+      - number: 1
+        title: "Income statement and comprehensive income"
+        subsections:
+          - id: comprehensive_income_components
+            title: "Net income vs. other comprehensive income"
+            summary: >-
+              Other comprehensive income reports gains and losses bypassing
+              net income (e.g., foreign-currency translation, certain
+              pension adjustments); comprehensive income equals net income
+              plus OCI.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Statement of cash flows"
+        subsections:
+          - id: cfs_categorization
+            title: "Operating, investing, and financing classification"
+            summary: >-
+              Cash flow statements classify each cash movement; specific
+              items (e.g., interest paid) follow GAAP-prescribed
+              classifications that differ subtly from IFRS.
+            tags: [conceptual, mixed]
+      - number: 3
+        title: "Property, plant, and equipment"
+        subsections:
+          - id: depreciation_methods
+            title: "Depreciation methods"
+            summary: >-
+              Depreciation allocates the capitalized cost of PP&E over its
+              useful life; straight-line, units-of-production, and
+              accelerated methods (declining balance, sum-of-years digits)
+              produce different period expense patterns.
+            tags: [computational, closed_form_candidate]
+          - id: impairment_long_lived_assets
+            title: "Impairment of long-lived assets"
+            summary: >-
+              Long-lived asset impairment under ASC 360 follows a two-step
+              recoverability test (undiscounted cash flows) and, if failed,
+              a fair-value write-down recognized in earnings.
+            tags: [conceptual, mixed]
+  - number: 3
+    title: "Liabilities, equity, and EPS"
+    sections:
+      - number: 1
+        title: "Bonds and notes payable"
+        subsections:
+          - id: bond_amortization
+            title: "Bond premium and discount amortization"
+            summary: >-
+              Bonds issued at a premium or discount to par are amortized to
+              face value over the bond's life; the effective-interest
+              method aligns interest expense with the carrying value.
+            tags: [computational, closed_form_candidate]
+          - id: pension_obligations
+            title: "Defined benefit pension components"
+            summary: >-
+              Net periodic pension cost under ASC 715 includes service
+              cost, interest cost, expected return on plan assets, and
+              amortization of prior service cost and gains/losses.
+            tags: [computational, mixed]
+      - number: 2
+        title: "Earnings per share"
+        subsections:
+          - id: basic_diluted_eps
+            title: "Basic vs. diluted EPS"
+            summary: >-
+              Basic EPS divides net income available to common shareholders
+              by weighted-average shares outstanding; diluted EPS adjusts
+              for potentially dilutive instruments via the treasury stock
+              and if-converted methods.
+            tags: [computational, closed_form_candidate]
+  - number: 4
+    title: "Income taxes"
+    sections:
+      - number: 1
+        title: "Deferred taxes"
+        subsections:
+          - id: deferred_tax_basics
+            title: "Deferred tax assets and liabilities"
+            summary: >-
+              Deferred tax balances arise from temporary differences
+              between book and tax bases; the asset-and-liability method
+              measures them at enacted tax rates expected to apply when
+              the differences reverse.
+            tags: [conceptual, computational]
+          - id: valuation_allowance
+            title: "Deferred tax valuation allowance"
+            summary: >-
+              A valuation allowance reduces deferred tax assets to the
+              amount more likely than not to be realized, considering
+              future taxable income and tax-planning strategies.
+            tags: [conceptual, definitional]
+  - number: 5
+    title: "Revenue and leases"
+    sections:
+      - number: 1
+        title: "Revenue (ASC 606)"
+        subsections:
+          - id: asc606_five_step
+            title: "ASC 606 five-step model"
+            summary: >-
+              ASC 606 recognizes revenue when (or as) performance
+              obligations are satisfied; the five-step model identifies
+              contract, performance obligations, transaction price,
+              allocates price, and recognizes revenue.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Leases (ASC 842)"
+        subsections:
+          - id: asc842_lessee_classification
+            title: "Lessee classification: finance vs. operating"
+            summary: >-
+              Under ASC 842, lessees recognize a right-of-use asset and
+              lease liability for nearly all leases; classification as
+              finance or operating affects the income-statement pattern
+              but not the balance sheet.
+            tags: [conceptual, definitional]

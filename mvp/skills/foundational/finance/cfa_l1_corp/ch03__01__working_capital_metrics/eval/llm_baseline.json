@@ -1,0 +1,196 @@
+{
+  "failure_mode_tags": {
+    "computational_off_by_arithmetic": 0,
+    "partial_correct": 0,
+    "qualitative_correct": 9,
+    "structural_misunderstanding": 0,
+    "unit_or_dimension_error": 0
+  },
+  "mode": "live",
+  "n_questions": 10,
+  "n_trials_per_question": 3,
+  "node_id": "foundational/finance/cfa_l1_corp/ch03__01__working_capital_metrics",
+  "pass_rate": 0.7,
+  "trials": [
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q1"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q1"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q1"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q2"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q2"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q2"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q3"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q3"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q3"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q4"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q4"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q4"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q5"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q5"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q5"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q6"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q6"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q6"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q7"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q7"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q7"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q8"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q8"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q8"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q9"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q9"
+    },
+    {
+      "failure_tag": null,
+      "matched_expected": true,
+      "passed": true,
+      "question_id": "q9"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q10"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q10"
+    },
+    {
+      "failure_tag": "qualitative_correct",
+      "matched_expected": false,
+      "passed": false,
+      "question_id": "q10"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+branch: or
+book_id: ross_prob
+chapter: 3
+section: 1
+subsection: bayes_rule
+title: Bayes' rule
+prereqs:
+- fnd_or_ross_prob_ch03_01_conditional_definition
+code_artifacts:
+- __init__.py
+- bayes.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 24
+  partial_correct: 0
+  qualitative_correct: 4
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.7666666666666667

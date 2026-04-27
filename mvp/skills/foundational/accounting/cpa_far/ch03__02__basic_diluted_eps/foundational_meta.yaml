@@ -1,0 +1,19 @@
+branch: accounting
+book_id: cpa_far
+chapter: 3
+section: 2
+subsection: basic_diluted_eps
+title: Basic vs. diluted EPS
+prereqs:
+- fnd_accounting_cpa_far_ch03_01_pension_obligations
+code_artifacts:
+- __init__.py
+- basic_diluted_eps.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 5
+  partial_correct: 0
+  qualitative_correct: 15
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: live
+filter_pass_rate: 0.3333333333333333

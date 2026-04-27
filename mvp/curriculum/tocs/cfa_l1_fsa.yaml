@@ -1,0 +1,162 @@
+book_id: cfa_l1_fsa
+branch: finance
+title: "CFA Level 1 — Financial Statement Analysis"
+authors: "CFA Institute curriculum (outline only)"
+license_note: >-
+  CFA outline structure only; subsection summaries are
+  IvorySquare-authored paraphrases.
+
+chapters:
+  - number: 1
+    title: "Introduction to financial statement analysis"
+    sections:
+      - number: 1
+        title: "Framework and roles of statements"
+        subsections:
+          - id: fsa_framework
+            title: "FSA framework and the role of each statement"
+            summary: >-
+              Financial statement analysis combines income statement, balance
+              sheet, cash flow statement, and notes to assess profitability,
+              solvency, and liquidity.
+            tags: [conceptual, definitional]
+  - number: 2
+    title: "Income statement"
+    sections:
+      - number: 1
+        title: "Structure and presentation"
+        subsections:
+          - id: income_statement_structure
+            title: "Income statement structure"
+            summary: >-
+              The income statement reports revenues, costs of goods sold,
+              operating expenses, finance items, taxes, and net income; the
+              order reflects the economic flow from revenue to bottom line.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Revenue and expense recognition"
+        subsections:
+          - id: revenue_recognition_basics
+            title: "Revenue recognition under ASC 606"
+            summary: >-
+              ASC 606's five-step model — identify contract, identify
+              performance obligations, determine and allocate transaction
+              price, recognize revenue when obligations are satisfied —
+              governs US GAAP revenue recognition.
+            tags: [conceptual, definitional, mixed]
+          - id: cogs_inventory_methods
+            title: "Inventory cost flow methods (FIFO/LIFO/weighted average)"
+            summary: >-
+              Cost of goods sold and inventory balances depend on the chosen
+              cost-flow assumption (FIFO, LIFO, weighted average) and shift
+              with the prevailing direction of input prices.
+            tags: [computational, closed_form_candidate]
+  - number: 3
+    title: "Balance sheet"
+    sections:
+      - number: 1
+        title: "Structure and classification"
+        subsections:
+          - id: balance_sheet_structure
+            title: "Balance sheet structure and classification"
+            summary: >-
+              The balance sheet reports assets equal to liabilities plus
+              equity at a point in time, with assets and liabilities
+              classified as current or non-current.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Common-size and ratio analysis"
+        subsections:
+          - id: common_size_balance_sheet
+            title: "Common-size balance sheet"
+            summary: >-
+              A common-size balance sheet expresses every line item as a
+              percentage of total assets, enabling cross-firm and over-time
+              comparisons.
+            tags: [computational, closed_form_candidate]
+  - number: 4
+    title: "Cash flow statement"
+    sections:
+      - number: 1
+        title: "Structure"
+        subsections:
+          - id: cfs_structure
+            title: "Cash flow statement structure"
+            summary: >-
+              The cash flow statement classifies cash inflows and outflows
+              into operating, investing, and financing activities, tying net
+              income to cash via accruals adjustments.
+            tags: [conceptual, definitional]
+          - id: indirect_method_reconciliation
+            title: "Indirect-method reconciliation"
+            summary: >-
+              The indirect method derives operating cash flow by adjusting
+              net income for non-cash items, working-capital changes, and
+              gains or losses outside operations.
+            tags: [computational, mixed, closed_form_candidate]
+  - number: 5
+    title: "Earnings quality and accruals"
+    sections:
+      - number: 1
+        title: "Quality of earnings"
+        subsections:
+          - id: earnings_quality_definition
+            title: "Earnings quality definition"
+            summary: >-
+              Earnings quality measures the persistence and predictiveness
+              of reported earnings as a proxy for the underlying economic
+              performance.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Accruals"
+        subsections:
+          - id: accrual_quality_basics
+            title: "Total accruals and accrual quality"
+            summary: >-
+              Total accruals equal net income minus cash from operations;
+              high accruals are associated with mean-reverting future
+              earnings, the foundation of the Sloan accruals anomaly.
+            tags: [computational, mixed, closed_form_candidate]
+          - id: working_capital_accruals
+            title: "Working capital accruals"
+            summary: >-
+              Working capital accruals capture changes in current operating
+              assets and liabilities; they are a major component of total
+              accruals.
+            tags: [computational, closed_form_candidate]
+  - number: 6
+    title: "Financial ratios"
+    sections:
+      - number: 1
+        title: "Profitability and efficiency"
+        subsections:
+          - id: profitability_ratios
+            title: "Gross, operating, and net margin"
+            summary: >-
+              Profitability ratios scale earnings at successive levels by
+              revenue, isolating costs absorbed at each stage of the
+              income statement.
+            tags: [computational, closed_form_candidate]
+          - id: turnover_ratios
+            title: "Asset turnover and inventory turnover"
+            summary: >-
+              Turnover ratios divide a flow (revenue or COGS) by an average
+              stock (assets or inventory) to measure activity per unit of
+              capital.
+            tags: [computational, closed_form_candidate]
+      - number: 2
+        title: "Solvency and liquidity"
+        subsections:
+          - id: liquidity_ratios
+            title: "Current and quick ratio"
+            summary: >-
+              Liquidity ratios compare current assets (or quick assets) to
+              current liabilities, signaling near-term coverage of
+              obligations.
+            tags: [computational, closed_form_candidate]
+          - id: solvency_ratios
+            title: "Debt-to-equity and interest coverage"
+            summary: >-
+              Solvency ratios compare debt to equity and EBIT to interest
+              expense, signaling long-term obligation-servicing capacity.
+            tags: [computational, closed_form_candidate]

@@ -1,0 +1,92 @@
+questions:
+- id: q1
+  prompt: 'What is a deferred tax liability? Provide a canonical definition in no
+    more than 12 words.
+
+    '
+  expected: future tax obligation arising from temporary taxable differences
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'What is a deferred tax asset? Provide a canonical definition in no more
+    than 12 words.
+
+    '
+  expected: future tax benefit arising from temporary deductible differences
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A company uses straight-line depreciation for book purposes and accelerated
+    depreciation for tax purposes. In the early years of an asset''s life, does this
+    create a deferred tax asset or a deferred tax liability?
+
+    '
+  expected: deferred tax liability
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A company recognizes warranty expense of $50,000 for book purposes in Year
+    1, but the expense is only deductible for tax purposes when paid in Year 2. The
+    enacted tax rate is 25%. What is the deferred tax asset recorded at the end of
+    Year 1? Return only the number.
+
+    '
+  expected: 12500
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'Under ASC 740, deferred tax assets and liabilities are measured using which
+    tax rate: the current year rate or the enacted future rate expected to apply when
+    the difference reverses?
+
+    '
+  expected: enacted future rate
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A firm has a deferred tax asset of $80,000. Management concludes it is
+    more likely than not that $30,000 of the asset will not be realized. What is the
+    valuation allowance that should be recorded? Return only the number.
+
+    '
+  expected: 30000
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'What criterion must be met for a company to avoid recording a valuation
+    allowance against a deferred tax asset? Provide a canonical phrase.
+
+    '
+  expected: more likely than not the asset will be realized
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'A company has book income before tax of $200,000. It has a permanent difference
+    of $20,000 (non-deductible expense) and a temporary difference of $15,000 (accelerated
+    tax depreciation in excess of book depreciation). The enacted tax rate is 30%.
+    What is the deferred tax liability created by the temporary difference? Return
+    only the number.
+
+    '
+  expected: 4500
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'Distinguish between a permanent difference and a temporary difference in
+    the context of deferred taxes. Which type gives rise to deferred tax assets or
+    liabilities?
+
+    '
+  expected: temporary differences give rise to deferred tax assets or liabilities
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'A company reports a deferred tax liability of $60,000 at the beginning
+    of the year and $75,000 at the end of the year. Assuming no other deferred tax
+    items, what is the deferred tax expense recognized in the income statement for
+    the year? Return only the number.
+
+    '
+  expected: 15000
+  kind: computational
+  answer_match: numeric

@@ -1,0 +1,90 @@
+questions:
+- id: q1
+  prompt: 'What is a deferred tax valuation allowance, and against which balance sheet
+    item is it recorded?
+
+    '
+  expected: contra account reducing deferred tax asset
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Under ASC 740, a valuation allowance is required when it is more likely
+    than not that some or all of a deferred tax asset will not be realized. What probability
+    threshold does "more likely than not" represent? Return only the number.
+
+    '
+  expected: 50
+  kind: conceptual
+  answer_match: numeric
+- id: q3
+  prompt: 'A company has a gross deferred tax asset of $80,000. Management determines
+    that $30,000 of the asset will more likely than not be realized. What is the required
+    valuation allowance balance? Return only the number.
+
+    '
+  expected: 50000
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Name two sources of positive evidence that management may consider when
+    evaluating whether a valuation allowance is needed on a deferred tax asset.
+
+    '
+  expected: future taxable income and taxable temporary differences
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'A company had a deferred tax asset of $200,000 and a valuation allowance
+    of $120,000 at year-end. What is the net deferred tax asset reported on the balance
+    sheet? Return only the number.
+
+    '
+  expected: 80000
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'When a valuation allowance is initially established, what is the effect
+    on income tax expense in the period of establishment?
+
+    '
+  expected: increases income tax expense
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'At the beginning of the year, a company''s valuation allowance was $40,000.
+    At year-end, management determines the required valuation allowance is $55,000.
+    By how much does income tax expense increase due to this change? Return only the
+    number.
+
+    '
+  expected: 15000
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'Which of the following is considered negative evidence when assessing the
+    need for a valuation allowance: a history of profitable operations or a history
+    of cumulative losses in recent years?
+
+    '
+  expected: history of cumulative losses in recent years
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A company has a deferred tax asset of $150,000 related to a net operating
+    loss carryforward. The tax rate is 25%. Management concludes it is more likely
+    than not that only 60% of the asset will be realized. What is the required valuation
+    allowance? Return only the number.
+
+    '
+  expected: 60000
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'If a previously established valuation allowance is subsequently reduced
+    because new positive evidence indicates the deferred tax asset will be realized,
+    what is the effect on net income in that period?
+
+    '
+  expected: net income increases
+  kind: conceptual
+  answer_match: substring

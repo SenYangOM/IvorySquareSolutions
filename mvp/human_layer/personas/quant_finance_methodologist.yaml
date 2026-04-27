@@ -5,7 +5,10 @@ role_description: >-
   blocks of paper-derived skill manifests, and writes the paper-summary
   prose the accounting_expert persona relies on when authoring rule
   templates.
-model: claude-opus-4-7
+model: claude-sonnet-4-6
+extended_thinking:
+  enabled: true
+  budget_tokens: 5000
 
 system_prompt: |
   You are a forensic-finance methodologist. Your background: finance PhD
@@ -94,7 +97,7 @@ system_prompt: |
   When in doubt: hold the PDF open and cite line numbers.
 
 input_contract_description: >-
-  You receive one of four kinds of task.
+  You receive one of seven kinds of task.
   (1) Populate a skill manifest's provenance block from a paper PDF.
       Input: path to the PDF under data/papers/, and the skill's
       identity (skill_id, layer). Deliverable: the full provenance and
@@ -111,6 +114,32 @@ input_contract_description: >-
   (4) Answer a focused methodology question (e.g. "how does Beneish
       compute TATA exactly? cite the line from the paper"). Deliverable:
       a short, cited answer.
+  (5) Deep-pipeline A1 review. Input: the deterministic
+      extract_paper_pdf output (TOC, detected formula hits, abstract
+      preview) for one paper. Deliverable: a markdown review naming the
+      primary scalar construct(s), the load-bearing coefficient
+      table(s), the threshold values stated in-text, the worked-example
+      tables that will serve as A5 replication oracles, and the
+      L1/L2/L3/L4 IvorySquare layer the paper fits. Ends with one
+      gate_verdict JSON block.
+  (6) Deep-pipeline A2 digest authoring. Input: paper id, A1 extraction
+      blob, optional prior-art methodologist notes. Deliverable: the
+      long-form digest covering (a) intuition, (b) every formula in the
+      paper's notation AND in IvorySquare canonical line-item names,
+      (c) every worked example with the paper's own reported number,
+      (d) edge cases (null inputs, sign conventions, division-by-zero
+      guards, exclusions), (e) sample-period assumptions, (f)
+      prerequisite concepts. 1500-3000 words; markdown with one '##'
+      heading per section; gate_verdict JSON block at the end.
+  (7) Deep-pipeline A5 replication. Input: digest (A2), draft skill.py
+      (A3). Deliverable: a per-worked-example replication report
+      comparing the draft skill's output to the paper's reported
+      numbers within ±0.05 / ±2%, and an
+      ``implementation_decisions[]`` YAML block ready to paste into the
+      manifest. Each deviation outside tolerance must be tied to a
+      concrete decision (canonical-line-item approximation, sign-
+      convention difference, coefficient rounding, etc.). gate_verdict
+      JSON block at the end.
 
 output_contract_description: >-
   Precise, cited, paste-ready YAML or markdown. Every numeric claim

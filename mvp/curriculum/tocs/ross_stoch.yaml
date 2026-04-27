@@ -1,0 +1,108 @@
+book_id: ross_stoch
+branch: or
+title: "Stochastic Processes"
+authors: "Sheldon Ross"
+license_note: >-
+  TOC structure only; verbatim textbook content is excluded. Subsection
+  summaries are IvorySquare-authored paraphrases.
+
+chapters:
+  - number: 2
+    title: "Poisson processes"
+    sections:
+      - number: 1
+        title: "Definition"
+        subsections:
+          - id: poisson_process_definition
+            title: "Poisson process axioms"
+            summary: >-
+              A Poisson process counts events with independent and
+              stationary increments and Poisson-distributed counts in any
+              interval.
+            tags: [conceptual, definitional]
+          - id: interarrival_exponential
+            title: "Exponential interarrival times"
+            summary: >-
+              Successive arrivals in a Poisson process are separated by
+              i.i.d. exponential interarrival times with rate lambda.
+            tags: [computational, closed_form_candidate]
+      - number: 2
+        title: "Compound and nonhomogeneous variants"
+        subsections:
+          - id: compound_poisson
+            title: "Compound Poisson processes"
+            summary: >-
+              A compound Poisson process aggregates random jumps occurring
+              at Poisson-distributed times; mean and variance follow from
+              Wald's identity.
+            tags: [computational, closed_form_candidate]
+  - number: 3
+    title: "Renewal theory"
+    sections:
+      - number: 1
+        title: "Renewal function"
+        subsections:
+          - id: renewal_function_definition
+            title: "Renewal function and elementary theorem"
+            summary: >-
+              The renewal function counts expected events up to time t; the
+              elementary renewal theorem ties its long-run rate to the mean
+              interarrival time.
+            tags: [conceptual, theorem]
+  - number: 4
+    title: "Markov chains"
+    sections:
+      - number: 1
+        title: "Discrete-time Markov chains"
+        subsections:
+          - id: markov_chain_definition
+            title: "Markov property and transition matrix"
+            summary: >-
+              A Markov chain has the conditional independence property that
+              the next state depends only on the current state, encoded by
+              a stochastic transition matrix.
+            tags: [conceptual, definitional]
+          - id: chapman_kolmogorov
+            title: "Chapman-Kolmogorov and n-step transitions"
+            summary: >-
+              Multi-step transition probabilities equal matrix powers of
+              the one-step transition matrix; this is the
+              Chapman-Kolmogorov equation.
+            tags: [computational, closed_form_candidate]
+          - id: stationary_distribution
+            title: "Stationary distributions"
+            summary: >-
+              A stationary distribution is a left-eigenvector of the
+              transition matrix with eigenvalue one; ergodic chains
+              converge to it from any start.
+            tags: [conceptual, computational, closed_form_candidate]
+      - number: 2
+        title: "Continuous-time chains"
+        subsections:
+          - id: ctmc_generator
+            title: "Continuous-time Markov chain generator"
+            summary: >-
+              A continuous-time Markov chain is determined by its rate (Q)
+              matrix; transition probabilities solve Kolmogorov's forward
+              and backward equations.
+            tags: [computational, theorem]
+  - number: 5
+    title: "Brownian motion"
+    sections:
+      - number: 1
+        title: "Definitions"
+        subsections:
+          - id: brownian_definition
+            title: "Standard Brownian motion definition"
+            summary: >-
+              Standard Brownian motion is a continuous-time process with
+              independent Gaussian increments, starting at zero, and
+              continuous sample paths.
+            tags: [conceptual, definitional]
+          - id: brownian_properties
+            title: "Properties of Brownian motion"
+            summary: >-
+              Brownian motion is a martingale with quadratic variation t,
+              continuous but nowhere differentiable, and self-similar under
+              Brownian rescaling.
+            tags: [conceptual, theorem]

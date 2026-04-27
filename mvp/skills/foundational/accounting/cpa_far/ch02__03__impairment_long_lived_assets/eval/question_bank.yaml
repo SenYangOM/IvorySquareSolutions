@@ -1,0 +1,85 @@
+questions:
+- id: q1
+  prompt: 'Under US GAAP, what is the first step in testing a long-lived asset held
+    for use for impairment?
+
+    '
+  expected: compare carrying amount to undiscounted future cash flows
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Under US GAAP, if a long-lived asset held for use fails the recoverability
+    test, how is the impairment loss measured?
+
+    '
+  expected: excess of carrying amount over fair value
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A machine has a carrying amount of $500,000. Its expected undiscounted
+    future cash flows total $480,000 and its fair value is $430,000. What is the impairment
+    loss to be recognized? Return only the number.
+
+    '
+  expected: 70000
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Under US GAAP, after an impairment loss is recorded on a long-lived asset
+    held for use, can the loss be reversed in a subsequent period?
+
+    '
+  expected: no, reversal of impairment is not permitted under US GAAP
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'Under IFRS (IAS 36), what amount is used to measure the recoverable amount
+    of a long-lived asset?
+
+    '
+  expected: higher of fair value less costs of disposal and value in use
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A long-lived asset held for sale has a carrying amount of $300,000, a fair
+    value of $260,000, and estimated costs to sell of $15,000. What is the impairment
+    loss? Return only the number.
+
+    '
+  expected: 55000
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'Under US GAAP, which authoritative standard (ASC topic number) primarily
+    governs the impairment of long-lived assets held for use?
+
+    '
+  expected: ASC 360
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'When a long-lived asset is reclassified as held for sale, depreciation
+    on that asset should do what?
+
+    '
+  expected: cease
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A company has a long-lived asset group with a carrying amount of $800,000.
+    The sum of undiscounted expected future cash flows is $820,000 and the fair value
+    is $700,000. What impairment loss, if any, should be recognized under US GAAP?
+    Return only the number.
+
+    '
+  expected: 0
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'Under IFRS, if the recoverable amount of a previously impaired long-lived
+    asset subsequently increases, what accounting treatment is required?
+
+    '
+  expected: reversal of impairment loss is recognized up to original carrying amount
+  kind: conceptual
+  answer_match: substring

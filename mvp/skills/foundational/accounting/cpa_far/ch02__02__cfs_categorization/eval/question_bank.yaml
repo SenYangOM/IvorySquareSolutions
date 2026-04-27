@@ -1,0 +1,86 @@
+questions:
+- id: q1
+  prompt: 'Under the indirect method of the statement of cash flows, which of the
+    three activity categories begins with net income as its starting point?
+
+    '
+  expected: operating activities
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'A company purchases a new piece of manufacturing equipment for cash. In
+    which section of the statement of cash flows should this transaction be classified?
+
+    '
+  expected: investing activities
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'Interest paid on a bank loan is classified under which activity section
+    of the statement of cash flows under U.S. GAAP?
+
+    '
+  expected: operating activities
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A company issues common stock for $500,000 cash and repays a long-term
+    note payable of $200,000 cash. What is the net cash provided by (or used in) financing
+    activities? Return only the number.
+
+    '
+  expected: 300000
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'Dividends received from an equity investment are classified under which
+    activity section of the statement of cash flows under U.S. GAAP?
+
+    '
+  expected: operating activities
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A company sells a long-term investment in marketable securities for $150,000
+    cash (original cost $120,000). How much should be reported as a cash inflow in
+    the investing activities section? Return only the number.
+
+    '
+  expected: 150000
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'Which activity section of the statement of cash flows includes cash receipts
+    from customers for the sale of goods and services?
+
+    '
+  expected: operating activities
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'A company borrows $400,000 on a long-term note payable and pays cash dividends
+    of $60,000 to shareholders. What is the net cash provided by financing activities?
+    Return only the number.
+
+    '
+  expected: 340000
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'Under U.S. GAAP, the payment of dividends to a company''s own shareholders
+    is classified in which section of the statement of cash flows?
+
+    '
+  expected: financing activities
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'A company collects $80,000 from customers, pays $50,000 to suppliers, pays
+    $10,000 in interest, and pays $5,000 in income taxes. All items are classified
+    as operating under U.S. GAAP. What is the net cash provided by operating activities?
+    Return only the number.
+
+    '
+  expected: 15000
+  kind: computational
+  answer_match: numeric

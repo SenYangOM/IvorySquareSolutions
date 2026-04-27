@@ -1,0 +1,3 @@
+node_id: foundational/or/ross_stoch/ch04__01__stationary_distribution
+prereqs:
+- fnd_or_ross_stoch_ch04_01_chapman_kolmogorov

@@ -1,0 +1,86 @@
+questions:
+- id: q1
+  prompt: 'In the multistage dividend discount model (DDM), what is the core principle
+    used to determine the intrinsic value of a stock?
+
+    '
+  expected: present value of all expected future dividends
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'A stock is expected to pay a dividend of $2.00 next year, $2.50 in year
+    2, and then grow at a constant 4% per year forever starting from year 3. The required
+    return is 10%. What is the dividend in year 3? Return only the number.
+
+    '
+  expected: 2.6
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: 'Using the data from q2 (D1=$2.00, D2=$2.50, constant growth of 4% from
+    year 3 onward, required return=10%), calculate the terminal value at the end of
+    year 2 (i.e., the Gordon Growth Model price at t=2). Return only the number.
+
+    '
+  expected: 43.33
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Using the data from q2 and q3 (D1=$2.00, D2=$2.50, terminal value at t=2
+    is $43.33, required return=10%), calculate the intrinsic value of the stock today
+    (t=0). Return only the number.
+
+    '
+  expected: 35.4
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'In a two-stage DDM, what does the ''terminal value'' (also called continuing
+    value) represent?
+
+    '
+  expected: present value of dividends beyond the high-growth stage
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A firm currently pays a dividend of $3.00 (D0). Dividends are expected
+    to grow at 15% for 2 years, then stabilize at 5% forever. The required return
+    is 12%. Calculate D1. Return only the number.
+
+    '
+  expected: 3.45
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'Using the firm from q6 (D0=$3.00, g1=15% for 2 years, g2=5% forever, r=12%),
+    calculate D2. Return only the number.
+
+    '
+  expected: 3.9675
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'Using the firm from q6 and q7 (D1=$3.45, D2=$3.9675, g2=5%, r=12%), calculate
+    the terminal value at end of year 2 using the Gordon Growth Model. Return only
+    the number.
+
+    '
+  expected: 59.51
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'Which condition must hold for the Gordon Growth Model (used in the terminal
+    stage of a multistage DDM) to produce a finite, positive value?
+
+    '
+  expected: required return must exceed the constant growth rate
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'In a multistage DDM, why is the high-growth stage typically assumed to
+    be temporary rather than permanent?
+
+    '
+  expected: no firm can grow faster than the economy indefinitely
+  kind: conceptual
+  answer_match: substring

@@ -1,0 +1,52 @@
+questions:
+- id: q1
+  prompt: What is gross profit equal to?
+  expected: revenue minus cost of goods sold
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: What is operating income (EBIT)?
+  expected: gross profit minus operating expenses
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: Where on the income statement does interest expense appear?
+  expected: below operating income
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: Define net income in terms of pretax income.
+  expected: pretax income minus income tax expense
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: What is the difference between basic EPS and diluted EPS?
+  expected: diluted EPS adjusts for potentially dilutive securities
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: What is comprehensive income?
+  expected: net income plus other comprehensive income
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Name two items typically reported in other comprehensive income (OCI).
+  expected: foreign currency translation, pension adjustments
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: What's the difference between a single-step and a multi-step income statement?
+  expected: multi-step shows gross profit and operating income as subtotals
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Where does R&D expense typically appear on a multi-step income statement?
+  expected: between gross profit and operating income
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: Is depreciation and amortization always reported as a separate line on the
+    income statement?
+  expected: no, sometimes embedded in COGS or SG&A
+  kind: conceptual
+  answer_match: substring

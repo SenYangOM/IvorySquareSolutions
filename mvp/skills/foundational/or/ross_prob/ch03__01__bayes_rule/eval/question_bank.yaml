@@ -1,0 +1,65 @@
+questions:
+- id: q1
+  prompt: State Bayes' rule for two events A and B.
+  expected: P(A | B) = P(B | A) P(A) / P(B)
+  kind: computational
+  answer_match: substring
+- id: q2
+  prompt: A test has sensitivity P(+|D)=0.99, specificity P(-|notD)=0.95, prevalence
+    P(D)=0.01. Compute P(D|+) rounded to 4 decimals.
+  expected: 0.1667
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: Compute P(A|B) when P(B|A)=0.8, P(A)=0.5, and P(B)=0.6.
+  expected: 0.6667
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: What is the law of total probability used for in Bayes' rule?
+  expected: computing the marginal P(B) by summing over a partition
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: Compute P(A|B) with P(B|A)=0.9, P(A)=0.2, P(B|notA)=0.3.
+  expected: 0.4286
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: Why is the posterior P(D|+) much smaller than the sensitivity P(+|D) when
+    prevalence is low?
+  expected: base rate is small so most positives are false positives
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Compute the posterior P(spam | word) when P(word | spam)=0.8, P(spam)=0.3,
+    P(word | not_spam)=0.1.
+  expected: 0.7742
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: If P(B|A)=0.5 and P(B|notA)=0.5, what is P(A|B) regardless of P(A)?
+  expected: P(A)
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: Compute P(D|+) when prevalence is 0.10, sensitivity is 0.95, false-positive
+    rate is 0.05. Round to 4 decimals.
+  expected: 0.6786
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: Bayes' rule turns a likelihood into what?
+  expected: posterior probability
+  kind: conceptual
+  answer_match: substring
+- id: q11
+  prompt: Compute P(A|B) with P(A)=0.4, P(B|A)=0.7, P(B|notA)=0.2. Round to 4 decimals.
+  expected: 0.7
+  kind: computational
+  answer_match: numeric
+- id: q12
+  prompt: Compute P(A|B) with P(A)=0.05, P(B|A)=0.9, P(B|notA)=0.1. Round to 4 decimals.
+  expected: 0.3214
+  kind: computational
+  answer_match: numeric

@@ -1,0 +1,17 @@
+branch: accounting
+book_id: cpa_far
+chapter: 5
+section: 1
+subsection: asc606_five_step
+title: ASC 606 five-step model
+prereqs:
+- fnd_accounting_cpa_far_ch04_01_valuation_allowance
+code_artifacts: []
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 12
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 3
+filter_mode: live
+filter_pass_rate: 0.5

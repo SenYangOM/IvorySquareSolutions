@@ -1,0 +1,144 @@
+book_id: boyd_cvx
+branch: or
+title: "Convex Optimization"
+authors: "Boyd & Vandenberghe (2004)"
+license_note: >-
+  TOC structure only. Subsection summaries are IvorySquare-authored
+  paraphrases; verbatim textbook content is excluded.
+
+chapters:
+  - number: 2
+    title: "Convex sets"
+    sections:
+      - number: 1
+        title: "Definition and basic examples"
+        subsections:
+          - id: convex_sets_definition
+            title: "Convex set definition"
+            summary: >-
+              A set is convex if it contains every line segment whose
+              endpoints lie in the set; convexity is closed under
+              intersection.
+            tags: [conceptual, definitional]
+          - id: hyperplanes_halfspaces
+            title: "Hyperplanes and halfspaces"
+            summary: >-
+              Hyperplanes and halfspaces are the canonical building blocks
+              of polyhedral convex sets and define linear classifiers.
+            tags: [conceptual, geometric]
+      - number: 2
+        title: "Operations preserving convexity"
+        subsections:
+          - id: convexity_preserving_ops
+            title: "Affine maps, intersections, and Minkowski sums"
+            summary: >-
+              Convex sets are preserved under affine maps, finite or
+              infinite intersections, and Minkowski sums.
+            tags: [conceptual, structural]
+  - number: 3
+    title: "Convex functions"
+    sections:
+      - number: 1
+        title: "Definitions"
+        subsections:
+          - id: convex_function_definition
+            title: "Convex function definition"
+            summary: >-
+              A function on a convex set is convex if its epigraph is a
+              convex set, equivalently if Jensen's inequality holds at
+              every pair of points.
+            tags: [conceptual, definitional]
+          - id: first_order_condition
+            title: "First-order convexity condition"
+            summary: >-
+              A differentiable function is convex iff a first-order Taylor
+              expansion under-estimates it at every point.
+            tags: [conceptual, theorem]
+          - id: second_order_condition
+            title: "Second-order convexity condition"
+            summary: >-
+              A twice-differentiable function is convex iff its Hessian is
+              positive semidefinite throughout its domain.
+            tags: [computational, theorem, closed_form_candidate]
+      - number: 2
+        title: "Examples"
+        subsections:
+          - id: convex_function_examples
+            title: "Common convex functions"
+            summary: >-
+              Norms, exponential, log-sum-exp, quadratic-over-linear, and
+              the negative entropy are canonical convex functions across
+              applications.
+            tags: [conceptual, definitional]
+  - number: 4
+    title: "Convex optimization problems"
+    sections:
+      - number: 1
+        title: "Standard form"
+        subsections:
+          - id: cvx_standard_form
+            title: "Standard form of a convex program"
+            summary: >-
+              A convex optimization problem minimizes a convex objective
+              subject to convex inequality constraints and affine equality
+              constraints.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Problem classes"
+        subsections:
+          - id: lp_qp_socp_sdp
+            title: "LP, QP, SOCP, and SDP"
+            summary: >-
+              The hierarchy LP ⊆ QP ⊆ SOCP ⊆ SDP partitions convex programs
+              by the structure of their cone constraints.
+            tags: [conceptual, structural]
+  - number: 5
+    title: "Duality"
+    sections:
+      - number: 1
+        title: "Lagrange duality"
+        subsections:
+          - id: lagrangian_dual
+            title: "Lagrangian and the dual function"
+            summary: >-
+              The Lagrangian aggregates objective and constraints with
+              multipliers; minimizing over the primal yields the dual
+              function, a concave lower bound on the primal optimum.
+            tags: [conceptual, theorem, computational]
+          - id: strong_duality_slater
+            title: "Strong duality and Slater's condition"
+            summary: >-
+              Strong duality (zero duality gap) holds for convex problems
+              under Slater's condition — strict feasibility of the
+              inequality constraints.
+            tags: [conceptual, theorem]
+      - number: 2
+        title: "Optimality conditions"
+        subsections:
+          - id: kkt_conditions
+            title: "Karush-Kuhn-Tucker conditions"
+            summary: >-
+              The KKT conditions — primal/dual feasibility, complementary
+              slackness, and stationarity — characterize optimality for
+              convex problems satisfying constraint qualification.
+            tags: [computational, closed_form_candidate, theorem]
+  - number: 9
+    title: "Unconstrained minimization"
+    sections:
+      - number: 1
+        title: "Descent methods"
+        subsections:
+          - id: gradient_descent_basics
+            title: "Gradient descent step rules"
+            summary: >-
+              Gradient descent updates the iterate against the gradient with
+              a step size chosen by exact, backtracking, or constant rules;
+              convergence depends on smoothness and convexity assumptions.
+            tags: [computational, algorithmic]
+          - id: newton_method
+            title: "Newton's method"
+            summary: >-
+              Newton's method scales the gradient by the inverse Hessian and
+              achieves quadratic local convergence near a strict local
+              minimum.
+            tags: [computational, algorithmic, closed_form_candidate]

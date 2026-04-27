@@ -1,0 +1,91 @@
+questions:
+- id: q1
+  prompt: 'When a bond is issued at a price above its face value, the difference between
+    the issue price and the face value is called what?
+
+    '
+  expected: bond premium
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Under the effective-interest method, the bond interest expense for a period
+    is calculated by multiplying which rate by the carrying value of the bond at the
+    beginning of the period?
+
+    '
+  expected: market (effective) interest rate
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A $100,000 face-value bond is issued at 97, meaning the issue price is
+    $97,000. What is the amount of the bond discount at issuance? Return only the
+    number.
+
+    '
+  expected: 3000
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Under the straight-line method of amortization, a $6,000 bond premium on
+    a 5-year bond with semiannual interest payments is amortized equally each period.
+    What is the premium amortization amount per period? Return only the number.
+
+    '
+  expected: 600
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'When a bond discount is amortized, what happens to the carrying value of
+    the bond over the life of the bond?
+
+    '
+  expected: carrying value increases toward face value
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A $200,000 face-value bond has a stated annual coupon rate of 6% and pays
+    interest semiannually. The market rate at issuance is 8% per year. Using the effective-interest
+    method, the carrying value at the start of the first period is $172,821. What
+    is the bond interest expense for the first semiannual period? Return only the
+    number.
+
+    '
+  expected: 6912.84
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'For the bond in q6 (carrying value $172,821, market rate 8% annually, 6%
+    coupon on $200,000 face, semiannual payments), what is the cash interest paid
+    in the first semiannual period? Return only the number.
+
+    '
+  expected: 6000
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'Using the answers from q6 and q7, what is the discount amortization for
+    the first semiannual period under the effective-interest method? Return only the
+    number.
+
+    '
+  expected: 912.84
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'When a bond premium is amortized under the effective-interest method, how
+    does the periodic bond interest expense compare to the cash interest paid each
+    period?
+
+    '
+  expected: interest expense is less than cash interest paid
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'A $50,000 face-value bond is issued at 104 (issue price $52,000) with a
+    4-year term and annual interest payments. Using the straight-line method, what
+    is the annual premium amortization amount? Return only the number.
+
+    '
+  expected: 500
+  kind: computational
+  answer_match: numeric

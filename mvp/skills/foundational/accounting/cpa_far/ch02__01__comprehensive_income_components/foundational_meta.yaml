@@ -1,0 +1,19 @@
+branch: accounting
+book_id: cpa_far
+chapter: 2
+section: 1
+subsection: comprehensive_income_components
+title: Net income vs. other comprehensive income
+prereqs:
+- fnd_accounting_cpa_far_ch01_02_gaap_hierarchy
+code_artifacts:
+- __init__.py
+- comprehensive_income_components.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 0
+  partial_correct: 0
+  qualitative_correct: 6
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 9
+filter_mode: live
+filter_pass_rate: 0.5

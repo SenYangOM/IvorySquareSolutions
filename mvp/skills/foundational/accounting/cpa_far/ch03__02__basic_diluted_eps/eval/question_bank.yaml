@@ -1,0 +1,90 @@
+questions:
+- id: q1
+  prompt: 'What is the key difference between basic EPS and diluted EPS in terms of
+    the shares used in the denominator?
+
+    '
+  expected: diluted EPS includes potential common shares from dilutive securities
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'A company reports net income of $500,000, pays $50,000 in preferred dividends,
+    and has 225,000 weighted-average common shares outstanding. Calculate basic EPS.
+    Return only the number.
+
+    '
+  expected: 2.0
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: 'Under the treasury stock method, what is assumed to happen with the proceeds
+    received from the exercise of dilutive stock options?
+
+    '
+  expected: proceeds are used to repurchase common shares at the average market price
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A company has net income of $800,000, no preferred dividends, and 400,000
+    weighted-average common shares. It also has 40,000 dilutive options with an exercise
+    price of $10 and an average market price of $20. Using the treasury stock method,
+    calculate diluted EPS. Return only the number.
+
+    '
+  expected: 1.9
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'Which type of security is considered antidilutive, and how should it be
+    treated when computing diluted EPS?
+
+    '
+  expected: antidilutive securities increase EPS and must be excluded from diluted
+    EPS
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A company has net income of $1,200,000 and 600,000 weighted-average common
+    shares outstanding. It has convertible bonds that, if converted, would add $60,000
+    of after-tax interest savings and 30,000 additional shares. Calculate diluted
+    EPS. Return only the number.
+
+    '
+  expected: 1.97
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'When computing the weighted-average shares outstanding for basic EPS, how
+    are shares issued during the year weighted?
+
+    '
+  expected: shares are weighted by the fraction of the year they were outstanding
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'A company has 300,000 shares outstanding at January 1. On July 1 it issues
+    60,000 new shares. Net income is $720,000 with no preferred dividends. Calculate
+    basic EPS for the year. Return only the number.
+
+    '
+  expected: 2.18
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'How does a stock split affect the weighted-average shares outstanding used
+    in the EPS calculation for the current period?
+
+    '
+  expected: shares are retroactively restated as if the split occurred at the beginning
+    of the period
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'A company reports net income of $900,000 and pays $100,000 in cumulative
+    preferred dividends (whether declared or not). Weighted- average common shares
+    are 400,000. Calculate basic EPS. Return only the number.
+
+    '
+  expected: 2.0
+  kind: computational
+  answer_match: numeric

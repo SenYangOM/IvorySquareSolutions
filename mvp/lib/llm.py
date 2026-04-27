@@ -79,10 +79,15 @@ class LlmClient:
         *,
         api_key: str | None = None,
         cache_dir: Path | None = None,
+        thinking_budget_tokens: int | None = None,
     ) -> None:
         self._model = model
         self._api_key = api_key if api_key is not None else os.environ.get("ANTHROPIC_API_KEY")
         self._cache_dir = Path(cache_dir) if cache_dir is not None else None
+        # When set, the wrapper enables extended thinking on every call by
+        # passing thinking={"type": "enabled", "budget_tokens": <budget>}
+        # to ``messages.create``. ``None`` means thinking is disabled.
+        self._thinking_budget_tokens = thinking_budget_tokens
         # Lazy SDK client so cache-only usage works without a key.
         self._sdk: anthropic.Anthropic | None = None
 
@@ -141,16 +146,28 @@ class LlmClient:
 
         attempts = 0
         last_exc: Exception | None = None
+        # Build call kwargs. When extended thinking is enabled the
+        # Anthropic API requires temperature=1.0 (any other value is
+        # rejected); we silently coerce so callers don't need to know
+        # the constraint.
+        create_kwargs: dict[str, Any] = {
+            "model": self._model,
+            "system": system,
+            "messages": messages,
+            "max_tokens": max_tokens,
+        }
+        if self._thinking_budget_tokens is not None:
+            create_kwargs["thinking"] = {
+                "type": "enabled",
+                "budget_tokens": int(self._thinking_budget_tokens),
+            }
+            create_kwargs["temperature"] = 1.0
+        else:
+            create_kwargs["temperature"] = temperature
         while attempts < 2:
             attempts += 1
             try:
-                resp = sdk.messages.create(
-                    model=self._model,
-                    system=system,
-                    messages=messages,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
-                )
+                resp = sdk.messages.create(**create_kwargs)
             except anthropic.AuthenticationError as exc:
                 # Never retry an auth error — re-raise as MissingApiKey so
                 # the skill boundary maps it to error_category=auth.
@@ -195,14 +212,19 @@ class LlmClient:
         temperature: float,
         max_tokens: int,
     ) -> str:
+        payload_dict: dict[str, Any] = {
+            "model": self._model,
+            "system": system,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+        }
+        if self._thinking_budget_tokens is not None:
+            payload_dict["thinking_budget_tokens"] = int(
+                self._thinking_budget_tokens
+            )
         payload = json.dumps(
-            {
-                "model": self._model,
-                "system": system,
-                "messages": messages,
-                "temperature": temperature,
-                "max_tokens": max_tokens,
-            },
+            payload_dict,
             sort_keys=True,
             ensure_ascii=False,
             separators=(",", ":"),

@@ -1,0 +1,20 @@
+branch: finance
+book_id: cfa_l1_fsa
+chapter: 6
+section: 1
+subsection: profitability_ratios
+title: Gross, operating, and net margin
+prereqs:
+- fnd_finance_cfa_l1_fsa_ch02_01_income_statement_structure
+- fnd_finance_cfa_l1_fsa_ch05_02_working_capital_accruals
+code_artifacts:
+- __init__.py
+- profitability.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 24
+  partial_correct: 0
+  qualitative_correct: 2
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.74

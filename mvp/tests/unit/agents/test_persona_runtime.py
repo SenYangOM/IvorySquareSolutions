@@ -141,11 +141,14 @@ def test_runtime_call_cache_hit_returns_response(
     # from (model, system, messages, temperature, max_tokens).
     persona = load_persona("test_persona", human_layer_root=persona_dir)
     client = LlmClient(model=persona.model, cache_dir=cache_dir)
+    # NOTE: the runtime's default max_tokens is 12000 (raised from 4000
+    # to give thinking-enabled personas headroom for long generations);
+    # keep the cache-key derivation in sync so the cache hit lands.
     key = client._derive_key(
         persona.system_prompt,
         [{"role": "user", "content": "hello"}],
         0.0,
-        4000,
+        12000,
     )
     cache_dir.mkdir(parents=True, exist_ok=True)
     (cache_dir / f"{key}.json").write_text(
@@ -222,7 +225,7 @@ def test_runtime_audit_log_idempotent_for_same_inputs(
         persona.system_prompt,
         [{"role": "user", "content": "x"}],
         0.0,
-        4000,
+        12000,
     )
     cache_dir.mkdir(parents=True, exist_ok=True)
     (cache_dir / f"{key}.json").write_text(
@@ -244,8 +247,8 @@ def test_runtime_audit_log_idempotent_for_same_inputs(
 @pytest.mark.parametrize(
     "persona_id,expected_model",
     [
-        ("accounting_expert", "claude-opus-4-7"),
-        ("quant_finance_methodologist", "claude-opus-4-7"),
+        ("accounting_expert", "claude-sonnet-4-6"),
+        ("quant_finance_methodologist", "claude-sonnet-4-6"),
         ("evaluation_agent", "claude-sonnet-4-6"),
         ("citation_auditor", "claude-sonnet-4-6"),
     ],

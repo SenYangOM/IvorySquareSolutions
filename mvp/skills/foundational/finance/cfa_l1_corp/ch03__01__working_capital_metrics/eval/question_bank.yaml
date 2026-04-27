@@ -1,0 +1,86 @@
+questions:
+- id: q1
+  prompt: 'The cash conversion cycle (CCC) measures the number of days a company''s
+    cash is tied up in the operating cycle. Write the formula for CCC using Days of
+    Inventory Outstanding (DIO), Days of Sales Outstanding (DSO), and Days of Payables
+    Outstanding (DPO).
+
+    '
+  expected: CCC = DIO + DSO - DPO
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'A company has DIO of 45 days, DSO of 30 days, and DPO of 25 days. Calculate
+    the cash conversion cycle in days. Return only the number.
+
+    '
+  expected: 50
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: 'All else equal, what does a shorter cash conversion cycle generally indicate
+    about a company''s liquidity and operational efficiency?
+
+    '
+  expected: greater liquidity and more efficient working capital management
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'Days of Inventory Outstanding (DIO) is calculated as inventory divided
+    by which denominator, multiplied by 365? Provide the denominator term.
+
+    '
+  expected: cost of goods sold
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'A firm reports annual revenue of $730,000 and average accounts receivable
+    of $73,000. Calculate Days of Sales Outstanding (DSO) assuming 365 days per year.
+    Return only the number.
+
+    '
+  expected: 36.5
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'A company has cost of goods sold of $1,460,000 and average accounts payable
+    of $80,000. Calculate Days of Payables Outstanding (DPO) using 365 days per year.
+    Return only the number.
+
+    '
+  expected: 20
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'If a company negotiates longer payment terms with its suppliers, what directional
+    effect does this have on the cash conversion cycle?
+
+    '
+  expected: decreases the cash conversion cycle
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'A retailer has average inventory of $200,000 and cost of goods sold of
+    $1,000,000 for the year. Calculate Days of Inventory Outstanding (DIO) using 365
+    days. Return only the number.
+
+    '
+  expected: 73
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'Using the following data, calculate the cash conversion cycle (CCC) in
+    days. Return only the number. DIO = 60 days, DSO = 40 days, DPO = 35 days.
+
+    '
+  expected: 65
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'In the context of the cash conversion cycle, what does a negative CCC value
+    indicate about a company''s working capital position?
+
+    '
+  expected: company collects cash before paying suppliers
+  kind: conceptual
+  answer_match: substring

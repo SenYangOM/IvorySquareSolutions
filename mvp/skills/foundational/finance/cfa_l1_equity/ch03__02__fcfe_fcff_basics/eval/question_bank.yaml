@@ -1,0 +1,84 @@
+questions:
+- id: q1
+  prompt: 'Define Free Cash Flow to the Firm (FCFF). Your answer should identify what
+    cash flow it represents and to whom it is available.
+
+    '
+  expected: cash flow available to all capital providers after operating expenses
+    and investments
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Define Free Cash Flow to Equity (FCFE). Your answer should identify what
+    cash flow it represents and to whom it is available.
+
+    '
+  expected: cash flow available to common equity holders after debt obligations
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: "Starting from net income, which of the following is the correct formula\
+    \ for FCFE? (a) Net Income + Depreciation \u2013 \u0394Working Capital \u2013\
+    \ CapEx + Net Borrowing, or (b) Net Income + Depreciation \u2013 \u0394Working\
+    \ Capital \u2013 CapEx \u2013 Net Borrowing?\n"
+  expected: "Net Income + Depreciation \u2013 \u0394Working Capital \u2013 CapEx +\
+    \ Net Borrowing"
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'A firm has EBIT of $500, tax rate of 30%, depreciation of $80, capital
+    expenditures of $120, and an increase in net working capital of $40. Calculate
+    FCFF. Return only the number.
+
+    '
+  expected: 270
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'A firm reports FCFF of $300, interest expense of $50, tax rate of 40%,
+    and net borrowing of $60. Calculate FCFE. Return only the number.
+
+    '
+  expected: 330
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'Explain the relationship between FCFF and FCFE for a firm with no debt.
+
+    '
+  expected: FCFF equals FCFE when the firm has no debt
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'A company has net income of $200, depreciation of $50, capital expenditures
+    of $80, increase in working capital of $20, and net borrowing of $30. Calculate
+    FCFE. Return only the number.
+
+    '
+  expected: 180
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: 'In the FCFF formula starting from net income, why is after-tax interest
+    expense added back?
+
+    '
+  expected: interest is a payment to debt holders and FCFF is available to all capital
+    providers
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A firm has FCFF of $400, interest expense of $60, tax rate of 25%, and
+    net borrowing of $0. Calculate FCFE. Return only the number.
+
+    '
+  expected: 355
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: "Which free cash flow measure\u2014FCFF or FCFE\u2014is more appropriate\
+    \ to use when a firm's capital structure is expected to change significantly over\
+    \ the forecast period, and why?\n"
+  expected: FCFF is preferred because it is unaffected by changes in capital structure
+  kind: conceptual
+  answer_match: substring

@@ -1,0 +1,85 @@
+questions:
+- id: q1
+  prompt: 'What does the weighted average cost of capital (WACC) represent in corporate
+    finance?
+
+    '
+  expected: the blended required return on all of a firm's capital sources
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'A firm has 40% debt and 60% equity in its capital structure. The pre-tax
+    cost of debt is 8%, the corporate tax rate is 25%, and the cost of equity is 12%.
+    Calculate the WACC. Return only the number (as a percentage rounded to two decimal
+    places).
+
+    '
+  expected: 9.6
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: "Why is the cost of debt adjusted by the factor (1 \u2212 tax rate) when\
+    \ computing WACC?\n"
+  expected: interest expense is tax-deductible, creating a tax shield
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'Which component of WACC is typically the most difficult to estimate directly,
+    and why?
+
+    '
+  expected: cost of equity, because it is not directly observable
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'A company has total capital of $500 million: $200 million in debt and $300
+    million in equity. The after-tax cost of debt is 5% and the cost of equity is
+    14%. Calculate the WACC. Return only the number (as a percentage rounded to two
+    decimal places).
+
+    '
+  expected: 10.4
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'In the WACC formula, what weights should theoretically be used for each
+    capital component?
+
+    '
+  expected: market value weights, not book value weights
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: 'A firm''s WACC is 10%. A proposed project has an expected return of 8%.
+    Based solely on WACC analysis, should the firm accept or reject the project?
+
+    '
+  expected: reject
+  kind: conceptual
+  answer_match: exact
+- id: q8
+  prompt: 'A firm has three capital sources: debt (weight 30%, after-tax cost 4%),
+    preferred stock (weight 10%, cost 7%), and common equity (weight 60%, cost 13%).
+    Calculate the WACC. Return only the number (as a percentage rounded to two decimal
+    places).
+
+    '
+  expected: 9.7
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: 'What is the marginal cost of capital (MCC), and how does it relate to WACC?
+
+    '
+  expected: the cost of obtaining one additional dollar of new capital
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'A firm has a pre-tax cost of debt of 10% and a corporate tax rate of 30%.
+    What is the after-tax cost of debt used in the WACC calculation? Return only the
+    number (as a percentage).
+
+    '
+  expected: 7.0
+  kind: computational
+  answer_match: numeric

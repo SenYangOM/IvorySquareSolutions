@@ -1,0 +1,1 @@
+"""Depreciation methods reference implementation."""

@@ -295,3 +295,72 @@ Workshop content is team-owned and intentionally looser:
 ### 13.5 Why this is separate from §1
 
 The MVP is defined by what a user gets. Workshop is defined by how the team works. Gating MVP-done on team-tool completeness would delay shipping and miss the point — team tools earn their keep by saving the *next* engineer time, which requires MVP-shipping first to know what was actually tedious.
+
+---
+
+## 14. Deep paper-to-skill pipeline (post-MVP, Workstream A)
+
+The post-MVP `workshop/paper_to_skill/orchestrator.py` runs an
+LLM-orchestrated six-stage pipeline (A1 Extract → A2 Digest → A3
+Implementation → A4 Unit-test authoring → A5 Replication harness →
+A6 Verification + persona review) with explicit per-stage budgets and
+persona-review gates. Acceptance gates for one paper through the deep
+pipeline:
+
+### 14.1 Stage budgets
+
+Per-paper target ≈ 5M tokens, distributed across stages:
+
+| Stage | Driver persona | Gate persona | Target tokens |
+|---|---|---|---:|
+| A1_extract | quant_finance_methodologist (deterministic + review) | quant_finance_methodologist | 500_000 |
+| A2_digest | quant_finance_methodologist | accounting_expert | 1_000_000 |
+| A3_implementation | quant_finance_methodologist | accounting_expert | 1_000_000 |
+| A4_unit_tests | evaluation_agent | evaluation_agent | 500_000 |
+| A5_replication | quant_finance_methodologist | evaluation_agent | 500_000 |
+| A6_verification | citation_auditor + accounting_expert + evaluation_agent | evaluation_agent | 1_500_000 |
+
+Each stage's actual spend is logged via
+`mvp.lib.cost_tracking.track_cost` to
+`mvp/agents/cost_log/<run_id>.jsonl`. The per-stage budget is satisfied
+when actual spend lands within ±20% of the target, OR the deviation
+is documented in the run report's `revisions_needed` block.
+
+### 14.2 Per-paper acceptance gates
+
+A run on one paper is accepted when **all** of:
+
+- The pipeline's terminal verdict is `go` or `complete` (no
+  `block` was emitted by any persona gate).
+- Every stage's spend is within ±20% of its target.
+- For paper-derived skills with worked examples, the A5 replication
+  reproduces every reported worked example within ±0.05 on the
+  headline scalar and ±2% on each component, OR documents the
+  deviation in `implementation_decisions[]`.
+- The A6 citation_auditor's gate verdict is `go` (citation contract
+  is intact, locator_format matches the catalog convention, every
+  required_per_field rule names a canonical line item).
+- The A6 evaluation_agent emits gold-case YAMLs for the paper's
+  worked examples; each YAML matches
+  `mvp/human_layer/gold_authoring_guide.md`.
+- For `mode='fresh'`, after promotion, `mvp eval` stays green
+  (the §4.2 gates continue to hold for the pre-existing skills, and
+  the new skill's manifest-declared `eval_metrics` all pass).
+
+### 14.3 Calibration-mode contract
+
+A `mode='calibration'` run on an already-onboarded paper additionally
+emits a delta against the shipped artifacts via
+`workshop.paper_to_skill.orchestrator.compare_calibration_outputs`.
+Acceptable deltas:
+
+- The drafted manifest's top-level key set is a superset of the
+  shipped manifest's top-level key set (no required block omitted).
+- The drafted skill.py size is within ±50% of the shipped skill.py
+  size.
+- The drafted `implementation_decisions[]` enumerates at least every
+  decision the shipped manifest already records.
+
+Bigger deltas are acceptable when accompanied by a written
+explanation in the calibration delta report (the report is the
+human-facing artifact; the gates above are the machine-facing ones).

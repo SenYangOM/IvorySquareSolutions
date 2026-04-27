@@ -1,0 +1,63 @@
+questions:
+- id: q1
+  prompt: List the four KKT conditions for a convex problem.
+  expected: primal feasibility, dual feasibility, complementary slackness, stationarity
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: What is the constraint qualification that makes KKT both necessary and sufficient
+    for convex problems?
+  expected: Slater's condition
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: What is the sign restriction on the multiplier mu for an inequality constraint
+    g(x) <= 0?
+  expected: mu >= 0 (nonnegative)
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: State complementary slackness in symbols for one inequality constraint g(x)
+    <= 0 with multiplier mu.
+  expected: mu * g(x) = 0
+  kind: computational
+  answer_match: substring
+- id: q5
+  prompt: 'Solve KKT: minimize x^2 subject to x >= 1. What is x*?'
+  expected: 1
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: For the same problem, what is the multiplier mu* on the constraint x >=
+    1?
+  expected: 2
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: Are KKT conditions necessary and sufficient for general (non-convex) problems?
+    Yes or No.
+  expected: 'no'
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: Compute the KKT stationarity residual for minimize x^2 - 4x at x*=2 with
+    no constraints. Return only the number.
+  expected: 0
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: What does it mean for an inequality constraint g(x) <= 0 to be 'active'
+    at x*?
+  expected: g(x*) = 0 (equality holds)
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: 'Solve KKT: minimize (x-3)^2 subject to x <= 1. What is x*?'
+  expected: 1
+  kind: computational
+  answer_match: numeric
+- id: q11
+  prompt: For the previous problem, what is the multiplier mu* on the constraint?
+  expected: 4
+  kind: computational
+  answer_match: numeric

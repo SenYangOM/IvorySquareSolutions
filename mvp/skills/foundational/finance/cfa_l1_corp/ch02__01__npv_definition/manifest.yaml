@@ -1,0 +1,92 @@
+skill_id: fnd_finance_cfa_l1_corp_ch02_01_npv_definition
+version: 0.1.0
+layer: foundational
+status: alpha
+maintainer_persona: accounting_expert
+description_for_llm: 'Foundational concept skill for cfa_l1_corp chapter 2 section
+  1: Net present value. Materialized because closed_form_determinism. Inputs: a textbook-style
+  query about this subsection. Outputs: a concise concept answer plus a citation to
+  the concept.md surface and (when present) a code reference.'
+materialization_reason: closed_form_determinism
+inputs:
+  type: object
+  additionalProperties: false
+  required:
+  - query
+  properties:
+    query:
+      type: string
+      description: A textbook-style question about the subsection "Net present value"
+        — for example, a definition request, a worked-example computation, or a conceptual
+        check.
+    context:
+      type: string
+      description: Optional surrounding context (e.g., a paper section the foundational
+        concept supports). Free-form.
+outputs:
+  type: object
+  additionalProperties: true
+  required:
+  - answer
+  - concept_path
+  properties:
+    answer:
+      type: string
+      description: Concise concept answer derived from concept.md or, for closed-form-determinism
+        skills, computed by the code/ reference implementation.
+    concept_path:
+      type: string
+      description: Repository-relative path to concept.md for this subsection — the
+        citation surface for the answer.
+    code_artifacts:
+      type: array
+      description: List of files under code/ that implement the deterministic reference.
+        Empty when the skill is markdown-only.
+      items:
+        type: string
+        description: One filename under the code/ directory.
+    warnings:
+      type: array
+      description: Zero or more warnings — e.g., when the query falls outside the
+        concept's scope or a unit is ambiguous.
+      items:
+        type: string
+        description: One warning string.
+citation_contract:
+  required_per_field:
+    answer: answer must cite concept_path; closed-form-determinism skills additionally
+      cite the code/ implementation.
+  hash_algorithm: sha256
+  locator_format: foundational::<branch>/<book_id>/<ch>__<sec>__<subsection>::concept.md
+confidence:
+  computed_from:
+  - bare_llm_pass_rate (0.80; foundational filter snapshot)
+  - deterministic_code_reference (when materialization_reason=closed_form_determinism)
+  calibration_status: uncalibrated_at_mvp
+dependencies:
+  skills: []
+  lib: []
+  rules: []
+evaluation:
+  gold_standard_path: mvp/skills/foundational/finance/cfa_l1_corp/ch02__01__npv_definition/eval/question_bank.yaml
+  eval_metrics:
+  - name: concept_md_resolves
+    target: = 1.00
+  - name: bare_llm_pass_rate_recorded
+    target: = 1.00
+limitations:
+- Bare-LLM pass rate snapshot recorded 0.80 on 12 questions; thresholds 0.85 / 0.95
+  are starting points, not calibrated values.
+- Foundational concept content is paraphrased and IvorySquare-authored; verbatim textbook
+  content is deliberately excluded.
+examples:
+- name: cfa_l1_corp 2.1 — definition probe
+  input:
+    query: 'State the definition or core idea of: Net present value.'
+  notes: Synthesized example for the fnd_finance_cfa_l1_corp_ch02_01_npv_definition
+    foundational skill. Used by the curriculum eval to confirm the concept.md surface
+    is reachable; tighter expectation comes from question_bank.yaml.
+cost_estimate:
+  llm_tokens_per_call: 0
+  external_api_calls: 0
+  typical_latency_ms: 30

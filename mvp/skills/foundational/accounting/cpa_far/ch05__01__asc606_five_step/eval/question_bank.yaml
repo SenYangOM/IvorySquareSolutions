@@ -1,0 +1,93 @@
+questions:
+- id: q1
+  prompt: 'Under ASC 606, what is the first step in the five-step revenue recognition
+    model?
+
+    '
+  expected: identify the contract with a customer
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Under ASC 606, what is the second step in the five-step revenue recognition
+    model?
+
+    '
+  expected: identify the performance obligations in the contract
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: 'A contract contains two distinct performance obligations. The standalone
+    selling prices are $300 for Obligation A and $200 for Obligation B. The total
+    contract price is $400. Using the relative standalone selling price method, how
+    much transaction price is allocated to Obligation A? Return only the number.
+
+    '
+  expected: 240
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: 'Under ASC 606 Step 3, what is the term for the price at which an entity
+    would sell a promised good or service separately to a customer?
+
+    '
+  expected: standalone selling price
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: 'Under ASC 606, revenue is recognized when (or as) an entity satisfies a
+    performance obligation by transferring a promised good or service to a customer.
+    What must be transferred for this condition to be met?
+
+    '
+  expected: control of the good or service
+  kind: conceptual
+  answer_match: substring
+- id: q6
+  prompt: 'A software company sells a license and one year of post-contract support
+    (PCS) for a bundled price of $1,200. The standalone selling price of the license
+    is $900 and the PCS is $300. How much revenue is allocated to the PCS? Return
+    only the number.
+
+    '
+  expected: 300
+  kind: computational
+  answer_match: numeric
+- id: q7
+  prompt: 'Under ASC 606 Step 4, which two methods are explicitly permitted for estimating
+    variable consideration when it cannot be observed directly?
+
+    '
+  expected: expected value and most likely amount
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'Under ASC 606, a performance obligation is satisfied over time if one of
+    three criteria is met. Which criterion relates to an asset with no alternative
+    use to the entity and the entity having an enforceable right to payment for performance
+    completed to date?
+
+    '
+  expected: no alternative use and right to payment
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'An entity enters a contract for $500,000 to build a customized asset over
+    two years. By year-end, 40% of the performance obligation has been satisfied using
+    the input method. How much revenue should be recognized in year one? Return only
+    the number.
+
+    '
+  expected: 200000
+  kind: computational
+  answer_match: numeric
+- id: q10
+  prompt: 'Under ASC 606 Step 1, which of the following is NOT a required criterion
+    for a contract to exist: (a) the parties have approved the contract, (b) each
+    party''s rights regarding goods or services are identifiable, (c) the contract
+    must be in written form, or (d) it is probable the entity will collect substantially
+    all of the consideration?
+
+    '
+  expected: the contract must be in written form
+  kind: conceptual
+  answer_match: substring

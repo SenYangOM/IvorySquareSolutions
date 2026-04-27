@@ -1,0 +1,107 @@
+book_id: cfa_l1_equity
+branch: finance
+title: "CFA Level 1 — Equity Investments"
+authors: "CFA Institute curriculum (outline only)"
+license_note: >-
+  CFA outline structure only; subsection summaries are
+  IvorySquare-authored paraphrases.
+
+chapters:
+  - number: 1
+    title: "Equity markets and instruments"
+    sections:
+      - number: 1
+        title: "Market structures"
+        subsections:
+          - id: market_organization
+            title: "Equity market organization and roles"
+            summary: >-
+              Primary markets channel new issuance; secondary markets
+              provide liquidity and price discovery; intermediaries match
+              orders, finance positions, and clear trades.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Equity instruments"
+        subsections:
+          - id: equity_instrument_types
+            title: "Common, preferred, and depositary instruments"
+            summary: >-
+              Common equity carries voting rights and a residual claim;
+              preferred shares trade voting for fixed dividends; depositary
+              receipts wrap foreign equity for domestic investors.
+            tags: [conceptual, definitional]
+  - number: 2
+    title: "Equity valuation: introduction"
+    sections:
+      - number: 1
+        title: "Intrinsic value vs. price"
+        subsections:
+          - id: intrinsic_value_definition
+            title: "Intrinsic value vs. market price"
+            summary: >-
+              Intrinsic value is the present value of expected future cash
+              flows discounted at the required rate of return; market price
+              may diverge from intrinsic value due to information or
+              behavioral effects.
+            tags: [conceptual, definitional]
+      - number: 2
+        title: "Discount rate"
+        subsections:
+          - id: required_rate_of_return
+            title: "Required rate of return components"
+            summary: >-
+              The required rate of return reflects a real risk-free rate, an
+              inflation premium, and a risk premium tied to the asset's
+              systematic exposure.
+            tags: [conceptual, computational]
+  - number: 3
+    title: "Discounted cash flow valuation"
+    sections:
+      - number: 1
+        title: "Dividend discount models"
+        subsections:
+          - id: ddm_basics
+            title: "Multistage dividend discount model"
+            summary: >-
+              Dividend discount models price equity as the present value of
+              expected dividends; multistage variants combine high-growth
+              and steady-state phases.
+            tags: [computational, closed_form_candidate]
+          - id: gordon_growth_model
+            title: "Gordon growth (constant-growth) model"
+            summary: >-
+              The Gordon model values equity as next-period dividend divided
+              by required return minus constant growth rate, valid only
+              while growth is below the required return.
+            tags: [computational, closed_form_candidate]
+      - number: 2
+        title: "Free cash flow models"
+        subsections:
+          - id: fcfe_fcff_basics
+            title: "Free cash flow to firm and to equity"
+            summary: >-
+              FCFF discounts the firm at the WACC; FCFE discounts the equity
+              at the cost of equity; both link earnings, capex, and working
+              capital changes back to free cash flow.
+            tags: [computational, closed_form_candidate]
+  - number: 4
+    title: "Multiples-based valuation"
+    sections:
+      - number: 1
+        title: "Earnings and book multiples"
+        subsections:
+          - id: pe_pb_multiples
+            title: "P/E and P/B multiples"
+            summary: >-
+              Price-to-earnings and price-to-book multiples relate equity
+              market value to a fundamental anchor (earnings, equity book
+              value); peer comparison drives relative valuation.
+            tags: [computational, closed_form_candidate]
+          - id: ev_ebitda_multiples
+            title: "EV/EBITDA multiple"
+            summary: >-
+              Enterprise value divided by EBITDA scales total firm value by
+              cash-flow-style profitability before non-cash and capital
+              structure effects, supporting cross-capital-structure peer
+              comparison.
+            tags: [computational, closed_form_candidate]

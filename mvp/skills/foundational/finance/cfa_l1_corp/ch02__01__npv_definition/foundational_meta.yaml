@@ -1,0 +1,19 @@
+branch: finance
+book_id: cfa_l1_corp
+chapter: 2
+section: 1
+subsection: npv_definition
+title: Net present value
+prereqs:
+- fnd_finance_cfa_l1_corp_ch01_02_capm_definition
+code_artifacts:
+- __init__.py
+- npv.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 18
+  partial_correct: 0
+  qualitative_correct: 6
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.8

@@ -1,0 +1,56 @@
+questions:
+- id: q1
+  prompt: State the Gordon growth model formula for stock price P_0 in terms of next-period
+    dividend D_1, required return r, and growth rate g.
+  expected: P_0 = D_1 / (r - g)
+  kind: computational
+  answer_match: substring
+- id: q2
+  prompt: Compute the price using the Gordon model when D_1=2, r=10%, g=4%. Return
+    only the number.
+  expected: 33.33
+  kind: computational
+  answer_match: numeric
+- id: q3
+  prompt: Why is the Gordon model invalid when growth rate g >= required return r?
+  expected: denominator becomes zero or negative making the formula explode
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: Compute price with D_0=3, g=5%, r=12%. Return only the number rounded to
+    2 decimals.
+  expected: 45.0
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: If D_1=5, P_0=100, and r=8%, what is the implied growth rate g (in percent)?
+  expected: 3.0
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: List two key assumptions of the Gordon growth model.
+  expected: constant growth rate forever and required return exceeds growth rate
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: Compute price with D_0=2.50, g=6%, r=11%. Return only the number rounded
+    to 2 decimals.
+  expected: 53.0
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: What is the relation between D_0 and D_1 under constant growth?
+  expected: D_1 = D_0 * (1 + g)
+  kind: computational
+  answer_match: substring
+- id: q9
+  prompt: When is a multi-stage dividend discount model preferred over Gordon?
+  expected: growth rate is not constant or there are distinct phases
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: Compute price with D_1=4, r=9%, g=2%. Return only the number rounded to
+    2 decimals.
+  expected: 57.14
+  kind: computational
+  answer_match: numeric

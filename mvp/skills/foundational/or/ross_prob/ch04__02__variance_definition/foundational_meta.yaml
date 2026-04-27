@@ -1,0 +1,19 @@
+branch: or
+book_id: ross_prob
+chapter: 4
+section: 2
+subsection: variance_definition
+title: Variance and standard deviation
+prereqs:
+- fnd_or_ross_prob_ch04_02_expectation_definition
+code_artifacts:
+- __init__.py
+- variance.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 21
+  partial_correct: 0
+  qualitative_correct: 4
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.7727272727272727

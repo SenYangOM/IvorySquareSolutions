@@ -1,0 +1,1 @@
+"""KKT residual reference implementation."""

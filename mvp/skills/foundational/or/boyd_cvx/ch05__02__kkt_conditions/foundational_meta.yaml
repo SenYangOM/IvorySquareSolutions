@@ -1,0 +1,19 @@
+branch: or
+book_id: boyd_cvx
+chapter: 5
+section: 2
+subsection: kkt_conditions
+title: Karush-Kuhn-Tucker conditions
+prereqs:
+- fnd_or_boyd_cvx_ch05_01_strong_duality_slater
+code_artifacts:
+- __init__.py
+- kkt.py
+filter_failure_modes:
+  computational_off_by_arithmetic: 18
+  partial_correct: 0
+  qualitative_correct: 5
+  structural_misunderstanding: 0
+  unit_or_dimension_error: 0
+filter_mode: synthetic
+filter_pass_rate: 0.7909090909090909

@@ -1,0 +1,52 @@
+questions:
+- id: q1
+  prompt: What's the difference between a PMF and a PDF?
+  expected: PMF for discrete variables, PDF for continuous variables
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: Is f(x) (PDF value) a probability for a continuous random variable? Yes
+    or No.
+  expected: 'no'
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: Define the cumulative distribution function (CDF) F(x).
+  expected: P(X <= x)
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: What is F(-infinity) for any CDF?
+  expected: 0
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: What is F(+infinity) for any CDF?
+  expected: 1
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: How do you compute P(X = x) for a continuous random variable?
+  expected: always zero for any single point
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: What property does every CDF satisfy as x increases?
+  expected: nondecreasing
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: How do you compute P(a < X < b) from a PDF f(x)?
+  expected: integral from a to b of f(x) dx
+  kind: computational
+  answer_match: substring
+- id: q9
+  prompt: What integral or sum constraint does any PDF f satisfy?
+  expected: integrates to 1
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: How is the PDF related to the CDF?
+  expected: PDF is the derivative of the CDF
+  kind: conceptual
+  answer_match: substring

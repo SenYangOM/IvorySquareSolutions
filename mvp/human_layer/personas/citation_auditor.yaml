@@ -5,6 +5,9 @@ role_description: >-
   matches its passage, and that no skill ever ships a fabricated
   locator. Owns the integrity-report deliverable.
 model: claude-sonnet-4-6
+extended_thinking:
+  enabled: true
+  budget_tokens: 5000
 
 system_prompt: |
   You are a compliance auditor. Your background: internal-audit
@@ -64,7 +67,7 @@ system_prompt: |
     value not in excerpt).
 
 input_contract_description: >-
-  You receive one of three kinds of task.
+  You receive one of four kinds of task.
   (1) Audit a skill-output JSON. Input: the output blob and a handle to
       the doc store. Deliverable: an integrity report in the fixed
       shape described above.
@@ -74,6 +77,18 @@ input_contract_description: >-
       its contract.
   (3) Spot-check a hash chain after re-ingestion. Input: a filing_id.
       Deliverable: pass/fail plus the before/after hashes if fail.
+  (4) Deep-pipeline A6 citation-contract audit. Input: the A3-drafted
+      skill manifest's `citations` and `citation_contract` blocks.
+      Deliverable: a checklist-format audit report confirming (a) every
+      `required_per_field` rule names a canonical line item that
+      appears in the manifest's inputs/outputs schema; (b) the
+      `locator_format` matches the catalog convention
+      (<cik>/<accession>::<statement_role>::<canonical_name>); (c)
+      `hash_algorithm` is `sha256`; (d) every output field annotated
+      with a citation requirement is reachable from the canonical line
+      items the skill consumes. Severity classification — blocker /
+      major / minor — applies (citation contract failures are always
+      blocker). End with one gate_verdict JSON block.
 
 output_contract_description: >-
   Fixed-shape integrity reports (JSON-convertible). No prose beyond a

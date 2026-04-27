@@ -1,0 +1,73 @@
+questions:
+  - id: q1
+    prompt: "What is the reduced cost of a nonbasic column j in simplex?"
+    expected: "c_j - c_B^T B^{-1} A_j"
+    kind: computational
+    answer_match: substring
+    tags: [definition, computational]
+  - id: q2
+    prompt: "When is a basic feasible solution optimal under the simplex method (minimization)?"
+    expected: "all reduced costs are nonnegative"
+    kind: conceptual
+    answer_match: substring
+    tags: [optimality]
+  - id: q3
+    prompt: "In the minimum-ratio test, what determines the leaving variable?"
+    expected: "smallest ratio of basic variable value over the corresponding positive direction component"
+    kind: conceptual
+    answer_match: substring
+    tags: [pivot]
+  - id: q4
+    prompt: "Why does Bland's rule guarantee termination in the simplex method?"
+    expected: "smallest index entering and leaving variables prevent cycling"
+    kind: conceptual
+    answer_match: substring
+    tags: [termination]
+  - id: q5
+    prompt: "Compute the reduced cost c_bar_x for an LP with c_x = 5 and c_B^T B^{-1} A_x = 7. Return the number."
+    expected: -2
+    kind: computational
+    answer_match: numeric
+    tags: [computation]
+  - id: q6
+    prompt: "What does it mean if all components of the direction d = B^{-1} A_q are nonpositive?"
+    expected: "the LP is unbounded along that edge"
+    kind: conceptual
+    answer_match: substring
+    tags: [unboundedness]
+  - id: q7
+    prompt: "Compute the minimum ratio for the simplex leaving rule when x_B = (4, 6, 8) and direction d = (1, 2, 4). Return only the number."
+    expected: 2
+    kind: computational
+    answer_match: numeric
+    tags: [computation]
+  - id: q8
+    prompt: "What is a basic feasible solution (BFS)?"
+    expected: "feasible solution where exactly m variables are basic and the rest are zero"
+    kind: conceptual
+    answer_match: substring
+    tags: [definition]
+  - id: q9
+    prompt: "If c_B = (1, 2), B^{-1} = [[1, 0], [0, 1]] (identity), and A_q = (3, 4), what is c_B^T B^{-1} A_q?"
+    expected: 11
+    kind: computational
+    answer_match: numeric
+    tags: [computation]
+  - id: q10
+    prompt: "Which simplex variant — Dantzig's rule or Bland's rule — is faster per step in practice?"
+    expected: "Dantzig"
+    kind: conceptual
+    answer_match: substring
+    tags: [comparison]
+  - id: q11
+    prompt: "In an LP with 3 constraints and 5 variables, how many basic variables are in any BFS?"
+    expected: 3
+    kind: computational
+    answer_match: numeric
+    tags: [structural]
+  - id: q12
+    prompt: "Compute the reduced cost when c_q = 2, c_B = (3, 1), B^{-1} A_q = (1, -1)."
+    expected: 0
+    kind: computational
+    answer_match: numeric
+    tags: [computation]

@@ -1,0 +1,64 @@
+questions:
+- id: q1
+  prompt: What term describes the minimum rate of return a company must earn on its
+    investments to satisfy all of its capital providers?
+  expected: cost of capital
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: Which three broad sources of capital are typically included when computing
+    a firm's weighted average cost of capital (WACC)?
+  expected: debt, preferred equity, and common equity
+  kind: conceptual
+  answer_match: substring
+- id: q3
+  prompt: A firm has a pre-tax cost of debt of 8% and a marginal tax rate of 25%.
+    What is the after-tax cost of debt? Return only the number.
+  expected: 6.0
+  kind: computational
+  answer_match: numeric
+- id: q4
+  prompt: Why is the after-tax cost of debt lower than the pre-tax cost of debt for
+    a profitable, tax-paying firm?
+  expected: interest payments are tax-deductible
+  kind: conceptual
+  answer_match: substring
+- id: q5
+  prompt: A company's preferred stock pays an annual dividend of $5 and has a current
+    market price of $50. What is the cost of preferred equity as a percentage? Return
+    only the number.
+  expected: 10.0
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: Using the Capital Asset Pricing Model (CAPM), what three inputs are required
+    to estimate the cost of common equity?
+  expected: risk-free rate, equity risk premium, and beta
+  kind: conceptual
+  answer_match: substring
+- id: q7
+  prompt: A stock has a beta of 1.2, the risk-free rate is 3%, and the equity risk
+    premium is 6%. Using CAPM, what is the cost of common equity? Return only the
+    number.
+  expected: 10.2
+  kind: computational
+  answer_match: numeric
+- id: q8
+  prompt: A firm is financed with 40% debt (after-tax cost 5%), 10% preferred equity
+    (cost 8%), and 50% common equity (cost 12%). What is the WACC? Return only the
+    number.
+  expected: 8.8
+  kind: computational
+  answer_match: numeric
+- id: q9
+  prompt: "In the context of WACC, what weights should theoretically be used for each\
+    \ capital component\u2014book value weights or market value weights?"
+  expected: market value weights
+  kind: conceptual
+  answer_match: substring
+- id: q10
+  prompt: What is the term for the cost associated with using retained earnings as
+    a source of equity financing, reflecting the opportunity cost to existing shareholders?
+  expected: cost of retained earnings
+  kind: conceptual
+  answer_match: substring

@@ -1,0 +1,91 @@
+questions:
+- id: q1
+  prompt: 'Under ASC 842, what are the two classifications available to a lessee for
+    a lease? Name both.
+
+    '
+  expected: finance lease and operating lease
+  kind: conceptual
+  answer_match: substring
+- id: q2
+  prompt: 'Under ASC 842, a lessee classifies a lease as a finance lease if the lease
+    transfers ownership of the underlying asset to the lessee by the end of the lease
+    term. True or False?
+
+    '
+  expected: 'True'
+  kind: conceptual
+  answer_match: exact
+- id: q3
+  prompt: 'Under ASC 842, which criterion classifies a lease as a finance lease when
+    the lessee has an option to purchase the underlying asset that it is reasonably
+    certain to exercise?
+
+    '
+  expected: purchase option reasonably certain to exercise
+  kind: conceptual
+  answer_match: substring
+- id: q4
+  prompt: 'Under ASC 842, a lease is classified as a finance lease if the lease term
+    is for the major part of the remaining economic life of the underlying asset.
+    The bright-line threshold commonly used in practice for "major part" is what percentage?
+    Return only the number.
+
+    '
+  expected: 75
+  kind: computational
+  answer_match: numeric
+- id: q5
+  prompt: 'Under ASC 842, a lease is classified as a finance lease if the present
+    value of lease payments equals or exceeds substantially all of the fair value
+    of the underlying asset. The bright-line threshold commonly used in practice for
+    "substantially all" is what percentage? Return only the number.
+
+    '
+  expected: 90
+  kind: computational
+  answer_match: numeric
+- id: q6
+  prompt: 'A lessee signs a 5-year lease on equipment with a remaining economic life
+    of 6 years. Using the 75% bright-line threshold, does the lease term criterion
+    for finance lease classification appear to be met? Answer Yes or No.
+
+    '
+  expected: 'Yes'
+  kind: computational
+  answer_match: exact
+- id: q7
+  prompt: 'Under ASC 842, for a finance lease, how does a lessee recognize interest
+    expense on the lease liability over the lease term?
+
+    '
+  expected: using the effective interest method
+  kind: conceptual
+  answer_match: substring
+- id: q8
+  prompt: 'Under ASC 842, for an operating lease, how is total lease cost generally
+    recognized in the income statement over the lease term?
+
+    '
+  expected: on a straight-line basis
+  kind: conceptual
+  answer_match: substring
+- id: q9
+  prompt: 'A lessee leases equipment with a fair value of $100,000. The present value
+    of the lease payments is $91,000. Using the 90% bright-line threshold for "substantially
+    all," should this lease be classified as a finance lease based solely on this
+    criterion? Answer Yes or No.
+
+    '
+  expected: 'Yes'
+  kind: computational
+  answer_match: exact
+- id: q10
+  prompt: 'Under ASC 842, which of the five finance lease classification criteria
+    applies when the underlying asset is so specialized that it is expected to have
+    no alternative use to the lessor at the end of the lease term?
+
+    '
+  expected: specialized nature with no alternative use to the lessor
+  kind: conceptual
+  answer_match: substring
